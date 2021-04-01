@@ -1,0 +1,35 @@
+<guide>
+	<layer name="00UIHosts">
+		<system name="UIArms" location="M" type="basic"/>
+		<system name="UILegs" location="M" type="basic"/>
+		<system name="UISpine" location="M" type="basic"/>
+		<system name="UINeck" location="M" type="basic"/>
+	</layer>
+	<layer name="01Skeleton">
+		<system name="COM" location="M" type="basic"/>
+		<system name="COMB" location="M" type="basic"/>
+		<system name="Spine" location="M" type="spine"/>
+		<system name="Neck" location="M" type="neck"/>
+		<system name="Clavicle" location="X" type="chain"/>
+		<system name="Arm" location="X" type="arm"/>
+		<system name="Leg" location="X" type="leg"/>
+		<layer name="Fingers">
+			<system name="Meta" location="X" type="meta"/>
+			<system name="Finger1" location="X" type="chain"/>
+			<system name="Finger2" location="X" type="chain"/>
+			<system name="Finger3" location="X" type="chain"/>
+			<system name="Finger4" location="X" type="chain"/>
+			<system name="Thumb" location="X" type="chain"/>
+		</layer>
+		<layer name="Face">
+			<system name="Jaw" location="M" type="chain"/>
+			<system name="Eye" location="L" type="lookAt"/>
+			<system name="Eye" location="R" type="lookAt"/>
+			<system name="Eyes" location="M" type="basic"/>
+		</layer>
+	</layer>
+
+</guide>
+
+
+
