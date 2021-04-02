@@ -1,6 +1,6 @@
 
 
-from tools.marbie.systems.systemGuide import SystemGuide
+from brigks.systems.systemGuide import SystemGuide
 
 
 class MetaSystemGuide(SystemGuide):
@@ -26,7 +26,7 @@ class MetaSystemGuide(SystemGuide):
 		super(MetaSystemGuide, self).connectionSlots()
 
 		slots = dict()
-		for i in range(self.count("Part"), start=1):
+		for i in range(1, self.count("Part")+1):
 			slots["Bone{}".format(i)] = ("Ctl", "Part{}".format(i))
 
 		return slots

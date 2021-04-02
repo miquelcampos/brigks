@@ -1,4 +1,19 @@
 
+
+# ----------------------------------------------------------------------------------
+# CONSTANTS
+# ----------------------------------------------------------------------------------
+USAGES = dict(
+	Controller="Ctl",
+	Guide="Gde",
+	Buffer="Bfr",
+	Rig="Rig",
+	Joint="Jnt")
+
+
+# ----------------------------------------------------------------------------------
+# METHODS
+# ----------------------------------------------------------------------------------
 def getSystemKey(location, name):
 	return "{name}_{location}".format(location=location, name=name)
 
@@ -11,9 +26,9 @@ def getObjectName(usage, location, name, part):
 								part=part)
 
 
-def getMarkerName(self, part):
-	return getObjectName()
-	return "Gde_{loc}_{name}_{part}".format(
-			loc=self.settings["location"],
-			name=self.settings["name"],
-			part=part)
+# def getMarkerName(self, part):
+# 	return getObjectName()
+# 	return "Gde_{loc}_{name}_{part}".format(
+# 			loc=self.settings["location"],
+# 			name=self.settings["name"],
+# 			part=part)

@@ -1,6 +1,6 @@
 
 
-from tools.marbie.systems.systemWidget import SystemWidget
+from brigks.systems.systemWidget import SystemWidget
 
 
 class PsdSystemWidget(SystemWidget):

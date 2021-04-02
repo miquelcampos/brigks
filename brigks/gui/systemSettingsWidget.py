@@ -4,8 +4,8 @@ import sip
 from Qt import QtCompat
 from Qt.QtWidgets import QWidget
 
-from tools.marbie.systems import getSystemList, getSystemWidgetClass
-from tools.marbie.gui.connectionWidget import ConnectionWidget
+from brigks.systems import getSystemList, getSystemWidgetClass
+from brigks.gui.connectionWidget import ConnectionWidget
 
 SYSTEM_TYPES = getSystemList()
 SYSTEM_LOCATIONS = ["M", "L", "R", "X"]
@@ -134,7 +134,7 @@ class SystemSettingsWidget(QWidget):
 
 	def deleteConnectionWidget(self, port):
 		# Delete Connection from System
-		self._system.deleteConnection(self._port)
+		self._system.deleteConnection(port)
 		self._system.coreGuide.dumps()
 
 		# Delete Connection Widget

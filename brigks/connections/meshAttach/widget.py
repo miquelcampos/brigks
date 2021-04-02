@@ -1,17 +1,17 @@
 import os.path
 from Qt import QtCompat
 
-from tools.marbie.gui.pickObjectDialog import PickObjectDialog
-from tools.marbie.gui.pickSlotDialog import PickSlotDialog
-from tools.marbie.connections.systemConnectionWidget import SystemConnectionWidget
+from brigks.gui.pickObjectDialog import PickObjectDialog
+from brigks.gui.pickSlotDialog import PickSlotDialog
+from brigks.connections.systemConnectionWidget import SystemConnectionWidget
 
 
 class MeshAttachConnectionWidget(SystemConnectionWidget):
 
 	def __init__(self, connection, system):
 		super(MeshAttachConnectionWidget, self).__init__(connection, system)
-		uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
-		QtCompat.loadUi(uiPath, self)
+		# uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
+		# QtCompat.loadUi(uiPath, self)
 
 		self.uiPickBTN.clicked.connect(self.pickMesh)
 		self.uiClosestBTN.clicked.connect(self.closest)

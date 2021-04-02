@@ -2,7 +2,7 @@ from maya import cmds
 
 from math3d import Vector3
 
-from tools.marbie.systems.systemBuilder import SystemBuilder
+from brigks.systems.systemBuilder import SystemBuilder
 
 class LegSystemBuilder(SystemBuilder):
 

@@ -1,5 +1,5 @@
 
-from tools.marbie.systems.systemGuide import SystemGuide
+from brigks.systems.systemGuide import SystemGuide
 
 
 class LookatSystemGuide(SystemGuide):
@@ -18,10 +18,10 @@ class LookatSystemGuide(SystemGuide):
 		super(LookatSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent"),
-			Target=("parent"),
-			UpVector=("parent"),
-			UI=("parent")
+			Root=("parent", "attachToGeo", "multi", "customParent"),
+			Target=("parent", "attachToGeo", "multi", "customParent"),
+			UpVector=("parent", "attachToGeo", "multi", "customParent"),
+			UI=("parent", "attachToGeo", "multi", "customParent")
 			)
 
 		return ports

@@ -1,12 +1,12 @@
 from maya import cmds
 import dcc.maya.dag.shape.nurbsSurface
-from tools.marbie.connections.systemConnection import SystemConnection
+from brigks.connections.systemConnection import SystemConnection
 
 
-class NurbsParentSystemConnection(SystemConnection):
+class NurbsAttachSystemConnection(SystemConnection):
 
 	def __init__(self):
-		super(NurbsParentSystemConnection, self).__init__()
+		super(NurbsAttachSystemConnection, self).__init__()
 		self.settings = dict(
 			mesh=None,
 			u=.5,

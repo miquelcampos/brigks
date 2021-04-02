@@ -3,13 +3,14 @@ from maya import cmds
 
 from datetime import datetime as dt
 
+from brigks.core import naming
+
 DATA_ATTRIBUTE = "_userProps"
 
 class Builder():
 
 	def __init__(self, guide):
 		self.guide = guide
-
 		self.settings = dict(systems={})
 
 	# ----------------------------------------------------------------------------------
@@ -19,7 +20,6 @@ class Builder():
 		self.buildCore()
 		if not systemGuides:
 			return
-
 
 		start = dt.now()
 		superstart = dt.now()
@@ -93,24 +93,30 @@ class Builder():
 
 
 		# Saving the keys of the systems that have been built
-		self.settings["systems"] = {k:v.guide.settings for k, v in self.systems.iteritems()}
+		newSystemsData = {}
+		for k, v in self.systems.iteritems():
+			newSystemsData[k] = dict(settings=v.settings, attributes=v.attributeNames)
 
+		self.settings["systems"].update(newSystemsData)
 		self.dumps()
 
 		print "DONE", dt.now() - superstart
 
+	def delete(self, systemGuide):
+		pass
+
+	# ----------------------------------------------------------------------------------
+	# 
+	# ----------------------------------------------------------------------------------
 	def buildCore(self):
 		self.model = self._createModel()
-		self.globalCtl = self._createController(self.model, name="Ctl_M_Global_1")
-		self.localCtl = self._createController(self.globalCtl, name="Ctl_M_Local_1")
+		self.globalCtl = self._createController(self.model, part="Global")
+		self.localCtl = self._createController(self.globalCtl, part="Local")
 
 	def dumps(self):
 		data = self.settings
 		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
 
-	# ----------------------------------------------------------------------------------
-	# 
-	# ----------------------------------------------------------------------------------
 	def _createModel(self):
 		connections = cmds.listConnections(self.guide.model+".model", type="transform", destination=False)
 		if connections:
@@ -132,7 +138,9 @@ class Builder():
 		cmds.connectAttr(model+".model", self.guide.model+".model", force=True)
 		return model
 
-	def _createController(self, parent, name):
+	def _createController(self, parent, part):
+		name = naming.getObjectName(naming.USAGES["Controller"], "M", "Root", part)
+
 		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self.model)]
 		if exisiting:
 			controller = cmds.ls(exisiting)[0]

@@ -3,9 +3,11 @@ import copy
 import xml.etree.cElementTree as etree
 import json
 
-from tools.marbie.connections import getSystemConnectionClass
-from tools.marbie.core import naming
-from tools.marbie.systems.systemMarker import SystemMarker, checkMarkersMinMax
+from math3d.transformation import Transformation
+
+from brigks.connections import getSystemConnectionClass
+from brigks.core import naming
+from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
 
 class SystemGuide(object):
@@ -13,6 +15,8 @@ class SystemGuide(object):
 	markerNames = ("Part",)
 	markerPicked = ("Part",)
 	markerMinMax = dict(Part=(1,-1))
+	defaultPositions = {}
+	compatibles = ()
 
 	def __init__(self, layer):
 		self.layer = layer
@@ -23,37 +27,40 @@ class SystemGuide(object):
 					split=False,
 					colorIk=[1,0,0],
 					colorFk=[0,0,1],
-					option1=True,
-					option2=True,
-					option3=True,
-					option4=True,
-					option5=True,
-					option6=True,
-					option7=True,
-					option8=True,
-					option9=True,
-					option10=True,
-					option11=True,
-					option12=True,
-					option13=True,
-					option14=True,
-					option15=True)
+					addJoints=True)
 		self.addSettings()
 
 		self.connections = {}
 		self.coreGuide = self.layer.guide
 
 	@classmethod
-	def create(cls, layer, location, name):
+	def create(cls, layer, location, name, matrices=None):
+		"""Create System Guide
+
+		Args:
+		    systemType (str): Type of system to be create.
+		    location (str): Location of the system (L/R/M/X).
+		    name (str): Name of the system.
+		    version (int): Version of the system (-1 for latest).
+		    matrices (dict of matrix): Matrices are flat lists of coordonate.
+
+		Returns:
+		    SystemGuide: The newly created system.
+		"""
 		system = cls(layer)
 		system.settings["location"] = location
 		system.settings["name"] = name
 
 		# Create Markers
 		parent = system.layer.guide.model
-		for name, x in checkMarkersMinMax({}, system.markerNames, system.markerMinMax):
+		for name, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
+			if matrix is None:
+				position = cls.defaultPositions[name]
+				transform = Transformation.fromParts(translation=position)
+				matrix = transform.asMatrix().tolist()
+				matrix = [j for sub in matrix for j in sub]
 			name = system.getMarkerName(name)
-			SystemMarker.create(name, parent)
+			SystemMarker.create(name, parent, matrix)
 
 		return system
 
@@ -71,6 +78,10 @@ class SystemGuide(object):
 		return system
 
 	def dumps(self):
+		"""
+		Returns:
+		    dictionary: System settings, including connections.
+		"""
 		data = dict(systemType=self.type(),
 					settings=self.settings,
 					connections={slot:cnx.dumps() for slot, cnx in self.connections.iteritems()})
@@ -84,6 +95,7 @@ class SystemGuide(object):
 
 	def type(self):
 		return self.__module__.split(".")[-2]
+
 
 	# ----------------------------------------------------------------------------------
 	# 
@@ -113,7 +125,7 @@ class SystemGuide(object):
 		return leftSystem, rightSystem
 
 	def builder(self, parentBuilder):
-		from tools.marbie.systems import getSystemBuilderClass
+		from brigks.systems import getSystemBuilderClass
 		SystemBuilder = getSystemBuilderClass(self.type())
 		return SystemBuilder(parentBuilder, self)
 
@@ -205,22 +217,38 @@ class SystemGuide(object):
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", {}))
+		# system.settings.update(settings)
+
+		# Markers Transforms
+		xmlMarkers = xmlRoot.findall("Marker")
+		# xmlMarkers = {xmlMarker.get("name"):xmlMarker for xmlMarker in xmlMarkers}
+		matrices = {}
+		for xmlMarker in xmlMarkers:
+			name = xmlMarker.get("name")
+			matrix = json.loads(xmlMarker.get("matrix"))
+			# matrix = [j for sub in matrix for j in sub]
+			matrices[name] = matrix
+
+		name = settings["name"]
+		location = settings["location"]
+
+		# Create the system
+		system = cls.create(layer, location, name, matrices)
 		system.settings.update(settings)
 
-		# Markers
-		xmlMarkers = xmlRoot.findall("Marker")
-		xmlMarkers = {xmlMarker.get("name"):xmlMarker for xmlMarker in xmlMarkers}
-
-		parent = system.layer.guide.model
-		for name, xmlMarker in checkMarkersMinMax(xmlMarkers, system.markerNames, system.markerMinMax):
-			if xmlMarker is not None:
-			 	matrix = json.loads(xmlMarker.get("matrix"))
-			else:
-				print "NotFound", system.key(), system.type(), name, xmlMarkers.keys()
-				matrix = None
-
-			name = system.getMarkerName(name)
-			SystemMarker.create(name, parent, matrix)
+		# parent = system.layer.guide.model
+		# for name, xmlMarker in checkMarkersMinMax(xmlMarkers, system.markerNames, system.markerMinMax):
+		# 	matrix = None
+		# 	if xmlMarker is not None:
+		# 		matrix = xmlMarker.get("matrix")
+		# 		if matrix:
+		# 			matrix = json.loads(matrix)
+		# 			matrix = [j for sub in matrix for j in sub]
+		# 	else:
+		# 		print "NotFound", system.key(), system.type(), name, xmlMarkers.keys()
+				
+		# 	name = system.getMarkerName(name)
+		# 	SystemMarker.create(name, parent, matrix)
 
 		# Connections
 		xmlConnections = xmlRoot.findall("Connection")

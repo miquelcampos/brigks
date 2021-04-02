@@ -4,15 +4,22 @@ import sys
 from dcc.maya.decorators import mayacommand
 import xml.etree.cElementTree as etree
 import json
+import sip
+from Qt.QtWidgets import QDialog, QVBoxLayout, QPushButton, QApplication, QWidget
 
-from Qt.QtWidgets import QDialog, QVBoxLayout, QPushButton, QApplication
-
-from tools.marbie import Guide, Builder
-from tools.marbie.gui.guideTreeWidget import GuideTreeWidget
-from tools.marbie.gui.systemSettingsWidget import SystemSettingsWidget
-from tools.marbie.utils.convert import convertXmlHarbie
+from brigks import Guide, Builder
+from brigks.gui.guideTreeWidget import GuideTreeWidget
+from brigks.gui.systemSettingsWidget import SystemSettingsWidget
+from brigks.utils.convert import convertXmlHarbie
 
 hierarchyXMLPath = os.path.join(os.path.dirname(__file__),"hierarchy_SplitDoubled.xml")
+
+
+def getMayaWindow():
+	import maya.OpenMayaUI as mui
+	ptr = mui.MQtUtil.mainWindow()
+	return sip.wrapinstance(long(ptr), QWidget)
+
 
 
 # TODOS
@@ -132,15 +139,15 @@ def showSystemSettingsWidget(tree):
 
 @mayacommand()
 def showWindow():
-	from tools.marbie.gui.marbieWindow import MarbieWindow
-	window = MarbieWindow()
+	from brigks.gui.marbieWindow import MarbieWindow
+	window = MarbieWindow(getMayaWindow())
 
-	window.exec_()
+	window.show()
 
 
 @mayacommand()
 def showSystemSettings(system):
-	from tools.marbie.gui.systemSettingsWidget import SystemSettingsWidget
+	from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 	widget = SystemSettingsWidget(system)
 
 	dialog = QDialog()

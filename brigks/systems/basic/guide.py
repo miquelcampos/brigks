@@ -1,27 +1,31 @@
 from maya import cmds
 
-from tools.marbie.systems.systemGuide import SystemGuide
+from brigks.systems.systemGuide import SystemGuide
+from math3d.vectorN import Vector3
 
 class BasicSystemGuide(SystemGuide):	
 
 	markerNames = ("Part",)
 	markerMinMax = dict(
-		Part=(1,-1)
+		Part=(1,-1),
+		)
+	defaultPositions = dict(
+		Part1=Vector3([0,1,0]),
 		)
 
 	def addSettings(self):
 		self.settings["addControllers"] = True
 		self.settings["useIkColor"] = False
 
-		self.settings["posx"] = True
-		self.settings["posy"] = True
-		self.settings["posz"] = True
-		self.settings["rotx"] = True
-		self.settings["roty"] = True
-		self.settings["rotz"] = True
-		self.settings["sclx"] = True
-		self.settings["scly"] = True
-		self.settings["sclz"] = True
+		self.settings["tx"] = True
+		self.settings["ty"] = True
+		self.settings["tz"] = True
+		self.settings["rx"] = True
+		self.settings["ry"] = True
+		self.settings["rz"] = True
+		self.settings["sx"] = True
+		self.settings["sy"] = True
+		self.settings["sz"] = True
 		
 		self.settings["rotorder"] = True
 		self.settings["defaultRotationOrder"] = "XYZ"

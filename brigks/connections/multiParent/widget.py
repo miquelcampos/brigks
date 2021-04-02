@@ -1,15 +1,15 @@
 import os.path
-from Qt import QtCompat
+from Qt import QtCompat, QtWidgets
 
-from tools.marbie.connections.systemConnectionWidget import SystemConnectionWidget
+from brigks.connections.systemConnectionWidget import SystemConnectionWidget
 
 
 class MultiParentConnectionWidget(SystemConnectionWidget):
 
 	def __init__(self, connection, system):
 		super(MultiParentConnectionWidget, self).__init__(connection, system)
-		uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
-		QtCompat.loadUi(uiPath, self)
+		# uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
+		# QtCompat.loadUi(uiPath, self)
 
 		self.uiAddBTN.clicked.connect(self.addParent)
 		self.uiUpBTN.clicked.connect(lambda: self.move("up"))
@@ -19,23 +19,23 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 		self.uiDefaultCBOX.currentIndexChanged.connect(self.saveSettings)
 
 	def loadSettings(self):
-		self.self.uiParentsTREE.clear()
+		self.uiParentsTREE.clear()
 		items = []
-		for definition in self.settings["definitions"]:
+		for definition in self._connection.settings["definitions"]:
 			cnxType = definition["type"]
 			if cnxType == "slot":
-				name = "{key}.{slot}".format(definition)
+				name = "{key}.{slot}".format(**definition)
 			elif cnxType == "custom":
-				name = "{parent}".format(definition)
+				name = "{parent}".format(**definition)
 			elif cnxType == "mesh":
-				name = "{mesh}.{componentType}[{componentIndex}] orient={useOrientation}".format(definition)
+				name = "{mesh}.{componentType}[{componentIndex}] orient={useOrientation}".format(**definition)
 			elif cnxType == "nurbs":
-				name = "{mesh}.[{u};{v}]".format(definition)
+				name = "{mesh}.[{u};{v}]".format(**definition)
 
-			self.uiParentsTREE.addTopLevelItem([name])
+			self.uiParentsTREE.addTopLevelItem(QtWidgets.QTreeWidgetItem([name]))
 			items.append(name)
 
-		default = self.settings["default"]
+		default = self._connection.settings["default"]
 		self.uiDefaultCBOX.clear()
 		self.uiDefaultCBOX.addItems(items)
 		self.uiDefaultCBOX.setCurrentIndex(default)

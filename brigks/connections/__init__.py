@@ -12,7 +12,7 @@ def _getClass(connectionType, moduleName, classSuffix):
 	moduleName = ".".join(["tools", "marbie", "connections", connectionType, moduleName])	
 	module = __import__(moduleName, globals(), locals(), ["*"], -1)
 
-	className = connectionType.title()+classSuffix
+	className = connectionType[0].upper()+connectionType[1:]+classSuffix
 	Class = getattr(module, className)
 
 	return Class

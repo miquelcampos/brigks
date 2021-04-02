@@ -1,16 +1,16 @@
 import os.path
 from Qt import QtCompat
 
-from tools.marbie.connections.systemConnectionWidget import SystemConnectionWidget
-from tools.marbie.gui.pickSlotDialog import PickSlotDialog
+from brigks.connections.systemConnectionWidget import SystemConnectionWidget
+from brigks.gui.pickSlotDialog import PickSlotDialog
 
 
 class UiHostConnectionWidget(SystemConnectionWidget):
 
 	def __init__(self, connection, system):
 		super(UiHostConnectionWidget, self).__init__(connection, system)
-		uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
-		QtCompat.loadUi(uiPath, self)
+		# uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
+		# QtCompat.loadUi(uiPath, self)
 
 		self.uiPickReferenceBTN.clicked.connect(lambda: self.pickSlot("Reference"))
 		self.uiPickTrackerBTN.clicked.connect(lambda: self.pickSlot("Tracker"))

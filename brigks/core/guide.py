@@ -12,7 +12,7 @@ class Guide():
 
 	def __init__(self, model=None):
 		self.model = None
-		self.layers = dict()
+		self.layers = dict() 
 		self.settings = dict(characterization="None",
 							version=[1,0,0],
 							defaultScaling=1.0,
@@ -23,6 +23,9 @@ class Guide():
 							motionRigPresets=dict(mocap='default', crowd='default'),
 							motionRigNodes=dict(mocap='', crowd='')
 							)
+
+		# If we pass a model, then we load the settings
+		# Otherwise we create a new Model
 		if model:
 			self.load(model)
 		else:
@@ -46,12 +49,13 @@ class Guide():
 			self.layers[name] = layer
 
 	def dumps(self):
+		# Saves settings to json in the model data attribute
 		data = dict(settings=self.settings,
 					layers={name:layer.dumps() for name, layer in self.layers.iteritems()})
 		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
 
 	# ----------------------------------------------------------------------------------
-	# 
+	# LAYERS, SYSTEMS
 	# ----------------------------------------------------------------------------------
 	def addLayer(self, name):
 		# Making sure the name of the system is unique to the layer
@@ -93,7 +97,7 @@ class Guide():
 		xmlRoot = tree.getroot()
 
 		# Load Settings
-		settings = json.loads(xmlRoot.get("settings", {}))
+		settings = json.loads(xmlRoot.get("settings", "{}"))
 		guide.settings.update(settings)
 
 		# Load Layers

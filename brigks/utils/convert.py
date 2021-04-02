@@ -4,6 +4,8 @@ import datetime
 import xml.etree.cElementTree as etree
 
 #from math3d import Transformation, Quaternion, Vector3
+import math3d.transformation as t
+reload(t)
 from math3d.transformation import Transformation
 from math3d.quaternion import Quaternion
 from math3d.vectorN import Vector3
@@ -291,19 +293,13 @@ def _convertXmlMarker(xmlHarbieMarker, systemType):
 
 
 def _convertTransformToMatrix(translation, rotation, scaling):
+	rotation = rotation[1:] + rotation[:1]
+
 	translation = Vector3(translation)
 	rotation = Quaternion(rotation)
 	scaling = Vector3(scaling)
 
-	transform = Transformation()
-	transform.translation = translation
-	transform.rotation = rotation
-	transform.scaling = scaling
-
-	#matrix = transform.asMatrix()
-	matrix = [1,0,0,0,
-			  0,1,0,0,
-			  0,0,1,0,
-			  0,0,0,1]
+	transform = Transformation.fromParts(translation, rotation, scaling)
+	matrix = transform.asMatrix().flattened()
 
 	return matrix

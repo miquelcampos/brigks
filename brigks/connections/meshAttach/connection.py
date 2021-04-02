@@ -1,6 +1,6 @@
 from maya import cmds
 import dcc.maya.compound
-from tools.marbie.connections.systemConnection import SystemConnection
+from brigks.connections.systemConnection import SystemConnection
 
 
 class MeshAttachSystemConnection(SystemConnection):

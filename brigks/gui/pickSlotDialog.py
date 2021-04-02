@@ -3,7 +3,7 @@ import os.path
 from Qt.QtWidgets import QDialog
 from Qt import QtCompat
 
-from tools.marbie.gui.guideTreeWidget import GuideTreeWidget, SystemTreeWidgetItem, SubSystemTreeWidgetItem
+from brigks.gui.guideTreeWidget import GuideTreeWidget, SystemTreeWidgetItem, SubSystemTreeWidgetItem
 
 class PickSlotDialog(QDialog):
 

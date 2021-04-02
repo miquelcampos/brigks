@@ -19,6 +19,7 @@ class SystemWidget(QWidget):
 		if system:
 			self.setSystem(system)
 
+
 	def setSystem(self, system):
 		self._system = system
 
@@ -26,7 +27,7 @@ class SystemWidget(QWidget):
 			self._widgets = self.getSettingWidgets()
 
 		self.loadSettings()
-
+		self.connectWidgets(self._widgets)
 
 	# -----------------------------------------------------
 	# WIDGETS
@@ -40,20 +41,21 @@ class SystemWidget(QWidget):
 			widgets[setting] = self.__dict__[widgetName]
 		return widgets
 	
-	# def connectWidgets(self, widgets):
-	# 	for widget in widgets.values():
-	# 		if isinstance(widget, QCheckBox):
-	# 			widget.stateChanged.connect(self.saveSettings)
-	# 		elif isinstance(widget, QComboBox):
-	# 			widget.currentIndexChanged.connect(self.saveSettings)
-	# 		elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
-	# 			widget.valueChanged.connect(self.saveSettings)
-	# 		elif isinstance(widget, QLineEdit):
-	# 			widget.editingFinished.connect(self.saveSettings)
-	# 		elif isinstance(widget, QListWidget):
-	# 			widget.currentItemChanged.connect(self.saveSettings)
-	# 		elif isinstance(widget, QPlainTextEdit):
-	# 			widget.textChanged.connect(self.saveSettings)
+	def connectWidgets(self, widgets):
+		for widget in widgets.values():
+			widget.disconnect()
+			if isinstance(widget, QCheckBox):
+				widget.stateChanged.connect(self.saveSettings)
+			elif isinstance(widget, QComboBox):
+				widget.currentIndexChanged.connect(self.saveSettings)
+			elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
+				widget.valueChanged.connect(self.saveSettings)
+			elif isinstance(widget, QLineEdit):
+				widget.editingFinished.connect(self.saveSettings)
+			elif isinstance(widget, QListWidget):
+				widget.currentItemChanged.connect(self.saveSettings)
+			elif isinstance(widget, QPlainTextEdit):
+				widget.textChanged.connect(self.saveSettings)
 	
 	# -----------------------------------------------------
 	# SETTINGS
@@ -64,6 +66,7 @@ class SystemWidget(QWidget):
 				continue
 			
 			widget = self._widgets[setting]
+			widget.blockSignals(True)
 				
 			if isinstance(widget, QCheckBox):
 				widget.setChecked(value)
@@ -82,19 +85,24 @@ class SystemWidget(QWidget):
 					widget.addItem(s)
 			elif isinstance(widget, QPlainTextEdit):
 				widget.setPlainText(value)
+
+			widget.blockSignals(False)
 	
-	# def saveSettings(self):
-	# 	settings = {}
-	# 	for setting, widget in self._widgets.iteritems():
-	# 		if isinstance(widget, QCheckBox):
-	# 			settings[setting] = widget.isChecked()
-	# 		elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
-	# 			settings[setting] = widget.value()
-	# 		elif isinstance(widget, QLineEdit):
-	# 			settings[setting] = str(widget.text())
-	# 		elif isinstance(widget, QComboBox):
-	# 			settings[setting] = str(widget.currentText())
-	# 		elif isinstance(widget, QListWidget):
-	# 			settings[setting] = [str(widget.item(row).text()) for row in xrange(widget.count())]
-	# 		elif isinstance(widget, QPlainTextEdit):
-	# 			settings[setting] = str(widget.toPlainText())
+	def saveSettings(self):
+		settings = {}
+		for setting, widget in self._widgets.iteritems():
+			if isinstance(widget, QCheckBox):
+				settings[setting] = widget.isChecked()
+			elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
+				settings[setting] = widget.value()
+			elif isinstance(widget, QLineEdit):
+				settings[setting] = str(widget.text())
+			elif isinstance(widget, QComboBox):
+				settings[setting] = str(widget.currentText())
+			elif isinstance(widget, QListWidget):
+				settings[setting] = [str(widget.item(row).text()) for row in xrange(widget.count())]
+			elif isinstance(widget, QPlainTextEdit):
+				settings[setting] = str(widget.toPlainText())
+
+		self._system.settings.update(settings)
+		self._system.coreGuide.dumps()

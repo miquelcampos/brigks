@@ -5,11 +5,11 @@ from maya import cmds
 from Qt.QtWidgets import QDialog
 from Qt import QtCompat
 
-from tools.marbie import Guide
-from tools.marbie.gui.guideTreeWidget import GuideTreeWidget, GuideTreeWidgetItem, LayerTreeWidgetItem, SystemTreeWidgetItem, SubSystemTreeWidgetItem
-from tools.marbie.gui.guideSettingsWidget import GuideSettingsWidget
-from tools.marbie.gui.layerSettingsWidget import LayerSettingsWidget
-from tools.marbie.gui.systemSettingsWidget import SystemSettingsWidget
+from brigks import Guide
+from brigks.gui.guideTreeWidget import GuideTreeWidget, GuideTreeWidgetItem, LayerTreeWidgetItem, SystemTreeWidgetItem, SubSystemTreeWidgetItem
+from brigks.gui.guideSettingsWidget import GuideSettingsWidget
+from brigks.gui.layerSettingsWidget import LayerSettingsWidget
+from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 
 class MarbieWindow(QDialog):
 

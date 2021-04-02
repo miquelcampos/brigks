@@ -1,6 +1,6 @@
 from maya import cmds
 
-from tools.marbie.systems.systemGuide import SystemGuide
+from brigks.systems.systemGuide import SystemGuide
 
 class DrivenSystemGuide(SystemGuide):	
 

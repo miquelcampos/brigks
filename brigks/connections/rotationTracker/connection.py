@@ -1,5 +1,5 @@
 from maya import cmds
-from tools.marbie.connections.systemConnection import SystemConnection
+from brigks.connections.systemConnection import SystemConnection
 
 class RotationTrackerSystemConnection(SystemConnection):
 

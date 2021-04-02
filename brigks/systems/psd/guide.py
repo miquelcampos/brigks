@@ -1,6 +1,6 @@
 
 
-from tools.marbie.systems.systemGuide import SystemGuide
+from brigks.systems.systemGuide import SystemGuide
 
 class PsdSystemGuide(SystemGuide):	
 

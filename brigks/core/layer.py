@@ -3,7 +3,7 @@ import xml.etree.cElementTree as etree
 import json
 
 from ..systems import getSystemGuideClass
-from tools.marbie.core import naming
+from brigks.core import naming
 
 class Layer():
 
@@ -68,7 +68,20 @@ class Layer():
 			if system:
 				return system
 
-	def addSystem(self, systemType, location, name):
+	def addSystem(self, systemType, location, name, matrices={}, version=-1):
+		"""Add a new system guide to the layer
+
+		Args:
+		    systemType (str): Type of system to be create.
+		    location (str): Location of the system (L/R/M/X).
+		    name (str): Name of the system.
+		    matrices (dict of matrix): Matrices are flat lists of coordonate.
+		    version (int): Version of the system (-1 for latest).
+
+		Returns:
+		    SystemGuide: The newly created system.
+		"""
+
 		# Making sure the key of the system is unique to the guide
 		inputName = name
 		i = 1
@@ -78,9 +91,10 @@ class Layer():
 			key = naming.getSystemKey(location, name)
 			i += 1
 
-		SystemClass = getSystemGuideClass(systemType)
-		system = SystemClass.create(self, location, name)
+		SystemClass = getSystemGuideClass(systemType, version)
+		system = SystemClass.create(self, location, name, matrices)
 		self.systems[system.key()] = system
+
 		return system
 
 	# ----------------------------------------------------------------------------------
@@ -104,7 +118,7 @@ class Layer():
 		layer = cls(guide)
 
 		# Load Settings
-		settings = json.loads(xmlRoot.get("settings", {}))
+		settings = json.loads(xmlRoot.get("settings", "{}"))
 		layer.settings.update(settings)
 
 		for xmlObject in xmlRoot:

@@ -1,6 +1,6 @@
 from maya import cmds
 
-from tools.marbie.systems.systemGuide import SystemGuide
+from brigks.systems.systemGuide import SystemGuide
 
 class ArmSystemGuide(SystemGuide):	
 
@@ -17,10 +17,10 @@ class ArmSystemGuide(SystemGuide):
 		super(ArmSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=["parent", "attachToGeo", "multi", "customParent"],
-			IK=["parent", "attachToGeo", "multi", "customParent"],
-			UpVector=["parent", "attachToGeo", "multi", "customParent"],
-			UI=["parent"],
+			Root=["slotParent", "meshAttach", "multiParent", "customParent"],
+			IK=["slotParent", "meshAttach", "multiParent", "customParent"],
+			UpVector=["slotParent", "meshAttach", "multiParent", "customParent"],
+			UI=["uiHost"],
 			)
 
 		return ports

@@ -1,15 +1,15 @@
-from tools.marbie.connections.systemConnection import SystemConnection
-from tools.marbie.connections.custom.connection import CustomSystemConnection
-from tools.marbie.connections.mesh.connection import MeshSystemConnection
-from tools.marbie.connections.nurbs.connection import NurbsSystemConnection
-from tools.marbie.connections.slot.connection import SlotSystemConnection
+from brigks.connections.systemConnection import SystemConnection
+from brigks.connections.customParent.connection import CustomParentSystemConnection
+from brigks.connections.meshAttach.connection import MeshAttachSystemConnection
+from brigks.connections.nurbsAttach.connection import NurbsAttachSystemConnection
+from brigks.connections.slotParent.connection import SlotParentSystemConnection
 
 
 class MultiParentSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(MultiParentSystemConnection, self).__init__()
-		self.settings = dict(definitions=[])
+		self.settings = dict(definitions=[], default=0)
 
 	def connect(self, builder, slot):
 		child = builder.getObject("Ctl", slot)
@@ -20,15 +20,15 @@ class MultiParentSystemConnection(SystemConnection):
 			cnxType = definition["type"]
 
 			if cnxType == "slot":
-				master = SlotSystemConnection.getParent(builder, definition)
+				master = SlotParentSystemConnection.getParent(builder, definition)
 				if parent is None:
 					parent = master
 			elif cnxType == "custom":
-				master = CustomSystemConnection.getParent(builder, definition)
+				master = CustomParentSystemConnection.getParent(builder, definition)
 			elif cnxType == "mesh":
-				master = MeshSystemConnection.getParent(builder, definition)
+				master = MeshAttachSystemConnection.getParent(builder, definition)
 			elif cnxType == "nurbs":
-				master = NurbsSystemConnection.getParent(builder, definition)
+				master = NurbsAttachSystemConnection.getParent(builder, definition)
 
 			if master:
 				masters.append(master)

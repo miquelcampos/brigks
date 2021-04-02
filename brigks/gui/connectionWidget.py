@@ -3,7 +3,7 @@ import os.path
 from Qt import QtCompat
 from Qt.QtWidgets import QWidget
 from Qt.QtCore import Signal
-from tools.marbie.connections import getConnectionWidgetClass
+from brigks.connections import getConnectionWidgetClass
 
 class ConnectionWidget(QWidget):
 
