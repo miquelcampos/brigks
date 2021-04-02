@@ -19,7 +19,7 @@ class BasicSystemBuilder(SystemBuilder):
 			self.bfr.append(bfr)
 
 			if self.settings["addControllers"]:
-				ctl = self.createController(bfr, part, tfm=marker.transform(), icon=None, color=color)
+				ctl = self.createController(bfr, part, tfm=marker.transform(), icon="cube", color=color)
 				self.ctl.append(ctl)	
 				setRotOrder(ctl, self.settings["defaultRotationOrder"])
 
@@ -40,7 +40,7 @@ class BasicSystemBuilder(SystemBuilder):
 		for i, jntHost in enumerate(self.jntHost, start=1):
 			self.createJoint(jntHost, i)
 			if self.settings["splitRotation"]:
-				jnt = self.createJoint(jntHost, "Pos{i}".format(i))					
+				jnt = self.createJoint(jntHost, "Pos{}".format(i))					
 				if self.settings["addControllers"]:
 					value = cmds.getAttr(jnt+".radius") *.9
 					cmds.setAttr(jnt+".radius", value)
@@ -50,11 +50,17 @@ class BasicSystemBuilder(SystemBuilder):
 	def createOperators(self):
 		if self.settings["splitRotation"]:
 			for i, bfr in enumerate(self.bfr, start=1):
-				dfm = self.getObject("Pos%i"%i, usage="Jnt")
+				jnt = self.getObject("Jnt", "Pos{}".format(i))
 
 				name = self.getObjectName(i, "Jnt")
-				# Try using: cmds.createNode("blendMatrix")
-				dcc.maya.compound.create("poseConstraint2", name, self.toNative(dfm), [self.toNative(bfr)], translate=False, scale=False)
+
+				mm = self._createNode("multMatrix", "MulMatrix{}".format(i))
+				dm = self._createNode("decomposeMatrix", "DecomposeMatrix{}".format(i))
+
+				cmds.connectAttr(bfr+".worldMatrix[0]", mm+".matrixIn[0]")
+				cmds.connectAttr(jnt+".parentInverseMatrix[0]", mm+".matrixIn[1]")
+				cmds.connectAttr(mm+".matrixSum", dm+".inputMatrix")
+				cmds.connectAttr(dm+".outputRotate", jnt+".rotate")
 							
 		if self.settings["dynamic"]:
 			for i, harmonic in enumerate(self.jntHost):
@@ -68,8 +74,8 @@ class BasicSystemBuilder(SystemBuilder):
 					amplitudeAxis=(self.settings["amplitudeX"], self.settings["amplitudeY"], self.settings["amplitudeZ"]))
 
 				if i%3 == 0:
-					mulNode = cmds.createNode("multiplyDivide", name=self.getObjectName("Nde", "AmplitudeGlobal{}".format(i)))
-					activeNode = cmds.createNode("multiplyDivide", name=self.getObjectName("Nde", "Active{}".format(i)))
+					mulNode = self._createNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
+					activeNode = self._createNode("multiplyDivide", name="Active{}".format(i))
 					cmds.connectAttr(mulNode+".output", activeNode+".input1")
 
 	#----------------------------------------------------------------------------
@@ -100,7 +106,7 @@ class BasicSystemBuilder(SystemBuilder):
 				cmds.connectAttr(activeNode+".output"+axis, harmonic+".amplitude", force=True)
 
 			if self.settings["dynamicAnimatable"]:
-				axisAttr = self.createAnimAttr("Axis", "vector", (self.settings["amplitudeX"], self.settings["amplitudeY"], self.settings["amplitudeZ"]))
+				axisAttr = self.createAnimAttr("Axis", "double3", (self.settings["amplitudeX"], self.settings["amplitudeY"], self.settings["amplitudeZ"]))
 				decayAttr = self.createAnimAttr("Decay", "float", self.settings["decay"], 0, 10)
 				terminationAttr = self.createAnimAttr("Termination", "float", self.settings["termination"], 0, 1)
 				frequencyAttr = self.createAnimAttr("Frequency", "float", self.settings["frequency"], 0, 1)

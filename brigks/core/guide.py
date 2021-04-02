@@ -49,10 +49,12 @@ class Guide():
 			self.layers[name] = layer
 
 	def dumps(self):
-		# Saves settings to json in the model data attribute
-		data = dict(settings=self.settings,
+		return dict(settings=self.settings,
 					layers={name:layer.dumps() for name, layer in self.layers.iteritems()})
-		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
+
+	def commit(self):
+		# Saves settings to json in the model data attribute
+		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(self.dumps()), type="string")
 
 	# ----------------------------------------------------------------------------------
 	# LAYERS, SYSTEMS

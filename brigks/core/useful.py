@@ -4,7 +4,9 @@ from maya import cmds
 trs_attrs = ("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz")
 
 
-
+ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "cubewithpeak",
+	"cylinder", "diamond", "flower", "jaw", "null", "pyramid", "sphere", "spine", "square",
+	 "lookat", "bendedarrow", "rotatearrow", "gear", "lung"]
 
 
 # ----------------------------------------------------------------------------------
@@ -30,6 +32,34 @@ def createJoint(parent, name, tfm=None, color=None):
 	cmds.xform(node, matrix=matrix, worldSpace=True)
 	
 	return node
+
+def createIcon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
+
+	if not cmds.pluginInfo("harbieLocator.mll", q=True,  loaded=True): 
+		cmds.loadPlugin("harbieLocator.mll")
+
+	shape = cmds.createNode("nurbsCurve", name=parent+"Shape", parent=parent, skipSelect=True)
+	mhc =  cmds.createNode("makeHarbieCurve", skipSelect=True)
+	cmds.connectAttr (mhc+".outputCurve", shape+".create")
+
+	# Icon
+	cmds.setAttr(mhc+".display", ICONS.index(icon.lower()))
+	cmds.setAttr(mhc+".size", size)
+
+	# Icon Offset Transform
+	if po:
+		for value, s in zip(po, "XYZ"):
+			cmds.setAttr(mhc+".localPosition%s"%s, value)
+	if ro:
+		for value, s in zip(ro, "XYZ"):
+			cmds.setAttr(mhc+".localRotate%s"%s, value)
+	if so:
+		for value, s in zip(so, "XYZ"):
+			cmds.setAttr(mhc+".localScale%s"%s, value)
+
+	cmds.setAttr(mhc+".ShowCenter", showCenter)
+	cmds.setAttr(mhc+".ShowOrientation", showOrientation)
+	cmds.setAttr(mhc+".CenterScale", centerScale)
 
 # ----------------------------------------------------------------------------------
 # ATTRIBUTES
@@ -146,7 +176,10 @@ def setKeyables(node, attrs=None, lock=True):
 	for attrName in trs_attrs:
 		keyable = attrName in attrs
 		cmds.setAttr(node+"."+attrName, lock=not keyable)
-		cmds.setAttr(node+"."+attrName, keyable=keyable, channelBox=keyable)
+		cmds.setAttr(node+"."+attrName, keyable=keyable)
+		if not keyable:
+			cmds.setAttr(node+"."+attrName, channelBox=keyable)
+
 
 def setRotOrder(node, rotOrder):
 	orders = ["xyz", "yzx", "zxy", "xzy", "yxz", "zyx"]

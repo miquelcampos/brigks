@@ -96,6 +96,8 @@ class SystemGuide(object):
 	def type(self):
 		return self.__module__.split(".")[-2]
 
+	def setSettings(self, settings):
+		self.settings.update(settings)
 
 	# ----------------------------------------------------------------------------------
 	# 

@@ -3,7 +3,7 @@ import itertools
 
 from maya import cmds
 
-from brigks.core.useful import createTransform, createJoint, createAttr
+from brigks.core.useful import createTransform, createJoint, createAttr, createIcon
 from brigks.core import naming 
 
 
@@ -28,6 +28,9 @@ class SystemBuilder():
 		self.steps["Connect System"] = self.stepConnections
 		self.steps["Post Process"] = self.stepPost
 
+	# ----------------------------------------------------------------------------------
+	#  SETTINGS
+	# ----------------------------------------------------------------------------------
 	def negate(self):
 		return self.settings["location"] == "R"
 
@@ -108,7 +111,10 @@ class SystemBuilder():
 	def createTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		parent = parent if parent is not None else self.coreBuilder.localCtl
 		name = self.getObjectName(usage, part)
-		return createTransform(parent, name, tfm)
+		node = createTransform(parent, name, tfm)
+		if icon:
+			createIcon(icon, node, size, po, ro, so)
+		return node
 
 	def createController(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		usage = naming.USAGES["Controller"]
@@ -133,7 +139,7 @@ class SystemBuilder():
 		name = self.getObjectName(usage, part)
 		return createJoint(parent, name, tfm=None, color=None)
 
-	def createAttr(self, parent, displayName, attrType, value=None, minValue=None, maxValue=None,
+	def _createAttr(self, parent, displayName, attrType, value=None, minValue=None, maxValue=None,
 			keyable=False, writable=True, readable=True, channelBox=True):
 
 		longName = self.getObjectName("Rig", displayName)
@@ -146,7 +152,7 @@ class SystemBuilder():
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
 
 		parent = self.coreBuilder.localCtl
-		attr = self.createAttr(parent, name, attrType, value,
+		attr = self._createAttr(parent, name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
 		return attr
 
@@ -155,9 +161,13 @@ class SystemBuilder():
 			keyable=False, writable=False):
 
 		parent = self.coreBuilder.localCtl
-		attr = self.createAttr(parent, name, attrType, value,
+		attr = self._createAttr(parent, name, attrType, value,
 					minValue, maxValue, keyable, writable)
 		return attr
+
+	def _createNode(self, nodeType, name):
+		name = self.getObjectName("Nde", name)
+		return cmds.createNode(nodeType, name=name)
 
 	# ----------------------------------------------------------------------------------
 	# 
