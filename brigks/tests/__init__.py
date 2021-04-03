@@ -14,14 +14,10 @@ from brigks import Guide, Builder
 from brigks.gui.guideTreeWidget import GuideTreeWidget
 from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 from brigks.utils.convert import convertXmlHarbie
+from brigks.core.useful import indent
 
-hierarchyXMLPath = os.path.join(os.path.dirname(__file__),"hierarchy_SplitDoubled.xml")
-
-
-# def getMayaWindow():
-# 	import maya.OpenMayaUI as mui
-# 	ptr = mui.MQtUtil.mainWindow()
-# 	return sip.wrapinstance(long(ptr), QWidget)
+from math3d.transformation import Transformation
+from math3d.vectorN import Vector3
 
 
 
@@ -33,40 +29,6 @@ hierarchyXMLPath = os.path.join(os.path.dirname(__file__),"hierarchy_SplitDouble
 # - How to detect Systems that are connected? to recreate those connection. Including Attributes
 
 
-# @mayacommand()
-# def createGuide():
-# 	guide = Guide()
-
-# 	xmlHierarchy = etree.parse(hierarchyXMLPath).getroot()
-# 	for xmlNode in xmlHierarchy:
-# 		_createGuideFromXml(xmlNode, parent=guide)
-
-# 	guide.dumps()
-# 	return guide
-
-# def _createGuideFromXml(xmlNode, parent):
-# 	if xmlNode.tag == "layer":
-# 		name = xmlNode.get("name")
-# 		layer = parent.addLayer(name)
-
-# 		for xmlChild in xmlNode:
-# 			_createGuideFromXml(xmlChild, layer)
-
-# 	elif xmlNode.tag == "system":
-# 		name = xmlNode.get("name")
-# 		location = xmlNode.get("location")
-# 		type_ = xmlNode.get("type")
-# 		system = parent.addSystem(systemType=type_, location=location, name=name)
-
-# 		for xmlChild in xmlNode:
-# 			_createGuideFromXml(xmlChild, system)
-
-# 	elif xmlNode.tag == "connection":
-# 		type_ = xmlNode.get("type")
-# 		port = xmlNode.get("port")
-# 		data = json.loads(xmlNode.get("settings"))
-# 		cnx = parent.addConnection(connectionType=type_, port=port)
-# 		cnx.setConnection(data)
 
 @mayacommand()
 def loadGuide():
@@ -85,18 +47,26 @@ def guideToXml(guide, path):
 	tree.write(path)
 
 
+def createSimpleGuideAndBuild():
+	matrices = {}
+	for i in range(2):
+		t = Transformation.fromParts(translation=Vector3([0,i,0]))
+		matrices["Part%s"%(i+1)] = t.asMatrix().flattened()
 
-@mayacommand()
-def guideFromXml(path):
-	return Guide.fromXml(path)
+	g = Guide()
+	layer = g.addLayer("MyFirstLayer")
+	layer = layer.addLayer("MySubLayer")
+	system = layer.addSystem("basic", "L", "MyFirstBasic", matrices)
+	system.setSettings(dict(dynamic=True, dynamicAnimatable=True, splitRotation=True))
 
-@mayacommand()
-def build(guide):
-	builder = Builder(guide)
+	cnx = system.addConnection("slotParent", "Part2")
+	cnx.setConnection(dict(key="MyFirstBasic_L", slot="Part1"))
 
-	layer = guide.layers.values()[0]
-	builder.build(layer.systems.values())
-	return builder
+	g.commit()
+
+	g.build()
+
+
 
 @mayacommand()
 def showGuideTree(guide):
@@ -140,17 +110,6 @@ def showSystemSettingsWidget(tree):
 		return
 
 
-# @mayacommand()
-# def showWindow():
-
-# 	ptr = mui.MQtUtil.mainWindow()
-# 	maya = sip.wrapinstance(long(ptr), QWidget)
-
-# 	from brigks.gui.marbieWindow import MarbieWindow
-# 	window = MarbieWindow(maya)
-
-# 	window.show()
-
 
 @mayacommand()
 def showSystemSettings(system):
@@ -168,6 +127,7 @@ def showSystemSettings(system):
 
 
 def fromHarbie():
+	# Convert the Harbie template to Brigks
 	path = r"K:\Departments\Rigging\Prefab\Harbie\Templates\biped_AllXML.xml"
 	outputPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieFullBiped.xml"
 
@@ -179,63 +139,3 @@ def fromHarbie():
 	tree.write(outputPath)
 
 	print "Exported to", outputPath
-
-
-# # Add Connections
-# allKeys = []
-
-# for layer in guide.layers.values():
-# 	allKeys.extend(layer.systems.keys())
-# 	for sublayer in layer.layers.values():
-# 		allKeys.extend(sublayer.systems.keys())
-	
-
-# for layer in guide.layers.values():
-# 	for system in layer.systems.values():
-# 		cnx = system.addConnection("parent", "Test")
-# 		key = random.choice(allKeys)
-# 		cnx.setConnection(dict(otherKey=key, otherSlot="Test"))
-# 		cnx = system.addConnection("parent", "Test2")
-# 		key = random.choice(allKeys)
-# 		cnx.setConnection(dict(otherKey=key, otherSlot="Test"))
-# 		cnx = system.addConnection("parent", "Test3")
-# 		key = random.choice(allKeys)
-# 		cnx.setConnection(dict(otherKey=key, otherSlot="Test"))
-
-
-
-
-# for layer in guide.layers.values():
-# 	for system in layer.systems.values():
-# 		cnx = system.addConnection("parent", "Part2")
-# 		cnx.setConnection(dict(otherKey=system.key(), otherSlot="Part1"))
-# 		cnx = system.addConnection("parent", "Part3")
-# 		cnx.setConnection(dict(otherKey=system.key(), otherSlot="Part2"))
-		
-# 	for sublayer in layer.layers.values():
-# 		for system in sublayer.systems.values():
-# 			cnx = system.addConnection("parent", "Part2")
-# 			cnx.setConnection(dict(otherKey=system.key(), otherSlot="Part1"))
-# 			cnx = system.addConnection("parent", "Part3")
-# 			cnx.setConnection(dict(otherKey=system.key(), otherSlot="Part2"))
-
-
-
-# --------------------------------------------------------------------------------------
-# MISC
-# --------------------------------------------------------------------------------------
-
-def indent(elem, level=0):
-	i = "\n" + level*" "
-	if len(elem):
-		if not elem.text or not elem.text.strip():
-			elem.text = i + " "
-		if not elem.tail or not elem.tail.strip():
-			elem.tail = i
-		for elem in elem:
-			indent(elem, level+1)
-		if not elem.tail or not elem.tail.strip():
-			elem.tail = i
-	else:
-		if level and (not elem.tail or not elem.tail.strip()):
-			elem.tail = i

@@ -25,6 +25,7 @@ class SystemGuide(object):
 					name="Name",
 					location="X",
 					split=False,
+					inheritColors=True,
 					colorIk=[1,0,0],
 					colorFk=[0,0,1],
 					addJoints=True)
@@ -109,6 +110,14 @@ class SystemGuide(object):
 
 	def setSettings(self, settings):
 		self._settings.update(settings)
+
+	def setLayer(self, layer):
+		if layer == self._layer:
+			return 
+
+		self._layer.removeSystem(self)
+		layer._systems.append(self)
+		self._layer = layer
 
 	# ----------------------------------------------------------------------------------
 	# 

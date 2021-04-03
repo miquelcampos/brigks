@@ -11,7 +11,7 @@ class Builder():
 
 	def __init__(self, guide):
 		self.guide = guide
-		self.settings = dict(systems={})
+		self._settings = dict(systems={})
 
 	# ----------------------------------------------------------------------------------
 	# 
@@ -30,7 +30,7 @@ class Builder():
 			systemGuide.loadMarkers()
 
 			# If marker is X, we create a Left and Right builder
-			if systemGuide.settings["location"] == "X":
+			if systemGuide.settings()["location"] == "X":
 				leftSystem, rightSystem = systemGuide.splitSymmetry()
 				toBuild[leftSystem.key()] = leftSystem.builder(self)
 				toBuild[rightSystem.key()] = rightSystem.builder(self)
@@ -42,7 +42,7 @@ class Builder():
 
 		# Init the systems that needs to be connected
 		toConnect = {}
-		for key, settings in self.settings["systems"].iteritems():
+		for key, settings in self._settings["systems"].iteritems():
 			if key in toBuild:
 				continue
 
@@ -95,9 +95,9 @@ class Builder():
 		# Saving the keys of the systems that have been built
 		newSystemsData = {}
 		for k, v in self.systems.iteritems():
-			newSystemsData[k] = dict(settings=v.settings, attributes=v.attributeNames)
+			newSystemsData[k] = dict(settings=v.settings(), attributes=v.attributeNames)
 
-		self.settings["systems"].update(newSystemsData)
+		self._settings["systems"].update(newSystemsData)
 		self.dumps()
 
 		print "DONE", dt.now() - superstart
@@ -114,11 +114,11 @@ class Builder():
 		self.localCtl = self._createController(self.globalCtl, part="Local")
 
 	def dumps(self):
-		data = self.settings
+		data = self._settings
 		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
 
 	def _createModel(self):
-		connections = cmds.listConnections(self.guide.model+".model", type="transform", destination=False)
+		connections = cmds.listConnections(self.guide.model()+".model", type="transform", destination=False)
 		if connections:
 			model = connections[0]
 		else:
@@ -132,10 +132,10 @@ class Builder():
 		# Loading the data from the model
 		data = cmds.getAttr(model+"."+DATA_ATTRIBUTE)
 		if data:
-			self.settings.update(json.loads(data))
+			self._settings.update(json.loads(data))
 	
 		# Connecting the Setup to the Guide. This is how we track which model is used to build the guide
-		cmds.connectAttr(model+".model", self.guide.model+".model", force=True)
+		cmds.connectAttr(model+".model", self.guide.model()+".model", force=True)
 		return model
 
 	def _createController(self, parent, part):

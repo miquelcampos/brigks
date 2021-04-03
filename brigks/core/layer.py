@@ -11,11 +11,12 @@ class Layer():
 		self._parent = parent
 		self._name = None
 		self._layers = [] # Sub Layers
-		self._systems = dict()
+		self._systems = []
 		self._settings = dict(keepInSegmented=False,
 							 expanded=False,
 							 layerColor=[.875,.875,.250],
 							 useLayerColor=False,
+							 inheritColors=True,
 							 colorRFk=[0,.25,.75], colorRIk=[0,.5,1], 
 							 colorMFk=[.5,.25,.5], colorMIk=[.85,.6,.85],
 							 colorLFk=[.6,.2,.2],  colorLIk=[1,.35,.35], 
@@ -32,10 +33,10 @@ class Layer():
 		self._settings.update(data["settings"])
 
 		# Loading Systems
-		for key, systemData in data["systems"].iteritems():
+		for systemData in data["systems"]:
 			SystemClass = getSystemGuideClass(systemData["systemType"])
 			system = SystemClass.load(self, systemData)
-			self._systems[key] = system
+			self._systems.append(system)
 
 		# Loading Sub Layers
 		for data in data["layers"]:
@@ -43,13 +44,13 @@ class Layer():
 			self._layers.append(layer)
 
 	def build(self):
-		self.guide().build(self._systems.values())
+		self.guide().build(self._systems)
 
 	def dumps(self):
 		data = dict(name=self._name,
 					settings=self._settings,
 					layers=[layer.dumps() for layer in self._layers],
-					systems={key:system.dumps() for key, system in self._systems.iteritems()} )
+					systems=[system.dumps() for system in self._systems] )
 		return data
 
 	# ----------------------------------------------------------------------------------
@@ -111,11 +112,12 @@ class Layer():
 	# SYSTEMS
 	# ----------------------------------------------------------------------------------
 	def systems(self):
-		return self._systems
+		return {system.key():system for system in self._systems}
 
 	def findSystem(self, key):
-		if key in self._systems.keys():
-			return self._systems[key]
+		for system in self._systems:
+			if system.key() == key:
+				return system
 
 		for layer in self._layers:
 			system = layer.findSystem(key)
@@ -147,22 +149,27 @@ class Layer():
 
 		SystemClass = getSystemGuideClass(systemType, version)
 		system = SystemClass.create(self, location, name, matrices)
-		self._systems[system.key()] = system
+		self._systems.append(system)
 
 		return system
+
+	def removeSystem(self, system):
+		index = self._systems.index(system)
+		return self._systems.pop(system)
+
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT
 	# ----------------------------------------------------------------------------------
-	def toXml(self, name):
+	def toXml(self):
 		xmlRoot = etree.Element("Layer")
-		xmlRoot.set("name", name)
+		xmlRoot.set("name", layer.name())
 		xmlRoot.set("settings", json.dumps(self._settings))
 
-		for layerName, layer in self._layers.iteritems():
-			xmlRoot.append(layer.toXml(layerName))
+		for layer in self._layers:
+			xmlRoot.append(layer.toXml(layer))
 
-		for systemKey, system in self._systems.iteritems():
+		for system in self._systems:
 			xmlRoot.append(system.toXml())
 
 		return xmlRoot
@@ -185,7 +192,7 @@ class Layer():
 			 	systemType = xmlObject.get("type")
 				SystemClass = getSystemGuideClass(systemType)
 				system = SystemClass.fromXml(layer, xmlObject)
-				layer._systems[key] = system
+				layer._systems.append(system)
 
 		return layer
 

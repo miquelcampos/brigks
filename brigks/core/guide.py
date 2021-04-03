@@ -6,6 +6,7 @@ import datetime
 
 from layer import Layer
 from builder import Builder
+from useful import indent
 
 DATA_ATTRIBUTE = "_userProps"
 
@@ -19,6 +20,9 @@ class Guide():
 							defaultScaling=1.0,
 							synoptic=[],
 							variations=[],
+							colorRFk=[0,.25,.75], colorRIk=[0,.5,1], 
+							colorMFk=[.5,.25,.5], colorMIk=[.85,.6,.85],
+							colorLFk=[.6,.2,.2],  colorLIk=[1,.35,.35], 
 							resetControlLook=False,
 							motionConnections=dict(mocap=None, crowd=None),
 							motionRigPresets=dict(mocap='default', crowd='default'),
@@ -49,7 +53,13 @@ class Guide():
 			layer = Layer(self, data["name"], data)
 			self._layers.append(layer)
 
-	def build(self, systemGuides):
+	def build(self, systemGuides=None):
+		if systemGuides is None:
+			systemGuides = []
+			for layer in self._layers:
+				systems = layer.systems().values()
+				systemGuides.extend(systems)
+
 		builder = Builder(self)
 		builder.build(systemGuides)
 
@@ -91,14 +101,20 @@ class Guide():
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT
 	# ----------------------------------------------------------------------------------
+	def write(self, path):
+		xmlRoot = self.toXml()
+		indent(xmlRoot)
+		tree = etree.ElementTree(xmlRoot)
+		tree.write(path)
+
 	def toXml(self):
 		xmlRoot = etree.Element("Guide")
 		xmlRoot.set("user", getpass.getuser())
 		xmlRoot.set("date", str(datetime.datetime.now()))
 		xmlRoot.set("settings", json.dumps(self._settings))
 
-		for layerName, layer in self._layers.iteritems():
-			xmlRoot.append(layer.toXml(layerName))
+		for layer in self._layers:
+			xmlRoot.append(layer.toXml())
 
 		return xmlRoot
 

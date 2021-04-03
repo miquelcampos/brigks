@@ -65,6 +65,7 @@ class BasicSystemBuilder(SystemBuilder):
 				cmds.connectAttr(rig+".parentInverseMatrix[0]", mm+".matrixIn[1]")
 				cmds.connectAttr(mm+".matrixSum", dm+".inputMatrix")
 				cmds.connectAttr(dm+".outputRotate", rig+".rotate")
+
 							
 		if self._settings["dynamic"]:
 			for i, harmonic in enumerate(self.jntparent):

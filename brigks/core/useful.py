@@ -34,7 +34,6 @@ def createJoint(parent, name, tfm=None, color=None):
 	return node
 
 def createIcon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
-
 	if not cmds.pluginInfo("harbieLocator.mll", q=True,  loaded=True): 
 		cmds.loadPlugin("harbieLocator.mll")
 
@@ -65,7 +64,8 @@ def createIcon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=
 # ATTRIBUTES
 # ----------------------------------------------------------------------------------
 def createHarmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termination=0.0, amplitudeAxis=(1,1,1)):
-	cmds.loadPlugin("harmonics")
+	if not cmds.pluginInfo("harmonics", q=True,  loaded=True):
+		cmds.loadPlugin("harmonics")
 	hNode = cmds.createNode("harmonics", name=name)
 
 	cmds.connectAttr(hNode+".output", slave+".translate")
@@ -215,5 +215,23 @@ def setColor(node, color):
 		cmds.setAttr(node+".overrideColorB", color[2])
 
 
+
+# ----------------------------------------------------------------------------------
+# XML
+# ----------------------------------------------------------------------------------
+def indent(elem, level=0):
+	i = "\n" + level*" "
+	if len(elem):
+		if not elem.text or not elem.text.strip():
+			elem.text = i + " "
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+		for elem in elem:
+			indent(elem, level+1)
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+	else:
+		if level and (not elem.tail or not elem.tail.strip()):
+			elem.tail = i
 
 

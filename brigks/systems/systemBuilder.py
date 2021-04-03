@@ -31,6 +31,9 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	#  SETTINGS
 	# ----------------------------------------------------------------------------------
+	def settings(self):
+		return self._settings
+		
 	def negate(self):
 		return self._settings["location"] == "R"
 
