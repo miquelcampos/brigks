@@ -287,7 +287,7 @@ def _convertXmlMarker(xmlHarbieMarker, systemType):
 	# Transform
 	transform = json.loads(xmlHarbieMarker.get("transform"))
 	matrix = _convertTransformToMatrix(**transform)
-	xmlMarker.set("matrix", json.dumps(matrix))
+	xmlMarker.set("matrix", json.dumps(list(matrix)))
 
 	return xmlMarker
 
@@ -300,6 +300,4 @@ def _convertTransformToMatrix(translation, rotation, scaling):
 	scaling = Vector3(scaling)
 
 	transform = Transformation.fromParts(translation, rotation, scaling)
-	matrix = transform.asMatrix().flattened()
-
-	return matrix
+	return transform.asMatrix().flattened()

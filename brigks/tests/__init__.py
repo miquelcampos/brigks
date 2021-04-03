@@ -1,11 +1,14 @@
 
 import os.path
 import sys
-from dcc.maya.decorators import mayacommand
-import xml.etree.cElementTree as etree
 import json
 import sip
+import xml.etree.cElementTree as etree
 from Qt.QtWidgets import QDialog, QVBoxLayout, QPushButton, QApplication, QWidget
+
+from dcc.maya.decorators import mayacommand
+
+import maya.OpenMayaUI as mui
 
 from brigks import Guide, Builder
 from brigks.gui.guideTreeWidget import GuideTreeWidget
@@ -15,10 +18,10 @@ from brigks.utils.convert import convertXmlHarbie
 hierarchyXMLPath = os.path.join(os.path.dirname(__file__),"hierarchy_SplitDoubled.xml")
 
 
-def getMayaWindow():
-	import maya.OpenMayaUI as mui
-	ptr = mui.MQtUtil.mainWindow()
-	return sip.wrapinstance(long(ptr), QWidget)
+# def getMayaWindow():
+# 	import maya.OpenMayaUI as mui
+# 	ptr = mui.MQtUtil.mainWindow()
+# 	return sip.wrapinstance(long(ptr), QWidget)
 
 
 
@@ -137,12 +140,16 @@ def showSystemSettingsWidget(tree):
 		return
 
 
-@mayacommand()
-def showWindow():
-	from brigks.gui.marbieWindow import MarbieWindow
-	window = MarbieWindow(getMayaWindow())
+# @mayacommand()
+# def showWindow():
 
-	window.show()
+# 	ptr = mui.MQtUtil.mainWindow()
+# 	maya = sip.wrapinstance(long(ptr), QWidget)
+
+# 	from brigks.gui.marbieWindow import MarbieWindow
+# 	window = MarbieWindow(maya)
+
+# 	window.show()
 
 
 @mayacommand()
@@ -162,7 +169,7 @@ def showSystemSettings(system):
 
 def fromHarbie():
 	path = r"K:\Departments\Rigging\Prefab\Harbie\Templates\biped_AllXML.xml"
-	outputPath = r"\\source\source\dev\passerin\tools\tools\marbie\tests\harbieFullBiped.xml"
+	outputPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieFullBiped.xml"
 
 	xmlHarbie = etree.parse(path).getroot()
 	xmlRoot = convertXmlHarbie(xmlHarbie)

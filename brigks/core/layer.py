@@ -7,9 +7,12 @@ from brigks.core import naming
 
 class Layer():
 
-	def __init__(self, guide, data={}):
-		self.guide = guide
-		self.settings = dict(keepInSegmented=False,
+	def __init__(self, parent, name, data={}):
+		self._parent = parent
+		self._name = None
+		self._layers = [] # Sub Layers
+		self._systems = dict()
+		self._settings = dict(keepInSegmented=False,
 							 expanded=False,
 							 layerColor=[.875,.875,.250],
 							 useLayerColor=False,
@@ -18,52 +21,103 @@ class Layer():
 							 colorLFk=[.6,.2,.2],  colorLIk=[1,.35,.35], 
 							 rigLayer=1, 
 							 rigSubLayer=3)
-		self.layers = dict()
-		self.systems = dict()
+
+		# make sure the name is unique
+		self.setName(name)
 
 		if data:
 			self.load(data)
 
 	def load(self, data):
-		self.settings.update(data["settings"])
+		self._settings.update(data["settings"])
 
 		# Loading Systems
 		for key, systemData in data["systems"].iteritems():
 			SystemClass = getSystemGuideClass(systemData["systemType"])
 			system = SystemClass.load(self, systemData)
-			self.systems[key] = system
+			self._systems[key] = system
 
 		# Loading Sub Layers
-		for name, data in data["layers"].iteritems():
-			subLayer = Layer(self.guide, data)
-			self.layers[name] = subLayer
+		for data in data["layers"]:
+			layer = Layer(self, data["name"], data)
+			self._layers.append(layer)
+
+	def build(self):
+		self.guide().build(self._systems.values())
 
 	def dumps(self):
-		data = dict(settings=self.settings,
-					layers={name:layer.dumps() for name, layer in self.layers.iteritems()},
-					systems={key:system.dumps() for key, system in self.systems.iteritems()} )
+		data = dict(name=self._name,
+					settings=self._settings,
+					layers=[layer.dumps() for layer in self._layers],
+					systems={key:system.dumps() for key, system in self._systems.iteritems()} )
 		return data
 
 	# ----------------------------------------------------------------------------------
-	# 
+	# NAME and LAYERS
 	# ----------------------------------------------------------------------------------
-	def addLayer(self, name):
-		# Making sure the name of the system is unique to the layer
-		inputName = name
-		i = 1
-		while name in self.layers:
-			name = inputName + str(i)
-			i += 1
+	def guide(self):
+		if isinstance(self._parent, Layer):
+			return self._parent.guide()
+		else:
+			return self._parent
 
-		layer = Layer(self.guide)
-		self.layers[name] = layer
+	def settings(self):
+		return self._settings
+
+	def setSettings(self, settings):
+		self.settings.update(settings)
+
+	def name(self):
+		return self._name
+
+	def setName(self, name):
+		name = self.__findUniqueName(name, self._parent.layers())
+		self._name = name
+
+	def layers(self):
+		return {layer.name():layer for layer in self._layers}
+
+	def addLayer(self, name):
+		layer = Layer(self, name)
+		self._layers.append(layer)
 		return layer
 
-	def findSystem(self, key):
-		if key in self.systems.keys():
-			return self.systems[key]
+	def removeLayer(self, layer):
+		index = self._layers.index(layer)
+		return self._layers.pop(index)
 
-		for layer in self.layers.values():
+	def setParent(self, parent=None):
+		if parent == self._parent:
+			return 
+			
+		if parent is None:
+			parent = self.guide()
+
+		self._parent.removeLayer(self)
+
+		self._parent = parent
+		self.setName(self.name())
+		self._parent._layers.append(self)
+
+	def __findUniqueName(self, name, layers):
+		inputName = name
+		i = 1
+		while name in layers:
+			name = inputName + str(i)
+			i += 1
+		return name
+
+	# ----------------------------------------------------------------------------------
+	# SYSTEMS
+	# ----------------------------------------------------------------------------------
+	def systems(self):
+		return self._systems
+
+	def findSystem(self, key):
+		if key in self._systems.keys():
+			return self._systems[key]
+
+		for layer in self._layers:
 			system = layer.findSystem(key)
 			if system:
 				return system
@@ -86,14 +140,14 @@ class Layer():
 		inputName = name
 		i = 1
 		key = naming.getSystemKey(location, name)
-		while self.guide.findSystem(key) is not None:
+		while self.guide().findSystem(key) is not None:
 			name = inputName + str(i)
 			key = naming.getSystemKey(location, name)
 			i += 1
 
 		SystemClass = getSystemGuideClass(systemType, version)
 		system = SystemClass.create(self, location, name, matrices)
-		self.systems[system.key()] = system
+		self._systems[system.key()] = system
 
 		return system
 
@@ -103,12 +157,12 @@ class Layer():
 	def toXml(self, name):
 		xmlRoot = etree.Element("Layer")
 		xmlRoot.set("name", name)
-		xmlRoot.set("settings", json.dumps(self.settings))
+		xmlRoot.set("settings", json.dumps(self._settings))
 
-		for layerName, layer in self.layers.iteritems():
+		for layerName, layer in self._layers.iteritems():
 			xmlRoot.append(layer.toXml(layerName))
 
-		for systemKey, system in self.systems.iteritems():
+		for systemKey, system in self._systems.iteritems():
 			xmlRoot.append(system.toXml())
 
 		return xmlRoot

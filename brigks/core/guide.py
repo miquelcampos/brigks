@@ -5,15 +5,16 @@ import getpass
 import datetime
 
 from layer import Layer
+from builder import Builder
 
 DATA_ATTRIBUTE = "_userProps"
 
 class Guide():
 
 	def __init__(self, model=None):
-		self.model = None
-		self.layers = dict() 
-		self.settings = dict(characterization="None",
+		self._model = None
+		self._layers = []
+		self._settings = dict(characterization="None",
 							version=[1,0,0],
 							defaultScaling=1.0,
 							synoptic=[],
@@ -29,50 +30,57 @@ class Guide():
 		if model:
 			self.load(model)
 		else:
-			self.model = cmds.createNode("transform", name="Guide")
-			cmds.addAttr(self.model, longName="model", attributeType="bool")
-			cmds.addAttr(self.model, longName="guide", attributeType="bool")
-			cmds.addAttr(self.model, longName=DATA_ATTRIBUTE, dataType="string")
+			self._model = cmds.createNode("transform", name="Guide")
+			cmds.addAttr(self._model, longName="model", attributeType="bool")
+			cmds.addAttr(self._model, longName="guide", attributeType="bool")
+			cmds.addAttr(self._model, longName=DATA_ATTRIBUTE, dataType="string")
 
 	def load(self, model):
-		self.model = model
+		self._model = model
 		if not cmds.ls(model+"."+DATA_ATTRIBUTE):
 			raise RuntimeError("Invalide Guide. Missing Data Attribute.")
 
 		# Load Settings
 		data = json.loads(cmds.getAttr(model+"."+DATA_ATTRIBUTE))
-		self.settings.update(data["settings"])
+		self._settings.update(data["settings"])
 
 		# Load Layers
-		for name, data in data["layers"].iteritems():
-			layer = Layer(self, data)
-			self.layers[name] = layer
+		for data in data["layers"]:
+			layer = Layer(self, data["name"], data)
+			self._layers.append(layer)
+
+	def build(self, systemGuides):
+		builder = Builder(self)
+		builder.build(systemGuides)
 
 	def dumps(self):
-		return dict(settings=self.settings,
-					layers={name:layer.dumps() for name, layer in self.layers.iteritems()})
+		return dict(settings=self._settings,
+					layers=[layer.dumps() for layer in self._layers])
 
 	def commit(self):
 		# Saves settings to json in the model data attribute
-		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(self.dumps()), type="string")
+		cmds.setAttr(self._model+"."+DATA_ATTRIBUTE, json.dumps(self.dumps()), type="string")
 
 	# ----------------------------------------------------------------------------------
 	# LAYERS, SYSTEMS
 	# ----------------------------------------------------------------------------------
-	def addLayer(self, name):
-		# Making sure the name of the system is unique to the layer
-		inputName = name
-		i = 1
-		while name in self.layers:
-			name = inputName + str(i)
-			i += 1
+	def model(self):
+		return self._model
 
-		layer = Layer(self)
-		self.layers[name] = layer
+	def layers(self):
+		return {layer.name():layer for layer in self._layers}
+
+	def addLayer(self, name):
+		layer = Layer(self, name)
+		self._layers.append(layer)
 		return layer
 
+	def removeLayer(self, layer):
+		index = self._layers.index(layer)
+		return self._layers.pop(index)
+
 	def findSystem(self, key):
-		for layer in self.layers.values():
+		for layer in self._layers:
 			system = layer.findSystem(key)
 			if system:
 				return system
@@ -84,9 +92,9 @@ class Guide():
 		xmlRoot = etree.Element("Guide")
 		xmlRoot.set("user", getpass.getuser())
 		xmlRoot.set("date", str(datetime.datetime.now()))
-		xmlRoot.set("settings", json.dumps(self.settings))
+		xmlRoot.set("settings", json.dumps(self._settings))
 
-		for layerName, layer in self.layers.iteritems():
+		for layerName, layer in self._layers.iteritems():
 			xmlRoot.append(layer.toXml(layerName))
 
 		return xmlRoot
@@ -108,6 +116,6 @@ class Guide():
 			layer = Layer.fromXml(guide, xmlLayer)
 			guide.layers[name] = layer
 
-		guide.dumps()
+		guide.commit()
 
 		return guide

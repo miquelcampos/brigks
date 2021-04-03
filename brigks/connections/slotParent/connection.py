@@ -11,8 +11,13 @@ class SlotParentSystemConnection(SystemConnection):
 			)
 
 	def connect(self, builder, slot):
-		child = builder.getObject("Ctl", slot)
-		parent = self.getParent(builder, self._connection.settings)
+		# I'm assuming it's the BFr with the same name as the slot... that's not good
+		child = builder.getObject("Bfr", slot)
+
+		#
+		system = builder.coreBuilder.systems[self.settings["key"]]
+		parent = system.getObjectFromSlot(self.settings["slot"])
+
 		self._parent(child, parent)
 
 	def getTargetSystems(self):
@@ -27,10 +32,10 @@ class SlotParentSystemConnection(SystemConnection):
 		if otherLocation == "X":
 			self.settings["key"] = "{n}_{l}".format(n=otherName, l=location)
 
-	@staticmethod
-	def getParent(builder, settings):
-		key = settings["key"]
-		slot = settings["slot"]
-		system = builder.coreBuilder.systems[key]
-		parent = system.getObjectFromSlot(slot)
-		return parent
+	# @staticmethod
+	# def getParent(builder, settings):
+	# 	key = settings["key"]
+	# 	slot = settings["slot"]
+	# 	system = builder.coreBuilder.systems[key]
+	# 	parent = system.getObjectFromSlot(slot)
+	# 	return parent

@@ -51,9 +51,9 @@ class BasicSystemGuide(SystemGuide):
 		ports = {}
 		for marker in self.markers.keys():
 			port = marker.split("_")[-1]
-			ports[port] = ["parent", "attachToGeo", "multi", "customParent"]
+			ports[port] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 
-		ports["UI"] = ["parent"]
+		ports["UI"] = ["uiHost"]
 
 		return ports
 

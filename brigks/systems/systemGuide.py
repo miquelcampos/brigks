@@ -19,7 +19,7 @@ class SystemGuide(object):
 	compatibles = ()
 
 	def __init__(self, layer):
-		self.layer = layer
+		self._layer = layer
 		self.settings = dict(
 					version=[1,0,0],
 					name="Name",
@@ -31,7 +31,6 @@ class SystemGuide(object):
 		self.addSettings()
 
 		self.connections = {}
-		self.coreGuide = self.layer.guide
 
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
@@ -52,7 +51,7 @@ class SystemGuide(object):
 		system.settings["name"] = name
 
 		# Create Markers
-		parent = system.layer.guide.model
+		parent = system.model()
 		for name, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
 			if matrix is None:
 				position = cls.defaultPositions[name]
@@ -77,6 +76,9 @@ class SystemGuide(object):
 
 		return system
 
+	def build(self):
+		self.guide().build([self])
+
 	def dumps(self):
 		"""
 		Returns:
@@ -90,6 +92,12 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------
+	def guide(self):
+		return self._layer.guide()
+
+	def model(self):
+		return self._layer.guide().model()
+
 	def key(self):
 		return naming.getSystemKey(self.settings["location"], self.settings["name"])
 
@@ -160,7 +168,7 @@ class SystemGuide(object):
 		self.markers = {}
 		search = self.getMarkerName("*")
 		markers = cmds.ls(search, type="transform", long=True)
-		markers = [m for m in markers if m.startswith("|"+self.coreGuide.model)]
+		markers = [m for m in markers if m.startswith("|"+self.model())]
 		for marker in markers:
 			part = marker.split("_")[-1]
 			self.markers[part] = SystemMarker(marker)
@@ -170,7 +178,7 @@ class SystemGuide(object):
 	# 	node = cmds.spaceLocator(name=name)
 	# 	if matrix:
 	# 		cmds.xform(node, matrix=matrix, worldSpace=True)
-	# 	cmds.parent(node, self.layer.guide.model)
+	# 	cmds.parent(node, self.model())
 
 	def getMarkerName(self, part):
 		return naming.getObjectName("Gde",
@@ -237,20 +245,6 @@ class SystemGuide(object):
 		# Create the system
 		system = cls.create(layer, location, name, matrices)
 		system.settings.update(settings)
-
-		# parent = system.layer.guide.model
-		# for name, xmlMarker in checkMarkersMinMax(xmlMarkers, system.markerNames, system.markerMinMax):
-		# 	matrix = None
-		# 	if xmlMarker is not None:
-		# 		matrix = xmlMarker.get("matrix")
-		# 		if matrix:
-		# 			matrix = json.loads(matrix)
-		# 			matrix = [j for sub in matrix for j in sub]
-		# 	else:
-		# 		print "NotFound", system.key(), system.type(), name, xmlMarkers.keys()
-				
-		# 	name = system.getMarkerName(name)
-		# 	SystemMarker.create(name, parent, matrix)
 
 		# Connections
 		xmlConnections = xmlRoot.findall("Connection")

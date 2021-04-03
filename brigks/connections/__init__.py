@@ -9,7 +9,7 @@ def getConnectionWidgetClass(connectionType):
 
 def _getClass(connectionType, moduleName, classSuffix):
 	# Get Module
-	moduleName = ".".join(["tools", "marbie", "connections", connectionType, moduleName])	
+	moduleName = ".".join(["brigks", "connections", connectionType, moduleName])	
 	module = __import__(moduleName, globals(), locals(), ["*"], -1)
 
 	className = connectionType[0].upper()+connectionType[1:]+classSuffix

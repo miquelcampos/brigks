@@ -13,8 +13,9 @@ class BasicSystemBuilder(SystemBuilder):
 		color = self.settings["colorIk"] if self.settings["useIkColor"] else self.settings["colorFk"]
 		axis = self.sign()+"yz"
 
-		self.jntHost = []
-		for i, (part, marker) in enumerate(self.guide.markers.iteritems()):
+		self.jntparent = []
+		self.splitParent = []
+		for i, (part, marker) in enumerate(self.guide.markers.iteritems(), start=1):
 			bfr = self.createBuffer(None, part, tfm=marker.transform())
 			self.bfr.append(bfr)
 
@@ -25,32 +26,35 @@ class BasicSystemBuilder(SystemBuilder):
 
 				keyables = [attr for attr in trs_attrs if self.settings[attr]]
 				setKeyables(ctl, keyables)
-				# self.setInversedParameters(ctl, middle=["posx", "rotz", "roty"])
-				jntHost = ctl
+				jntparent = ctl
 			else:
-				jntHost = bfr
+				jntparent = bfr
 
 			if self.settings["dynamic"]:
-				harmonic = self.createRig(jntHost, "Harmonic%s"%i, tfm=marker.transform())
-				jntHost = harmonic
+				harmonic = self.createRig(jntparent, "Harmonic{}".format(i), tfm=marker.transform())
+				jntparent = harmonic
 
-			self.jntHost.append(jntHost)
+			self.jntparent.append(jntparent)
+
+			if self.settings["splitRotation"]:
+				splitParent = self.createRig(jntparent, "Split{}".format(i), tfm=marker.transform())
+				self.splitParent.append(splitParent)
 
 	def createJoints(self):
-		for i, jntHost in enumerate(self.jntHost, start=1):
-			self.createJoint(jntHost, i)
-			if self.settings["splitRotation"]:
-				jnt = self.createJoint(jntHost, "Pos{}".format(i))					
-				if self.settings["addControllers"]:
-					value = cmds.getAttr(jnt+".radius") *.9
-					cmds.setAttr(jnt+".radius", value)
+		for i, parent in enumerate(self.jntparent, start=1):
+			self.createJoint(parent, i)
+
+		for i, parent in enumerate(self.splitParent, start=1):
+			jnt = self.createJoint(parent, "Pos{}".format(i))	
+			value = cmds.getAttr(jnt+".radius") *.9
+			cmds.setAttr(jnt+".radius", value)
 
 	#----------------------------------------------------------------------------------------------------------------
 	# OPERATORS
 	def createOperators(self):
 		if self.settings["splitRotation"]:
 			for i, bfr in enumerate(self.bfr, start=1):
-				jnt = self.getObject("Jnt", "Pos{}".format(i))
+				rig = self.getObject("Rig", "Split{}".format(i))
 
 				name = self.getObjectName(i, "Jnt")
 
@@ -58,12 +62,12 @@ class BasicSystemBuilder(SystemBuilder):
 				dm = self._createNode("decomposeMatrix", "DecomposeMatrix{}".format(i))
 
 				cmds.connectAttr(bfr+".worldMatrix[0]", mm+".matrixIn[0]")
-				cmds.connectAttr(jnt+".parentInverseMatrix[0]", mm+".matrixIn[1]")
+				cmds.connectAttr(rig+".parentInverseMatrix[0]", mm+".matrixIn[1]")
 				cmds.connectAttr(mm+".matrixSum", dm+".inputMatrix")
-				cmds.connectAttr(dm+".outputRotate", jnt+".rotate")
+				cmds.connectAttr(dm+".outputRotate", rig+".rotate")
 							
 		if self.settings["dynamic"]:
-			for i, harmonic in enumerate(self.jntHost):
+			for i, harmonic in enumerate(self.jntparent):
 				nodeName = self.getObjectName("Nde", "Harmonic{}".format(i))
 				parent = cmds.listRelatives(harmonic, parent=True)[0]
 				cns = createHarmonic(nodeName, harmonic, parent, 

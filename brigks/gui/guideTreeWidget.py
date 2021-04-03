@@ -42,9 +42,8 @@ class GuideTreeWidget(QTreeWidget):
 		return systems
 
 	def saveExpandedItem(self, item):
-
 		if isinstance(item, LayerTreeWidgetItem):
-			item.layer().settings["expanded"] = True
+			item.layer().settings()["expanded"] = True
 
 		self._guide.dumps()
 
@@ -55,7 +54,7 @@ class GuideTreeWidgetItem(QTreeWidgetItem):
 
 		self.guide = guide
 
-		sortedLayers = sorted(guide.layers.items(), key=lambda x: x[0])
+		sortedLayers = sorted(guide.layers().items(), key=lambda x: x[0])
 		for name, layer in sortedLayers:
 			LayerTreeWidgetItem(self, name, layer)
 
@@ -65,13 +64,13 @@ class LayerTreeWidgetItem(QTreeWidgetItem):
 		super(LayerTreeWidgetItem, self).__init__(parent, [name])
 
 		self._layer = layer
-		self.setExpanded(self._layer.settings["expanded"])
+		self.setExpanded(self._layer.settings()["expanded"])
 
-		sortedSubLayers = sorted(layer.layers.items(), key=lambda x: x[0])
+		sortedSubLayers = sorted(layer.layers().items(), key=lambda x: x[0])
 		for subName, subLayer in sortedSubLayers:
 			LayerTreeWidgetItem(self, subName, subLayer)
 
-		sortedSystems = sorted(layer.systems.items(), key=lambda x: x[0])
+		sortedSystems = sorted(layer.systems().items(), key=lambda x: x[0])
 		for key, system in sortedSystems:
 			SystemTreeWidgetItem(self, key, system)
 
