@@ -8,7 +8,7 @@ class SpineSystemGuide(SystemGuide):
 	markerMinMax = dict()
 
 	def addSettings(self):
-		self.settings["blend"] = "IK"  # FK, IK
+		self._settings["blend"] = "IK"  # FK, IK
 
 	def connectionPorts(self):
 		super(SpineSystemGuide, self).connectionPorts()

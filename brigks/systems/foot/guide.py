@@ -11,9 +11,9 @@ class FootSystemGuide(SystemGuide):
 
 	def addSettings(self):
 		for i in range(self.count("Part")):
-			self.settings["angle%s"%(i+1)] = 20
+			self._settings["angle%s"%(i+1)] = 20
 			
-		self.settings["rollControl"] = "Slider" # Slider, Controller
+		self._settings["rollControl"] = "Slider" # Slider, Controller
 
 	def connectionPorts(self):
 		super(FootSystemGuide, self).connectionPorts()

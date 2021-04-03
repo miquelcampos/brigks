@@ -8,10 +8,10 @@ class NeckSystemGuide(SystemGuide):
 	markerMinMax = {}
 
 	def addSettings(self):
-		self.settings["blend"] = "IK" # FK, IK
+		self._settings["blend"] = "IK" # FK, IK
 
-		self.settings["stretch"] = 0.0
-		self.settings["orientToWorld"] = False
+		self._settings["stretch"] = 0.0
+		self._settings["orientToWorld"] = False
 
 	def connectionPorts(self):
 		super(NeckSystemGuide, self).connectionPorts()

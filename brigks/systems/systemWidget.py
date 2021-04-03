@@ -34,7 +34,7 @@ class SystemWidget(QWidget):
 	# -----------------------------------------------------
 	def getSettingWidgets(self):
 		widgets = {}
-		for setting in self._system.settings.keys():
+		for setting in self._system.settings().keys():
 			widgetName = "ui" + setting[0].capitalize() + setting[1:]
 			if widgetName not in self.__dict__:
 				continue
@@ -61,7 +61,7 @@ class SystemWidget(QWidget):
 	# SETTINGS
 	# -----------------------------------------------------
 	def loadSettings(self):
-		for setting, value in self._system.settings.items():
+		for setting, value in self._system.settings().items():
 			if setting not in self._widgets:
 				continue
 			
@@ -104,5 +104,5 @@ class SystemWidget(QWidget):
 			elif isinstance(widget, QPlainTextEdit):
 				settings[setting] = str(widget.toPlainText())
 
-		self._system.settings.update(settings)
-		self._system.coreGuide.dumps()
+		self._system.setSettings(settings)
+		self._system.coreGuide.commit()

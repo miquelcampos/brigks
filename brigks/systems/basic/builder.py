@@ -10,7 +10,7 @@ class BasicSystemBuilder(SystemBuilder):
 		self.ctl = []
 		parent = None
 
-		color = self.settings["colorIk"] if self.settings["useIkColor"] else self.settings["colorFk"]
+		color = self._settings["colorIk"] if self._settings["useIkColor"] else self._settings["colorFk"]
 		axis = self.sign()+"yz"
 
 		self.jntparent = []
@@ -19,24 +19,24 @@ class BasicSystemBuilder(SystemBuilder):
 			bfr = self.createBuffer(None, part, tfm=marker.transform())
 			self.bfr.append(bfr)
 
-			if self.settings["addControllers"]:
+			if self._settings["addControllers"]:
 				ctl = self.createController(bfr, part, tfm=marker.transform(), icon="cube", color=color)
 				self.ctl.append(ctl)	
-				setRotOrder(ctl, self.settings["defaultRotationOrder"])
+				setRotOrder(ctl, self._settings["defaultRotationOrder"])
 
-				keyables = [attr for attr in trs_attrs if self.settings[attr]]
+				keyables = [attr for attr in trs_attrs if self._settings[attr]]
 				setKeyables(ctl, keyables)
 				jntparent = ctl
 			else:
 				jntparent = bfr
 
-			if self.settings["dynamic"]:
+			if self._settings["dynamic"]:
 				harmonic = self.createRig(jntparent, "Harmonic{}".format(i), tfm=marker.transform())
 				jntparent = harmonic
 
 			self.jntparent.append(jntparent)
 
-			if self.settings["splitRotation"]:
+			if self._settings["splitRotation"]:
 				splitParent = self.createRig(jntparent, "Split{}".format(i), tfm=marker.transform())
 				self.splitParent.append(splitParent)
 
@@ -52,7 +52,7 @@ class BasicSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------------------------------------------
 	# OPERATORS
 	def createOperators(self):
-		if self.settings["splitRotation"]:
+		if self._settings["splitRotation"]:
 			for i, bfr in enumerate(self.bfr, start=1):
 				rig = self.getObject("Rig", "Split{}".format(i))
 
@@ -66,16 +66,16 @@ class BasicSystemBuilder(SystemBuilder):
 				cmds.connectAttr(mm+".matrixSum", dm+".inputMatrix")
 				cmds.connectAttr(dm+".outputRotate", rig+".rotate")
 							
-		if self.settings["dynamic"]:
+		if self._settings["dynamic"]:
 			for i, harmonic in enumerate(self.jntparent):
 				nodeName = self.getObjectName("Nde", "Harmonic{}".format(i))
 				parent = cmds.listRelatives(harmonic, parent=True)[0]
 				cns = createHarmonic(nodeName, harmonic, parent, 
 					amplitude=1.0, 
-					decay=self.settings["decay"], 
-					frequency=self.settings["frequency"], 
-					termination=self.settings["termination"], 
-					amplitudeAxis=(self.settings["amplitudeX"], self.settings["amplitudeY"], self.settings["amplitudeZ"]))
+					decay=self._settings["decay"], 
+					frequency=self._settings["frequency"], 
+					termination=self._settings["termination"], 
+					amplitudeAxis=(self._settings["amplitudeX"], self._settings["amplitudeY"], self._settings["amplitudeZ"]))
 
 				if i%3 == 0:
 					mulNode = self._createNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
@@ -85,10 +85,10 @@ class BasicSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------
 	# PROPERTIES 
 	def createAttributes(self):
-		if self.settings["dynamic"]:
+		if self._settings["dynamic"]:
 			count = len(self.guide.markers)
-			dynamicAttr = self.createAnimAttr("Dynamic", "bool", self.settings["dynActive"])
-			globalAmplitudeAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings["amplitude"], 0, 5)
+			dynamicAttr = self.createAnimAttr("Dynamic", "bool", self._settings["dynActive"])
+			globalAmplitudeAttr = self.createAnimAttr("GlobalAmplitude", "float", self._settings["amplitude"], 0, 5)
 			localAmplitudeAttr = [self.createAnimAttr("LocalAmplitude%s"%i, "float", 1, 0, 10) for i in xrange(count)]
 
 			# Connect
@@ -109,11 +109,11 @@ class BasicSystemBuilder(SystemBuilder):
 				cmds.connectAttr(localAmplitudeAttr[i], mulNode+".input2"+axis, force=True)
 				cmds.connectAttr(activeNode+".output"+axis, harmonic+".amplitude", force=True)
 
-			if self.settings["dynamicAnimatable"]:
-				axisAttr = self.createAnimAttr("Axis", "double3", (self.settings["amplitudeX"], self.settings["amplitudeY"], self.settings["amplitudeZ"]))
-				decayAttr = self.createAnimAttr("Decay", "float", self.settings["decay"], 0, 10)
-				terminationAttr = self.createAnimAttr("Termination", "float", self.settings["termination"], 0, 1)
-				frequencyAttr = self.createAnimAttr("Frequency", "float", self.settings["frequency"], 0, 1)
+			if self._settings["dynamicAnimatable"]:
+				axisAttr = self.createAnimAttr("Axis", "double3", (self._settings["amplitudeX"], self._settings["amplitudeY"], self._settings["amplitudeZ"]))
+				decayAttr = self.createAnimAttr("Decay", "float", self._settings["decay"], 0, 10)
+				terminationAttr = self.createAnimAttr("Termination", "float", self._settings["termination"], 0, 1)
+				frequencyAttr = self.createAnimAttr("Frequency", "float", self._settings["frequency"], 0, 1)
 
 				# Connect
 				cmds.connectAttr(axisAttr, harmonic+".axisAmp", force=True)

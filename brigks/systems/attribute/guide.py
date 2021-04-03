@@ -8,8 +8,8 @@ class AttributeSystemGuide(SystemGuide):
 	markerMinMax = {}
 
 	def addSettings(self):
-		self.settings["order"] = []
-		self.settings["definition"] = {}
+		self._settings["order"] = []
+		self._settings["definition"] = {}
 
 	def connectionPorts(self):
 		super(AttributeSystemGuide, self).connectionPorts()

@@ -8,11 +8,11 @@ class LookatSystemGuide(SystemGuide):
 	markerMinMax = {}
 
 	def addSettings(self):
-		self.settings["addLocalController"] = True
-		self.settings["addTargetController"] = True
-		self.settings["addUpVController"] = False
-		self.settings["extraOffsetController"] = False
-		self.settings["keepRotationOffset"] = False
+		self._settings["addLocalController"] = True
+		self._settings["addTargetController"] = True
+		self._settings["addUpVController"] = False
+		self._settings["extraOffsetController"] = False
+		self._settings["keepRotationOffset"] = False
 
 	def connectionPorts(self):
 		super(LookatSystemGuide, self).connectionPorts()
@@ -34,7 +34,7 @@ class LookatSystemGuide(SystemGuide):
 			Local=("Rig", "Local")
 		)
 
-		if self.settings["extraOffsetController"]:
+		if self._settings["extraOffsetController"]:
 			slots["Offset"] = ("Rig", "Offset")
 
 		return slots

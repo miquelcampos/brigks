@@ -8,10 +8,10 @@ class ZlegSystemGuide(SystemGuide):
 	markerMinMax = dict()
 
 	def addSettings(self):
-		self.settings["blend"] = "FK" # FK, IK
+		self._settings["blend"] = "FK" # FK, IK
 
-		self.settings["stretchDefault"] = 1.5
-		self.settings["reverseDefault"] = 0.0
+		self._settings["stretchDefault"] = 1.5
+		self._settings["reverseDefault"] = 0.0
 
 	def connectionPorts(self):
 		super(ZlegSystemGuide, self).connectionPorts()

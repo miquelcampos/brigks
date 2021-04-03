@@ -11,7 +11,7 @@ class ChainSystemBuilder(SystemBuilder):
 			dynName = "Dynamic{}".format(i)
 
 			bfr = self.createBuffer(None, fkName, tfm=marker.transform())
-			ctl = self.createController(bfr, fkName, tfm=marker.transform(), icon=None, size=1, po=None, ro=None, so=None, color=self.settings["colorIk"])
+			ctl = self.createController(bfr, fkName, tfm=marker.transform(), icon=None, size=1, po=None, ro=None, so=None, color=self._settings["colorIk"])
 
 			bone = self.createRig(None, boneName, tfm=marker.transform())
 			dyn = self.createRig(None, dynName, tfm=marker.transform())

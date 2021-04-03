@@ -14,36 +14,36 @@ class BasicSystemGuide(SystemGuide):
 		)
 
 	def addSettings(self):
-		self.settings["addControllers"] = True
-		self.settings["useIkColor"] = False
+		self._settings["addControllers"] = True
+		self._settings["useIkColor"] = False
 
-		self.settings["tx"] = True
-		self.settings["ty"] = True
-		self.settings["tz"] = True
-		self.settings["rx"] = True
-		self.settings["ry"] = True
-		self.settings["rz"] = True
-		self.settings["sx"] = True
-		self.settings["sy"] = True
-		self.settings["sz"] = True
+		self._settings["tx"] = True
+		self._settings["ty"] = True
+		self._settings["tz"] = True
+		self._settings["rx"] = True
+		self._settings["ry"] = True
+		self._settings["rz"] = True
+		self._settings["sx"] = True
+		self._settings["sy"] = True
+		self._settings["sz"] = True
 		
-		self.settings["rotorder"] = True
-		self.settings["defaultRotationOrder"] = "XYZ"
+		self._settings["rotorder"] = True
+		self._settings["defaultRotationOrder"] = "XYZ"
 
-		self.settings["splitRotation"] = False
+		self._settings["splitRotation"] = False
 		
-		self.settings["dynamic"] = False
-		self.settings["dynActive"] = False
-		self.settings["amplitude"] = 1.0
+		self._settings["dynamic"] = False
+		self._settings["dynActive"] = False
+		self._settings["amplitude"] = 1.0
 
-		self.settings["amplitudeX"] = 1.0
-		self.settings["amplitudeY"] = 1.0
-		self.settings["amplitudeZ"] = 1.0
-		self.settings["decay"] = 8.0
-		self.settings["frequency"] = .25
-		self.settings["termination"] = 0.0
+		self._settings["amplitudeX"] = 1.0
+		self._settings["amplitudeY"] = 1.0
+		self._settings["amplitudeZ"] = 1.0
+		self._settings["decay"] = 8.0
+		self._settings["frequency"] = .25
+		self._settings["termination"] = 0.0
 
-		self.settings["dynamicAnimatable"] = False
+		self._settings["dynamicAnimatable"] = False
 
 	def connectionPorts(self):
 		super(BasicSystemGuide, self).connectionPorts()

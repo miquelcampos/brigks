@@ -8,13 +8,13 @@ class AverageSystemGuide(SystemGuide):
 	markerMinMax = {}
 
 	def addSettings(self):
-		self.settings["addControllers"] = False
-		self.settings["blendAnimatable"] = False
+		self._settings["addControllers"] = False
+		self._settings["blendAnimatable"] = False
 
-		self.settings["blend"] = .5
-		self.settings["position"] = True
-		self.settings["rotation"] = True
-		self.settings["scaling"] = True
+		self._settings["blend"] = .5
+		self._settings["position"] = True
+		self._settings["rotation"] = True
+		self._settings["scaling"] = True
 
 	def connectionPorts(self):
 		super(AverageSystemGuide, self).connectionPorts()
@@ -31,7 +31,7 @@ class AverageSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(AverageSystemGuide, self).connectionSlots()
 
-		usage = "Ctl" if self.settings("addControllers") else "Bfr"
+		usage = "Ctl" if self._settings("addControllers") else "Bfr"
 		slots = dict(
 			Average=(usage, "Average")
 			)

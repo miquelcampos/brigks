@@ -10,16 +10,16 @@ class DrivenSystemGuide(SystemGuide):
 		)
 	
 	def addSettings(self):
-		self.settings["addControllers"] = True
-		self.settings["useIkColor"] = False
+		self._settings["addControllers"] = True
+		self._settings["useIkColor"] = False
 
-		self.settings["addControllers"] = False
-		self.settings["addDeformerRef"] = False
+		self._settings["addControllers"] = False
+		self._settings["addDeformerRef"] = False
 		
 		for i in xrange(1, self.count("Rail")+1):
-			self.settings["minRot%s"%i]= -90
-			self.settings["maxRot%s"%i]= 90
-			self.settings["axis%s"%i]= "Z"
+			self._settings["minRot%s"%i]= -90
+			self._settings["maxRot%s"%i]= 90
+			self._settings["axis%s"%i]= "Z"
 
 	def connectionPorts(self):
 		super(DrivenSystemGuide, self).connectionPorts()
@@ -38,7 +38,7 @@ class DrivenSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(DrivenSystemGuide, self).connectionSlots()
 
-		usage = "Ctl" if self.settings("addControllers") else "Rig"
+		usage = "Ctl" if self._settings("addControllers") else "Rig"
 		slots = dict()
 		for i in xrange(1, self.count("Rail")+1):
 			slots["Part%s"%i] = (usage, "Part%s"%i)

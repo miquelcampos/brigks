@@ -11,29 +11,29 @@ class ChainSystemGuide(SystemGuide):
 
 	def addSettings(self):
 
-		self.settings["orientation"] = "Auto"  # Auto, Guide
+		self._settings["orientation"] = "Auto"  # Auto, Guide
 
-		self.settings["kinematic"] = "FK"  # FK, IK or FK/IK
-		self.settings["blend"] = "FK"
+		self._settings["kinematic"] = "FK"  # FK, IK or FK/IK
+		self._settings["blend"] = "FK"
 
-		self.settings["setNeutralPose"] = True
-		self.settings["defaultRotationOrder"] = "XYZ"
+		self._settings["setNeutralPose"] = True
+		self._settings["defaultRotationOrder"] = "XYZ"
 
-		self.settings["strap"] = False
-		self.settings["strapDeformers"] = 5
+		self._settings["strap"] = False
+		self._settings["strapDeformers"] = 5
 
-		self.settings["dynamic"] = False
-		self.settings["dynActive"] = False
-		self.settings["amplitude"] = 1.0
+		self._settings["dynamic"] = False
+		self._settings["dynActive"] = False
+		self._settings["amplitude"] = 1.0
 
-		self.settings["amplitudeX"] = 1.0
-		self.settings["amplitudeY"] = 1.0
-		self.settings["amplitudeZ"] = 1.0
-		self.settings["decay"] = 8.0
-		self.settings["frequency"] = .25
-		self.settings["termination"] = 0.0
+		self._settings["amplitudeX"] = 1.0
+		self._settings["amplitudeY"] = 1.0
+		self._settings["amplitudeZ"] = 1.0
+		self._settings["decay"] = 8.0
+		self._settings["frequency"] = .25
+		self._settings["termination"] = 0.0
 
-		self.settings["dynamicAnimatable"] = False
+		self._settings["dynamicAnimatable"] = False
 
 	def connectionPorts(self):
 		super(ChainSystemGuide, self).connectionPorts()
@@ -51,13 +51,13 @@ class ChainSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(ChainSystemGuide, self).connectionSlots()
 
-		if self.settings["dynamic"]:
+		if self._settings["dynamic"]:
 			usage = "Rig"
 			name = "Dynamic{}"
-		elif self.settings["kinematic"] == "FK/IK":
+		elif self._settings["kinematic"] == "FK/IK":
 			usage = "Rig"
 			name = "Bone{}"
-		elif self.settings["kinematic"] == "FK":
+		elif self._settings["kinematic"] == "FK":
 			usage = "Ctrl"
 			name = "Fk{}"
 		else:

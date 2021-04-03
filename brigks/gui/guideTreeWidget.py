@@ -94,7 +94,7 @@ class SystemTreeWidgetItem(QTreeWidgetItem):
 
 		self._system = system
 
-		if system.settings["location"] == "X":
+		if system.settings()["location"] == "X":
 			SubSystemTreeWidgetItem(self, key.replace("X", "L"), system)
 			SubSystemTreeWidgetItem(self, key.replace("X", "R"), system)
 

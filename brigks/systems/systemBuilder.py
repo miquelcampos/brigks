@@ -13,7 +13,7 @@ class SystemBuilder():
 		self.coreBuilder = coreBuilder
 		self.guide = guide
 		self.key = self.guide.key
-		self.settings = self.guide.settings
+		self._settings = self.guide._settings
 		self.attributeNames = []
 
 		# Building Steps
@@ -32,7 +32,7 @@ class SystemBuilder():
 	#  SETTINGS
 	# ----------------------------------------------------------------------------------
 	def negate(self):
-		return self.settings["location"] == "R"
+		return self._settings["location"] == "R"
 
 	def sign(self):
 		return "-" if self.negate() else ""
@@ -49,7 +49,7 @@ class SystemBuilder():
 	def stepObjects(self):
 		self.deleteobjects()
 		self.createObjects()
-		if self.settings["addJoints"]:
+		if self._settings["addJoints"]:
 			self.createJoints()
 
 	def stepOperators(self):
@@ -175,15 +175,15 @@ class SystemBuilder():
 	def getObjectName(self, usage, part):
 		return naming.getObjectName(
 			usage=usage,
-			location=self.settings["location"],
-			name=self.settings["name"],
+			location=self._settings["location"],
+			name=self._settings["name"],
 			part=part)
 
 	def getNodeName(self, part):
 		return naming.getObjectName(
 			usage="Nde",
-			location=self.settings["location"],
-			name=self.settings["name"],
+			location=self._settings["location"],
+			name=self._settings["name"],
 			part=part)
 
 	def getObject(self, usage, part):

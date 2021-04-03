@@ -67,6 +67,9 @@ class Guide():
 	def model(self):
 		return self._model
 
+	def setSettings(self, settings):
+		self._settings.update(settings)
+
 	def layers(self):
 		return {layer.name():layer for layer in self._layers}
 
@@ -108,13 +111,11 @@ class Guide():
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", "{}"))
-		guide.settings.update(settings)
+		guide.setSettings(settings)
 
 		# Load Layers
 		for xmlLayer in xmlRoot:
-			name = xmlLayer.get("name")
 			layer = Layer.fromXml(guide, xmlLayer)
-			guide.layers[name] = layer
 
 		guide.commit()
 

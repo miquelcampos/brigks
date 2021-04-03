@@ -22,7 +22,7 @@ class Layer():
 							 rigLayer=1, 
 							 rigSubLayer=3)
 
-		# make sure the name is unique
+		# Makes sure the name is unique
 		self.setName(name)
 
 		if data:
@@ -65,7 +65,7 @@ class Layer():
 		return self._settings
 
 	def setSettings(self, settings):
-		self.settings.update(settings)
+		self._settings.update(settings)
 
 	def name(self):
 		return self._name
@@ -89,7 +89,7 @@ class Layer():
 	def setParent(self, parent=None):
 		if parent == self._parent:
 			return 
-			
+
 		if parent is None:
 			parent = self.guide()
 
@@ -168,24 +168,24 @@ class Layer():
 		return xmlRoot
 
 	@classmethod
-	def fromXml(cls, guide, xmlRoot):
-		layer = cls(guide)
-
-		# Load Settings
+	def fromXml(cls, parent, xmlRoot):
+		name = xmlRoot.get("name")
 		settings = json.loads(xmlRoot.get("settings", "{}"))
-		layer.settings.update(settings)
+
+		layer = parent.addLayer(name)
+		layer.setSettings(settings)
 
 		for xmlObject in xmlRoot:
 			if xmlObject.tag == "Layer":
 				name = xmlObject.get("name")
-				subLayer = Layer.fromXml(guide, xmlObject)
-				layer.layers[name] = subLayer
+				subLayer = Layer.fromXml(layer, xmlObject)
+				layer._layers.append(subLayer)
 			elif xmlObject.tag == "System":
 			 	key = xmlObject.get("key")
 			 	systemType = xmlObject.get("type")
 				SystemClass = getSystemGuideClass(systemType)
 				system = SystemClass.fromXml(layer, xmlObject)
-				layer.systems[key] = system
+				layer._systems[key] = system
 
 		return layer
 

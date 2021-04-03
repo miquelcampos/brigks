@@ -8,16 +8,16 @@ class QuadrantSystemGuide(SystemGuide):
 	markerMinMax = {}
 
 	def addSettings(self):
-		self.settings["north"] = True
-		self.settings["south"] = True
-		self.settings["east"] = True
-		self.settings["west"] = True
+		self._settings["north"] = True
+		self._settings["south"] = True
+		self._settings["east"] = True
+		self._settings["west"] = True
 
-		self.settings["push"] = 2.0
+		self._settings["push"] = 2.0
 
-		self.settings["customLabel"] = False
-		self.settings["label"] = "Label"
-		self.settings["labelPosition"] = "North"
+		self._settings["customLabel"] = False
+		self._settings["label"] = "Label"
+		self._settings["labelPosition"] = "North"
 
 	def connectionPorts(self):
 		super(QuadrantSystemGuide, self).connectionPorts()

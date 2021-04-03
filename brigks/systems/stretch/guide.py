@@ -8,17 +8,17 @@ class StretchSystemGuide(SystemGuide):
 	markerMinMax = dict()
 	
 	def addSettings(self):
-		self.settings["addControllers"] = False
+		self._settings["addControllers"] = False
 
-		self.settings["twist"] = True
-		self.settings["twistBlend"] = .5
+		self._settings["twist"] = True
+		self._settings["twistBlend"] = .5
 
-		self.settings["stretch"] = True
-		self.settings["stretchBlend"] = 1.0
+		self._settings["stretch"] = True
+		self._settings["stretchBlend"] = 1.0
 
-		self.settings["squash"] = False
-		self.settings["squashy"] = 1.0
-		self.settings["squashz"] = 1.0
+		self._settings["squash"] = False
+		self._settings["squashy"] = 1.0
+		self._settings["squashz"] = 1.0
 
 	def connectionPorts(self):
 		super(StretchSystemGuide, self).connectionPorts()

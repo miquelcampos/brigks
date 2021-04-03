@@ -20,7 +20,7 @@ class SystemGuide(object):
 
 	def __init__(self, layer):
 		self._layer = layer
-		self.settings = dict(
+		self._settings = dict(
 					version=[1,0,0],
 					name="Name",
 					location="X",
@@ -47,8 +47,8 @@ class SystemGuide(object):
 		    SystemGuide: The newly created system.
 		"""
 		system = cls(layer)
-		system.settings["location"] = location
-		system.settings["name"] = name
+		system._settings["location"] = location
+		system._settings["name"] = name
 
 		# Create Markers
 		parent = system.model()
@@ -66,7 +66,7 @@ class SystemGuide(object):
 	@classmethod
 	def load(cls, layer, data):
 		system = cls(layer)
-		system.settings.update(data["settings"])
+		system.setSettings(data["settings"])
 
 		for slot, connectionData in data["connections"].iteritems():
 			Connection = getSystemConnectionClass(connectionData["type"])
@@ -85,7 +85,7 @@ class SystemGuide(object):
 		    dictionary: System settings, including connections.
 		"""
 		data = dict(systemType=self.type(),
-					settings=self.settings,
+					settings=self._settings,
 					connections={slot:cnx.dumps() for slot, cnx in self.connections.iteritems()})
 		return data
 
@@ -99,20 +99,23 @@ class SystemGuide(object):
 		return self._layer.guide().model()
 
 	def key(self):
-		return naming.getSystemKey(self.settings["location"], self.settings["name"])
+		return naming.getSystemKey(self._settings["location"], self._settings["name"])
 
 	def type(self):
 		return self.__module__.split(".")[-2]
 
+	def settings(self):
+		return self._settings
+
 	def setSettings(self, settings):
-		self.settings.update(settings)
+		self._settings.update(settings)
 
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------
 	def splitSymmetry(self):
 		# This is the Method that create two symmetrical system out of one X system
-		if self.settings["location"] != "X":
+		if self._settings["location"] != "X":
 			RuntimeError("Can't splitSymmetry non-X System") 
 
 		leftSystem = copy.deepcopy(self)
@@ -182,8 +185,8 @@ class SystemGuide(object):
 
 	def getMarkerName(self, part):
 		return naming.getObjectName("Gde",
-					self.settings["location"],
-					self.settings["name"],
+					self._settings["location"],
+					self._settings["name"],
 					part)
 
 	def count(self, part):
@@ -209,7 +212,7 @@ class SystemGuide(object):
 		xmlRoot = etree.Element("System")
 		xmlRoot.set("type", self.type())
 		xmlRoot.set("key", self.key())
-		xmlRoot.set("settings", json.dumps(self.settings))
+		xmlRoot.set("settings", json.dumps(self._settings))
 
 		for port, connection in self.connections.iteritems():
 			xmlRoot.append(connection.toXml(port))
@@ -227,16 +230,13 @@ class SystemGuide(object):
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", {}))
-		# system.settings.update(settings)
 
 		# Markers Transforms
 		xmlMarkers = xmlRoot.findall("Marker")
-		# xmlMarkers = {xmlMarker.get("name"):xmlMarker for xmlMarker in xmlMarkers}
 		matrices = {}
 		for xmlMarker in xmlMarkers:
 			name = xmlMarker.get("name")
 			matrix = json.loads(xmlMarker.get("matrix"))
-			# matrix = [j for sub in matrix for j in sub]
 			matrices[name] = matrix
 
 		name = settings["name"]
@@ -244,7 +244,7 @@ class SystemGuide(object):
 
 		# Create the system
 		system = cls.create(layer, location, name, matrices)
-		system.settings.update(settings)
+		system.setSettings(settings)
 
 		# Connections
 		xmlConnections = xmlRoot.findall("Connection")

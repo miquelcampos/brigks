@@ -44,9 +44,9 @@ class SystemSettingsWidget(QWidget):
 		self.uiTypeCBOX.addItems(systemTypeTitles)
 		self.uiTypeCBOX.setCurrentIndex(SYSTEM_TYPES.index(system.type()))
 
-		self.uiLocationCBOX.setCurrentIndex(SYSTEM_LOCATIONS.index(system.settings["location"]))
+		self.uiLocationCBOX.setCurrentIndex(SYSTEM_LOCATIONS.index(system.settings()["location"]))
 
-		self.uiNameLINE.setText(system.settings["name"])
+		self.uiNameLINE.setText(system.settings()["name"])
 
 		# Add Connections Widget
 		self.clearConnectionWidgets()
@@ -73,8 +73,8 @@ class SystemSettingsWidget(QWidget):
 		if not self._system:
 			return
 
-		self._system.settings["location"] = SYSTEM_LOCATIONS[self.uiLocationCBOX.currentIndex()]
-		self._system.settings["name"] = self.uiNameLINE.currentText()
+		self._system.settings()["location"] = SYSTEM_LOCATIONS[self.uiLocationCBOX.currentIndex()]
+		self._system.settings()["name"] = self.uiNameLINE.currentText()
 
 		self._system.coreGuide.dumps()
 
