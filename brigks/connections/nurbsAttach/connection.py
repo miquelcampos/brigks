@@ -1,14 +1,14 @@
 from maya import cmds
-import dcc.maya.dag.shape.nurbsSurface
-from brigks.connections.systemConnection import SystemConnection
+from maya import OpenMaya as om
 
+from brigks.connections.systemConnection import SystemConnection
 
 class NurbsAttachSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(NurbsAttachSystemConnection, self).__init__()
 		self._settings = dict(
-			mesh=None,
+			surface=None,
 			u=.5,
 			v=.5,
 			useClosest=True,
@@ -21,7 +21,8 @@ class NurbsAttachSystemConnection(SystemConnection):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		parent = self.getParent(self._connection.settings)
+		position = cmds.xform(child, q=True, translation=True, worldSpace=True)
+		parent = self.getParent(self._settings, position)
 		self._parent(child, parent)
 
 	def getTargetSystems(self):
@@ -36,29 +37,31 @@ class NurbsAttachSystemConnection(SystemConnection):
 		if otherLocation == "X":
 			self._settings["key"] = "{n}_{l}".format(n=otherName, l=location)
 
-	@staticmethod
-	def getParent(self, settings):
-		name = "NurbsAttach"
-		mesh = settings["mesh"]
+	def getParent(self, settings, position):
+		surface = settings["surface"]
 		useClosest = settings["useClosest"]
 		useOrientation = settings["useOrientation"]
 		if useClosest:
-			u, v = self._getClosestUV(mesh, position, globalSpace=True)
+			u, v = self._getClosestUV(surface, position, globalSpace=True)
 		else:
 			u = settings["u"]
 			v = settings["v"]
 		key = settings["key"]
 		slot = settings["slot"]
 
-		system = self._builder.coreBuilder.systems[key]
-		parent = system.getObjectFromSlot(slot)
-		if not parent:
+		parent = None
+		if key and slot:
+			system = self._builder.coreBuilder.systems[key]
+			parent = system.getObjectFromSlot(slot)
+		if parent is None:
 			parent = self._builder.coreBuilder.localCtl
 
-		attach = cmds.createNode("transform", name="Attach")
-		cmds.parent(parent, attach)
+		attachName = self.getObjectName(usage="Rig", part="MeshAttach")
+		attach = cmds.createNode("transform", name=attachName)
+		cmds.parent(attach, parent)
+		cmds.xform(attach, translation=position, worldSpace=True)
 
-		#dcc.maya.compound.create("MeshMultiAttach", name, attach, mesh, componentType, componentIndex, useOrientation)
+		self._surfaceMultiAttach([[attach]], surface, 0, [u], [v])
 		return attach
 
 
@@ -77,14 +80,103 @@ class NurbsAttachSystemConnection(SystemConnection):
 		else:
 			space = om.MSpace.kObject
 
-		fnSurface = om.MFnNurbsSurface(surface)
+		point = om.MPoint(*point)
+
+		#shape = cmds.listRelatives(surface, shapes=True, path=True)[0]
+		fnSurface = self._getMFnNurbsSurface(surface)
 
 		utilA = om.MScriptUtil()
 		utilB = om.MScriptUtil()
 
-		closestPointU = utilA.asFloatPtr()
-		closestPointV = utilB.asFloatPtr()
+		closestPointU = utilA.asDoublePtr()
+		closestPointV = utilB.asDoublePtr()
 
-		fnSurface.closestPoint(point, closestPointU, closestPointV, False, 0.0001, space)
+		fnSurface.closestPoint(point, closestPointU, closestPointV, False, 1e-4, space)
 
-		return [closestPointU.getFloat(), closestPointV.getFloat()]
+		closestPointU = utilA.getDouble(closestPointU)
+		closestPointV = utilB.getDouble(closestPointV)
+		return [closestPointU, closestPointV]
+
+	def _getMFnNurbsSurface(self, path):
+		mobj = om.MObject()
+		dagPath = om.MDagPath()
+		selectionList = om.MSelectionList()
+		selectionList.add(str(path))
+		selectionList.getDependNode(0,mobj)
+
+
+		selectionList.getDagPath(0, dagPath)
+
+		return om.MFnNurbsSurface(dagPath)
+
+	def _surfaceMultiAttach(self, slaves, surface, attach=0, uParams=None, vParams=None, evenly=False):
+		'''
+		Args:
+			slaves(List of List of Transform): 
+			surface(): 
+			attach(int): 0 Parametric, 1 Percentage, 2 Fixed Length
+			uParams(list of double|None): None for linear distribution. double must be between 0.0 and 1.0
+			vParams(list of double|None): None for linear distribution. double must be between 0.0 and 1.0
+		'''
+		if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+			cmds.loadPlugin("HarbieNodes")
+
+		shape = cmds.listRelatives(surface, shapes=True, path=True)[0]
+
+		vCount = len(slaves)
+		uCount = len(slaves[0])
+
+		if uParams is not None and len(uParams) != uCount:
+			raise RuntimeError("Number of uParams doesn't match u count")
+		if vParams is not None and len(vParams) != vCount:
+			raise RuntimeError("Number of vParams doesn't match u count")
+
+		
+		# This is a custom command part of the Harbie Plugin
+		length = cmds.surfaceInfo(surface, length=True)
+
+		cmaNode = cmds.createNode("SurfaceMultiAttach", name="SrfMAttch")
+
+		cmds.connectAttr(shape+".local", cmaNode+".surface")
+		cmds.connectAttr(surface+".worldMatrix[0]", cmaNode+".surfaceMatrix")
+		cmds.connectAttr(slaves[0][0]+".parentInverseMatrix[0]", cmaNode+".parentInverse")
+		cmds.setAttr(cmaNode+".attach", attach)
+		cmds.setAttr(cmaNode+".length", length)
+
+		# V
+		if vParams is None:
+			if vCount == 1:
+				vParams = [0.5]
+			else:
+				vParams = [j/float(vCount-1) for j in range(vCount)]
+		
+		# U
+		if uParams is None:
+			uParams = []
+			if uCount == 1:
+				uParams = [0.5]
+			else:
+				isClosed = cmds.getAttr(shape+".formU") != 0 
+				count = float(uCount) if isClosed else float(uCount-1)
+				for i in range(uCount):
+					step = i/count
+					if attach==0 and evenly:
+						# This is a custom command part of the Harbie Plugin
+						uParams.append(cmds.surfaceInfo(surface, pfp=step))
+					else:
+						uParams.append(step)
+
+				
+		for j, v in enumerate(vParams):
+			cmds.setAttr(cmaNode+".v[%s]"%j, v)
+		for i, u in enumerate(uParams):
+			cmds.setAttr(cmaNode+".u[%s]"%i, u)
+
+
+		for j in range(vCount):
+			for i in range(uCount):
+				index = j*uCount+i
+				slave = slaves[j][i]
+				cmds.connectAttr(cmaNode+".output[%s].translate"%index, slave+".translate")
+				cmds.connectAttr(cmaNode+".output[%s].rotate"%index, slave+".rotate")
+
