@@ -5,37 +5,30 @@ class SlotParentSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(SlotParentSystemConnection, self).__init__()
-		self.settings = dict(
+		self._settings = dict(
 			key=None,
 			slot=None,
 			)
 
-	def connect(self, builder, slot):
-		# I'm assuming it's the BFr with the same name as the slot... that's not good
-		child = builder.getObject("Bfr", slot)
+	def connect(self, child):
+		if self._builder is None:
+			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		#
-		system = builder.coreBuilder.systems[self.settings["key"]]
-		parent = system.getObjectFromSlot(self.settings["slot"])
-
+		parent = self.getParent()
 		self._parent(child, parent)
 
 	def getTargetSystems(self):
-		if self.settings["key"]:
-			return [self.settings["key"]]
+		if self._settings["key"]:
+			return [self._settings["key"]]
 		return []
 
 	def splitSymmetry(self, location):
-		key = self.settings["key"]
+		key = self._settings["key"]
 
 		otherName, otherLocation = key.split("_")
 		if otherLocation == "X":
-			self.settings["key"] = "{n}_{l}".format(n=otherName, l=location)
+			self._settings["key"] = "{n}_{l}".format(n=otherName, l=location)
 
-	# @staticmethod
-	# def getParent(builder, settings):
-	# 	key = settings["key"]
-	# 	slot = settings["slot"]
-	# 	system = builder.coreBuilder.systems[key]
-	# 	parent = system.getObjectFromSlot(slot)
-	# 	return parent
+	def getParent(self):
+		system = self._builder.coreBuilder.systems[self._settings["key"]]
+		return system.getObjectFromSlot(self._settings["slot"])

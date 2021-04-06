@@ -7,17 +7,25 @@ import dcc.maya.compound
 class SystemConnection(object):
 
 	def __init__(self):
-		self.settings = dict()
+		self._settings = dict()
+		self._builder = None
 
 	def dumps(self):
 		return dict(type=self.type(),
-					settings=self.settings)
+					settings=self._settings)
 
 	def type(self):
 		return self.__module__.split(".")[-2]
 
-	def setConnection(self, settings):
-		self.settings.update(settings)
+	def setBuilder(self, builder):
+		self._builder = builder
+		self.getObjectName = self._builder.getObjectName
+
+	def setSettings(self, settings):
+		self._settings.update(settings)
+
+	def settings(self):
+		return self._settings
 
 	# ----------------------------------------------------------------------------------
 	# REIMPLEMENT
@@ -56,7 +64,7 @@ class SystemConnection(object):
 		xmlRoot = etree.Element("Connection")
 		xmlRoot.set("type", self.type())
 		xmlRoot.set("port", port)
-		xmlRoot.set("settings", json.dumps(self.settings))
+		xmlRoot.set("settings", json.dumps(self._settings))
 		return xmlRoot
 
 	@classmethod
@@ -65,6 +73,6 @@ class SystemConnection(object):
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", {}))
-		connection.settings.update(settings)
+		connection.setSettings(settings)
 
 		return connection

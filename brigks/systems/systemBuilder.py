@@ -14,6 +14,7 @@ class SystemBuilder():
 		self.guide = guide
 		self.key = self.guide.key
 		self._settings = self.guide._settings
+		self._connections = self.guide._connections
 		self.attributeNames = []
 
 		# Building Steps
@@ -33,7 +34,7 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	def settings(self):
 		return self._settings
-		
+
 	def negate(self):
 		return self._settings["location"] == "R"
 
@@ -63,6 +64,9 @@ class SystemBuilder():
 		self.createAttributes()
 
 	def stepConnections(self):
+		# Init Connections
+		for slot, cnx in self._connections.iteritems():
+			cnx.setBuilder(self)
 		self.createConnections()
 
 	def stepPost(self):

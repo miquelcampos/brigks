@@ -11,6 +11,7 @@ class Builder():
 
 	def __init__(self, guide):
 		self.guide = guide
+		self.systems = {}
 		self._settings = dict(systems={})
 
 	# ----------------------------------------------------------------------------------
@@ -72,7 +73,6 @@ class Builder():
 
 		print "INIT CONNECT SYSTEMS", dt.now() - start, len(toConnect)
 
-		self.systems = {}
 		self.systems.update(toBuild)
 		self.systems.update(toConnect)
 

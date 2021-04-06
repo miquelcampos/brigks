@@ -14,8 +14,8 @@ class ChainSystemBuilder(SystemBuilder):
 		# TRANSFORMATION
 		# Normal
 		if self.guide().count("Part") > 2:
-			normal = Vector.PlaneNormal(self.gpos("Part")[:3])
-			if normal.length < 1E-6:
+			normal = Vector3.planeNormal(self.gpos("Part")[:3])
+			if normal.length() < 1E-6:
 				normal = self.gdir("Part1").z
 			if self.negate(): 
 				normal *= -1

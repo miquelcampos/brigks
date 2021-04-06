@@ -5,24 +5,25 @@ class RotationTrackerSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(RotationTrackerSystemConnection, self).__init__()
-		self.settings = dict(
+		self._settings = dict(
 			referenceKey=None,
 			referenceSlot=None,
 			trackerKey=None,
 			trackerSlot=None,
 			)
 
-	def connect(self, builder, slot):
-		child = builder.getObject("Ctl", slot)
+	def connect(self, child):
+		if self._builder is None:
+			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		referenceKey = self.settings["referenceKey"]
-		referenceSlot = self.settings["referenceSlot"]
-		system = builder.coreBuilder.systems[referenceKey]
+		referenceKey = self._settings["referenceKey"]
+		referenceSlot = self._settings["referenceSlot"]
+		system = self._builder.coreBuilder.systems[referenceKey]
 		reference = system.getObjectFromSlot(referenceSlot)
 
-		trackerKey = self.settings["trackerKey"]
-		trackerSlot = self.settings["trackerSlot"]
-		system = builder.coreBuilder.systems[trackerKey]
+		trackerKey = self._settings["trackerKey"]
+		trackerSlot = self._settings["trackerSlot"]
+		system = self._builder.coreBuilder.systems[trackerKey]
 		tracker = system.getObjectFromSlot(trackerSlot)
 
 		cns = dcc.maya.compound.create("rotationTracker", "rotTracker", outrotAttr, reference, tracker)
@@ -31,26 +32,18 @@ class RotationTrackerSystemConnection(SystemConnection):
 
 	def getTargetSystems(self):
 		keys = []
-		if self.settings["referenceKey"]:
-			return keys.append(self.settings["referenceKey"])
-		if self.settings["trackerKey"]:
-			return keys.append(self.settings["trackerKey"])
+		if self._settings["referenceKey"]:
+			return keys.append(self._settings["referenceKey"])
+		if self._settings["trackerKey"]:
+			return keys.append(self._settings["trackerKey"])
 		return keys
 
 	def splitSymmetry(self, location):
-		referenceKey = self.settings["referenceKey"]
+		referenceKey = self._settings["referenceKey"]
 		otherName, otherLocation = referenceKey.split("_")
 		if otherLocation == "X":
-			self.settings["referenceKey"] = "{n}_{l}".format(n=otherName, l=location)
-		trackerKey = self.settings["trackerKey"]
+			self._settings["referenceKey"] = "{n}_{l}".format(n=otherName, l=location)
+		trackerKey = self._settings["trackerKey"]
 		otherName, otherLocation = trackerKey.split("_")
 		if otherLocation == "X":
-			self.settings["trackerKey"] = "{n}_{l}".format(n=otherName, l=location)
-
-	# @staticmethod
-	# def getParent(builder, settings):
-	# 	key = settings["key"]
-	# 	slot = settings["slot"]
-	# 	system = builder.coreBuilder.systems[key]
-	# 	parent = system.getObjectFromSlot(slot)
-	# 	return parent
+			self._settings["trackerKey"] = "{n}_{l}".format(n=otherName, l=location)

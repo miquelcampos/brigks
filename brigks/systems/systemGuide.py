@@ -31,7 +31,7 @@ class SystemGuide(object):
 					addJoints=True)
 		self.addSettings()
 
-		self.connections = {}
+		self._connections = {}
 
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
@@ -72,7 +72,7 @@ class SystemGuide(object):
 		for slot, connectionData in data["connections"].iteritems():
 			Connection = getSystemConnectionClass(connectionData["type"])
 			connection = Connection()
-			connection.setConnection(connectionData["settings"])
+			connection.setSettings(connectionData["settings"])
 			system.connections[slot] = connection
 
 		return system
@@ -87,7 +87,7 @@ class SystemGuide(object):
 		"""
 		data = dict(systemType=self.type(),
 					settings=self._settings,
-					connections={slot:cnx.dumps() for slot, cnx in self.connections.iteritems()})
+					connections={slot:cnx.dumps() for slot, cnx in self._connections.iteritems()})
 		return data
 
 	# ----------------------------------------------------------------------------------
@@ -157,11 +157,11 @@ class SystemGuide(object):
 	def addConnection(self, connectionType, port):
 		Connection = getSystemConnectionClass(connectionType)
 		connection = Connection()
-		self.connections[port] = connection
+		self._connections[port] = connection
 		return connection
 
 	def deleteConnection(self, port):
-		self.connections.pop(port)
+		self._connections.pop(port)
 
 	def connectionPorts(self):
 		# Returns the ports as a dictionary of portName, connectionsTypes
@@ -223,7 +223,7 @@ class SystemGuide(object):
 		xmlRoot.set("key", self.key())
 		xmlRoot.set("settings", json.dumps(self._settings))
 
-		for port, connection in self.connections.iteritems():
+		for port, connection in self._connections.iteritems():
 			xmlRoot.append(connection.toXml(port))
 
 		for markerName, position in self.markers.iteritems():

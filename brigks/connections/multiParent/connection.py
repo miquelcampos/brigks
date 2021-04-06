@@ -9,26 +9,27 @@ class MultiParentSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(MultiParentSystemConnection, self).__init__()
-		self.settings = dict(definitions=[], default=0)
+		self._settings = dict(definitions=[], default=0)
 
-	def connect(self, builder, slot):
-		child = builder.getObject("Ctl", slot)
+	def connect(self, child):
+		if self._builder is None:
+			raise RuntimeError("Cannot execture a connection without a Builder")
 
 		parent = None
 		masters = []
-		for definition in self.settings["definitions"]:
+		for definition in self._settings["definitions"]:
 			cnxType = definition["type"]
 
 			if cnxType == "slot":
-				master = SlotParentSystemConnection.getParent(builder, definition)
+				master = SlotParentSystemConnection.getParent(definition)
 				if parent is None:
 					parent = master
 			elif cnxType == "custom":
-				master = CustomParentSystemConnection.getParent(builder, definition)
+				master = CustomParentSystemConnection.getParent(definition)
 			elif cnxType == "mesh":
-				master = MeshAttachSystemConnection.getParent(builder, definition)
+				master = MeshAttachSystemConnection.getParent(definition)
 			elif cnxType == "nurbs":
-				master = NurbsAttachSystemConnection.getParent(builder, definition)
+				master = NurbsAttachSystemConnection.getParent(definition)
 
 			if master:
 				masters.append(master)
@@ -44,14 +45,14 @@ class MultiParentSystemConnection(SystemConnection):
 
 	def getTargetSystems(self):
 		keys = []
-		for definition in self.settings["definitions"]:
+		for definition in self._settings["definitions"]:
 			if "key" in definition["key"]:
 				keys.append(definition["key"])
 		return keys
 
 	def splitSymmetry(self, location):
 		definitions = []
-		for definition in self.settings["definitions"]:
+		for definition in self._settings["definitions"]:
 			if "key" in definition["key"]:
 				key = definition["key"]
 
@@ -62,4 +63,4 @@ class MultiParentSystemConnection(SystemConnection):
 				definition["key"] = "{part}_{location}".format(part=part, location=location)
 
 			definitions.append(definition)
-		self.settings["definitions"] = definitions
+		self._settings["definitions"] = definitions

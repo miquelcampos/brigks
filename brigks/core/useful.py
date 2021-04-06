@@ -34,7 +34,7 @@ def createJoint(parent, name, tfm=None, color=None):
 	return node
 
 def createIcon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
-	if not cmds.pluginInfo("harbieLocator.mll", q=True,  loaded=True): 
+	if not cmds.pluginInfo("harbieLocator.mll", q=True, loaded=True): 
 		cmds.loadPlugin("harbieLocator.mll")
 
 	shape = cmds.createNode("nurbsCurve", name=parent+"Shape", parent=parent, skipSelect=True)

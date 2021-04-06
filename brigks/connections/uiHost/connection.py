@@ -5,32 +5,31 @@ class UiHostSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(UiHostSystemConnection, self).__init__()
-		self.settings = dict(
+		self._settings = dict(
 			key=None,
 			slot=None,
 			)
 
-	def connect(self, builder, slot):
-		child = builder.getObject("Ctl", slot)
-		parent = self.getParent(builder, self._connection.settings)
+	def connect(self):
+		parent = self.getParent(self._connection.settings)
 		return
 
 	def getTargetSystems(self):
-		if self.settings["key"]:
-			return [self.settings["key"]]
+		if self._settings["key"]:
+			return [self._settings["key"]]
 		return []
 
 	def splitSymmetry(self, location):
-		key = self.settings["key"]
+		key = self._settings["key"]
 
 		otherName, otherLocation = key.split("_")
 		if otherLocation == "X":
-			self.settings["key"] = "{n}_{l}".format(n=otherName, l=location)
+			self._settings["key"] = "{n}_{l}".format(n=otherName, l=location)
 
 	@staticmethod
-	def getParent(builder, settings):
+	def getParent(settings):
 		key = settings["key"]
 		slot = settings["slot"]
-		system = builder.coreBuilder.systems[key]
+		system = self._builder.coreBuilder.systems[key]
 		parent = system.getObjectFromSlot(slot)
 		return parent

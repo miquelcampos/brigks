@@ -24,7 +24,7 @@ class SystemConnectionWidget(QWidget):
 	# -----------------------------------------------------
 	def getSettingWidgets(self):
 		widgets = {}
-		for setting in self._connection.settings.keys():
+		for setting in self._connection.settings().keys():
 			widgetName = "ui" + setting[0].capitalize() + setting[1:]
 			if widgetName not in self.__dict__:
 				continue
@@ -50,7 +50,7 @@ class SystemConnectionWidget(QWidget):
 	# SETTINGS
 	# -----------------------------------------------------
 	def loadSettings(self):
-		for setting, value in self._connection.settings.items():
+		for setting, value in self._connection.settings().items():
 			if setting not in self._widgets:
 				continue
 
@@ -91,5 +91,5 @@ class SystemConnectionWidget(QWidget):
 				settings[setting] = str(widget.toPlainText())
 
 		if self._connection is not None:
-			self._connection.settings = settings
-			self._system.coreGuide.dumps()
+			self._connection.setSettings(settings)
+			self._system.coreGuide.commit()

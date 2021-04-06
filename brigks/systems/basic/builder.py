@@ -122,3 +122,10 @@ class BasicSystemBuilder(SystemBuilder):
 				cmds.connectAttr(terminationAttr, harmonic+".termination", force=True)
 				cmds.connectAttr(frequencyAttr, harmonic+".frequencyMult", force=True)
 
+
+
+	def createConnections(self):
+
+		for port, cnx in self._connections.iteritems():
+			bfr = self.getObject("Bfr", port)
+			cnx.connect(bfr)
