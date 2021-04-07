@@ -4,6 +4,7 @@ import xml.etree.cElementTree as etree
 import json
 
 from math3d.transformation import Transformation
+from math3d import TransformationArray, Vector3Array
 
 from brigks.connections import getSystemConnectionClass
 from brigks.core import naming
@@ -32,6 +33,13 @@ class SystemGuide(object):
 		self.addSettings()
 
 		self._connections = {}
+
+		self._markers = None
+		self._aMarkers = dict()
+		# self._transforms = dict()
+		# self._aTransforms = None
+		# self._positions = dict()
+		# self._aPositions = None
 
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
@@ -73,7 +81,7 @@ class SystemGuide(object):
 			Connection = getSystemConnectionClass(connectionData["type"])
 			connection = Connection()
 			connection.setSettings(connectionData["settings"])
-			system.connections[slot] = connection
+			system._connections[slot] = connection
 
 		return system
 
@@ -174,16 +182,58 @@ class SystemGuide(object):
 		return {}
 
 	# ----------------------------------------------------------------------------------
-	# MARKERS
+	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
 	def loadMarkers(self):
-		self.markers = {}
-		search = self.getMarkerName("*")
-		markers = cmds.ls(search, type="transform", long=True)
-		markers = [m for m in markers if m.startswith("|"+self.model())]
-		for marker in markers:
-			part = marker.split("_")[-1]
-			self.markers[part] = SystemMarker(marker)
+		if self._markers is None:
+			self._markers = dict()
+			search = self.getMarkerName("*")
+			markers = cmds.ls(search, type="transform", long=True)
+			markers = [m for m in markers if m.startswith("|"+self.model())]
+			for marker in markers:
+				part = marker.split("_")[-1]
+				self._markers[part] = SystemMarker(marker)
+
+	def markers(self, name=None):
+		self.loadMarkers()
+		if name is None:
+			return self._markers
+		elif name in self.markerMinMax:
+			if name not in self._aMarkers:
+				self._aMarkers[name] = []
+				markerMin, markerMax = self.markerMinMax[name]
+				limit = lambda x: x <= markerMax if markerMax > 0 else lambda i: True
+				i = 1
+				while limit(i):
+					part = "{}{}".format(name, i)
+					if part not in self._markers:
+						break
+					self._aMarkers[name].append(self._markers[part])
+					i += 1
+			return self._aMarkers[name]
+		else:
+			return self._markers[name]
+
+	def transforms(self, name=None):
+		if name is None:
+			return {k:m.transform() for k,m in self.markers().iteritems()}
+		elif name in self.markerMinMax:
+			return [m.transform() for m in self.markers(name)]
+		else:
+			return self.markers(name).transform()
+
+	def translations(self, name=None):
+		if name is None:
+			return {k:m.translation() for k,m in self.markers().iteritems()}
+		elif name in self.markerMinMax:
+			return [m.translation() for m in self.markers(name)]
+		else:
+			return self.markers(name).translation()
+
+	def count(self, name):
+		if name not in self.markerMinMax:
+			raise RuntimeError("Can't count single Markers")
+		return len(self.markers(name))
 
 	# def createMarker(self, name, matrix=None):
 	# 	name = self.getMarkerName(name)
@@ -197,20 +247,6 @@ class SystemGuide(object):
 					self._settings["location"],
 					self._settings["name"],
 					part)
-
-	def count(self, part):
-		return 1
-
-	# ----------------------------------------------------------------------------------
-	# TRANSFORM
-	# ----------------------------------------------------------------------------------
-	def transforms(self, key):
-		if key in self.markers:
-			return self.markers[key].transform()
-
-	def translations(self, key):
-		if key in self.markers:
-			return self.markers[key].translation()
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT
@@ -226,7 +262,7 @@ class SystemGuide(object):
 		for port, connection in self._connections.iteritems():
 			xmlRoot.append(connection.toXml(port))
 
-		for markerName, position in self.markers.iteritems():
+		for markerName, position in self._markers.iteritems():
 			xmlMarker = etree.SubElement(xmlRoot, "Marker")
 			xmlMarker.set("name", markerName)
 			xmlMarker.set("position", json.dumps(position))
@@ -262,6 +298,6 @@ class SystemGuide(object):
 		 	connectionType = xmlConnection.get("type")
 			Connection = getSystemConnectionClass(connectionType)
 			connection = Connection.fromXml(xmlConnection)
-			system.connections[port] = connection
+			system._connections[port] = connection
 
 		return system

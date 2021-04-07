@@ -12,10 +12,14 @@ class SystemBuilder():
 	def __init__(self, coreBuilder, guide):
 		self.coreBuilder = coreBuilder
 		self.guide = guide
-		self.key = self.guide.key
 		self._settings = self.guide._settings
 		self._connections = self.guide._connections
 		self.attributeNames = []
+
+		self.key = self.guide.key
+		self.transforms = self.guide.transforms
+		self.translations = self.guide.translations
+		self.count = self.guide.count
 
 		# Building Steps
 		# For each system we're building, each step will be processed for all the systems

@@ -6,15 +6,15 @@ from math3d.vectorN import Vector3
 class ChainSystemBuilder(SystemBuilder):
 	
 	def createObjects(self):
-	# Settings
+		# Settings
 		self.isFk = "FK" in self.settings()["kinematic"]
 		self.isIk = "IK" in self.settings()["kinematic"]
 		self.isFkIk = self.isFk and self.isIk
 		
 		# TRANSFORMATION
 		# Normal
-		if self.guide().count("Part") > 2:
-			normal = Vector3.planeNormal(self.gpos("Part")[:3])
+		if self.count("Part") > 2:
+			normal = Vector3.planeNormal(self.translations("Part")[:3])
 			if normal.length() < 1E-6:
 				normal = self.gdir("Part1").z
 			if self.negate(): 
@@ -22,8 +22,8 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			normal = self.gdir("Part1").z
 
-		boneTfm = Transformation.chain(self.gpos("Part"), normal, axis="xz", negativeSide=self.negate())
-		boneLen = Vector3.distances(self.gpos("Part"))
+		boneTfm = Transformation.chain(self.translations("Part"), normal, axis="xz", negativeSide=self.negate())
+		boneLen = Vector3.distances(self.translations("Part"))
 
 		self.setSettings(dict(
 			count=len(boneLen),
@@ -35,18 +35,18 @@ class ChainSystemBuilder(SystemBuilder):
 			bfrTfm = [tfm.copy(rotation=boneTfm[max(i-1,0)].quaternion) for i, tfm in enumerate(boneTfm)]
 		
 		if self.isIk:
-			ikTfm = boneTfm[-1].copy(translation=self.gpos("Part")[-1])
+			ikTfm = boneTfm[-1].copy(translation=self.translations("Part")[-1])
 			
 			# Up Vector
 			if self.guide().count("Part") > 2:
-				upvTfm = Transform(translation=Vector.UpVector(self.gpos()[0], self.gpos()[2], normal, ratio=1, negate=self.negate()))
+				upvTfm = Transform(translation=Vector.UpVector(self.translations()[0], self.translations()[2], normal, ratio=1, negate=self.negate()))
 			else:
-				upvTfm = Transform(translation=Vector.UpVector(self.gpos()[0], self.gpos()[1], normal, ratio=1, negate=self.negate()))
+				upvTfm = Transform(translation=Vector.UpVector(self.translations()[0], self.translations()[1], normal, ratio=1, negate=self.negate()))
 			
 
 		if self.settings()["dynamic"]:
 			tgtTfm = boneTfm[1:]
-			tgtTfm.append(boneTfm[-1].copy(translation=self.gpos("Part")[-1]))
+			tgtTfm.append(boneTfm[-1].copy(translation=self.translations("Part")[-1]))
 			
 
 		# OBJECTS
@@ -78,7 +78,7 @@ class ChainSystemBuilder(SystemBuilder):
 				self.fkDir.append(bone)
 
 			# Add the end reference for ikfk matching
-			tfm = boneTfm[-1].copy(translation=self.gpos()[-1])
+			tfm = boneTfm[-1].copy(translation=self.translations()[-1])
 			self._tip = self.addNull(self.fkCtl[-1], "Tip", tfm)
 				
 		# IK Controllers --------------------------------------
@@ -98,7 +98,7 @@ class ChainSystemBuilder(SystemBuilder):
 			# Ik Chain
 			# if self.negate(): # Yeah we're undoing the normal negation, but we shouldn't have it here.
 			# 	normal *= -1
-			self.ikChn = self.addChain(self._root, "Ik", self.gpos("Part"), normal, self.negate())
+			self.ikChn = self.addChain(self._root, "Ik", self.translations("Part"), normal, self.negate())
 			
 			self.upvCrv = self.addCnsCurve([self.ikChn.root(), self.upvCtl, self.ikChn.effector()], "UpvCrv")
 			# self.addToGroup(self.upvCrv, "Unselectable")
@@ -150,7 +150,7 @@ class ChainSystemBuilder(SystemBuilder):
 
 		# Strap ----------------------------
 		if self.settings()["strap"]:
-			endTfm = boneTfm[-1].copy(translation=self.gpos()[-1])
+			endTfm = boneTfm[-1].copy(translation=self.translations()[-1])
 			self.end = self.addNull(self.dfmHost[-1], "End", endTfm)
 
 	def createDeformers(self):

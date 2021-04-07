@@ -15,12 +15,13 @@ class BasicSystemBuilder(SystemBuilder):
 
 		self.jntparent = []
 		self.splitParent = []
-		for i, (part, marker) in enumerate(self.guide.markers.iteritems(), start=1):
-			bfr = self.createBuffer(None, part, tfm=marker.transform())
+		for i, tfm in enumerate(self.transforms("Part"), start=1):
+			part = "Part{}".format(i)
+			bfr = self.createBuffer(None, part, tfm=tfm)
 			self.bfr.append(bfr)
 
 			if self._settings["addControllers"]:
-				ctl = self.createController(bfr, part, tfm=marker.transform(), icon="cube", color=color)
+				ctl = self.createController(bfr, part, tfm=tfm, icon="cube", color=color)
 				self.ctl.append(ctl)	
 				setRotOrder(ctl, self._settings["defaultRotationOrder"])
 
@@ -31,13 +32,13 @@ class BasicSystemBuilder(SystemBuilder):
 				jntparent = bfr
 
 			if self._settings["dynamic"]:
-				harmonic = self.createRig(jntparent, "Harmonic{}".format(i), tfm=marker.transform())
+				harmonic = self.createRig(jntparent, "Harmonic{}".format(i), tfm=tfm)
 				jntparent = harmonic
 
 			self.jntparent.append(jntparent)
 
 			if self._settings["splitRotation"]:
-				splitParent = self.createRig(jntparent, "Split{}".format(i), tfm=marker.transform())
+				splitParent = self.createRig(jntparent, "Split{}".format(i), tfm=tfm)
 				self.splitParent.append(splitParent)
 
 	def createJoints(self):
@@ -87,7 +88,8 @@ class BasicSystemBuilder(SystemBuilder):
 	# PROPERTIES 
 	def createAttributes(self):
 		if self._settings["dynamic"]:
-			count = len(self.guide.markers)
+			count = self.count("Part")
+			print count
 			dynamicAttr = self.createAnimAttr("Dynamic", "bool", self._settings["dynActive"])
 			globalAmplitudeAttr = self.createAnimAttr("GlobalAmplitude", "float", self._settings["amplitude"], 0, 5)
 			localAmplitudeAttr = [self.createAnimAttr("LocalAmplitude%s"%i, "float", 1, 0, 10) for i in xrange(count)]

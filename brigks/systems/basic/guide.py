@@ -49,9 +49,9 @@ class BasicSystemGuide(SystemGuide):
 		super(BasicSystemGuide, self).connectionPorts()
 		
 		ports = {}
-		for marker in self.markers.keys():
-			port = marker.split("_")[-1]
-			ports[port] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+		for part in self.markers().keys():
+			# port = marker.split("_")[-1]
+			ports[part] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 
 		ports["UI"] = ["uiHost"]
 
@@ -61,9 +61,9 @@ class BasicSystemGuide(SystemGuide):
 		super(BasicSystemGuide, self).connectionSlots()
 
 		slots = {}
-		for marker in self.markers.keys():
-			slot = marker.split("_")[-1]
-			slots[slot] = ("Ctl", slot)
+		for part in self.markers().keys():
+			# slot = marker.split("_")[-1]
+			slots[part] = ("Ctl", part)
 
 		return slots
 

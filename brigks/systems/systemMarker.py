@@ -41,7 +41,6 @@ def checkMarkersMinMax(markers, markerNames, markerMinMax):
 			else:
 				yield name, None
 
-
 class SystemMarker(object):
 
 	def __init__(self, marker):
@@ -74,6 +73,11 @@ class SystemMarker(object):
 
 		return self._translation
 
+
+	# TODO
+	# Direction (X, Y, Z Vectors from the Matrix3)
+	# Scale 
+	# TRANSFORM Should HAVE NO SCALE
 
 
 
