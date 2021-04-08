@@ -29,7 +29,9 @@ def compare(first, second, operation):
 
 	return node
 
-
+# ----------------------------------------------------------------------------------
+# TRANSFORMS
+# ----------------------------------------------------------------------------------
 def blendMatrix(slave, masters, maintainOffset=False, translate=True, rotate=True, scale=True, useJointOrient=False):
 	bmNode = cmds.createNode("blendMatrix", name="BlendMatrix")
 	mmNode = cmds.createNode("multMatrix", name="MultMatrix")
@@ -113,6 +115,15 @@ def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termi
 
 	return hNode
 
+# ----------------------------------------------------------------------------------
+# ATTACH
+# ----------------------------------------------------------------------------------
+def surfaceAttach(slave, surface, u=None, v=None):
+	if u is None or v is None:
+		u, v = self._getClosestUV(surface, position, globalSpace=True)
+
+	compounds.surfaceMultiAttach([[slave]], surface, 0, [u], [v])
+	return attach
 
 def surfaceMultiAttach(slaves, surface, attach=0, uParams=None, vParams=None, evenly=False):
 	'''
@@ -186,4 +197,161 @@ def surfaceMultiAttach(slaves, surface, attach=0, uParams=None, vParams=None, ev
 			cmds.connectAttr(cmaNode+".output[%s].rotate"%index, slave+".rotate")
 
 
+def meshMultiAttach(slave, mesh, attach=0, index=-1, orient=False):
+	'''
+	Args:
+		slave(): 
+		mesh(): 
+		attach(int): 0 Vertex, 1 Edge, 2 Polygon
+		index(int): -1 to auto detect closest index
+		orient(bool): True to compute orientation from component normal/tangent (slower)
+	'''
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
 
+	shape = cmds.listRelatives(mesh, shapes=True, path=True)[0]
+
+	if index == -1:
+		pos = cmds.xform(slave, q=True, translation=True, worldSpace=True)
+		index = _closestComponentIndex(shape, pos, attach)
+
+	# We're not creating a new node if there is already one available using the correct attach method
+	mmaNode = _getExistingNode(shape, attach)
+	attrIndex = _getNextAvailableIndex(mmaNode)
+
+	cmds.connectAttr(shape+".outMesh", mmaNode+".mesh", force=True)
+	cmds.connectAttr(mesh+".worldMatrix[0]", mmaNode+".meshMatrix", force=True)
+	cmds.setAttr(mmaNode+".attach", attach)
+
+	cmds.connectAttr(slave+".parentInverseMatrix[0]", mmaNode+".component[%s].parentInverse"%attrIndex)
+	cmds.setAttr(mmaNode+".component[%s].index"%attrIndex, index)
+	cmds.setAttr(mmaNode+".component[%s].orient"%attrIndex, orient)
+
+	cmds.connectAttr(mmaNode+".output[%s].translate"%attrIndex, slave+".translate")
+	if orient:
+		cmds.connectAttr(mmaNode+".output[%s].rotate"%attrIndex, slave+".rotate")
+
+def _getExistingNode(shape, attach):
+	nodes = cmds.listConnections(shape, type="MeshMultiAttach")
+	if nodes:
+		for node in nodes:
+			if cmds.getAttr(node+".attach") == attach:
+				return node
+
+	return cmds.createNode("MeshMultiAttach", name="MshMAttch")
+
+def _getNextAvailableIndex(node):
+	indices = cmds.getAttr(node+".component", mi=True)
+	if indices:
+		return max(indices) + 1
+	else:
+		return 0
+
+def _closestComponentIndex(shape, position, componentType):
+	'''	Get the closest component Index to given position
+
+	Args:
+		mesh
+		position(MPoint|MVector) : 
+		componentType(int) : 0 Vertex, 1 Edge, 2 Polygon
+
+	Return:
+		int
+	'''
+	point = om.MPoint(*position)
+	shape = _getMFnMesh(shape)
+
+	util = om.MScriptUtil()
+	util.createFromInt(0)
+	idPointer = util.asIntPtr()
+
+	shape.getClosestPoint(point, om.MPoint(), om.MSpace.kObject, idPointer)
+	faceId = om.MScriptUtil(idPointer).asInt()
+	if componentType == 2: #Face
+		return faceId
+
+	elif componentType == 1: # Edge
+		faceIter = om.MItMeshPolygon(shape.object())
+		faceIter.setIndex(faceId, idPointer)
+		array = om.MIntArray()
+		faceIter.getEdges(array)
+
+		edgeIter = om.MItMeshEdge(shape.object())
+
+		length = 99999999999.999
+		edgeId = None
+		for i, currentEdgeId in enumerate(array):
+			edgeIter.setIndex(currentEdgeId, idPointer)
+			edgePoint = edgeIter.center(om.MSpace.kObject)
+			currentLenght = point.distanceTo(edgePoint)
+			if currentLenght < length:
+				length = currentLenght
+				edgeId = currentEdgeId
+		return edgeId
+
+	elif componentType == 0: # Vertex
+		faceIter = om.MItMeshPolygon(shape.object())
+		faceIter.setIndex(faceId, idPointer)
+		array = om.MIntArray()
+		faceIter.getVertices(array)
+		length = 99999999999.999
+		vertexId = None
+		for i, currentVertexId in enumerate(array):
+			vertexPoint = om.MPoint()
+			shape.getPoint(currentVertexId, vertexPoint, om.MSpace.kObject)
+			currentLenght = point.distanceTo(vertexPoint)
+			if currentLenght < length:
+				length = currentLenght
+				vertexId = currentVertexId
+		return vertexId
+
+def _getMFnMesh(shapePath):
+	mobj = om.MObject()
+	selectionList = om.MSelectionList()
+	selectionList.add(str(shapePath))
+	selectionList.getDependNode(0,mobj)
+	return om.MFnMesh(mobj)
+
+def _getClosestUV(surface, point, globalSpace=True):
+	'''Returns the Closest UV values on a NurbsSurface to 'point'
+
+	Args:
+		surface(MDagPath): dagPath to the nurbsSurface shapeNode
+		point(MPoint): get the closest UV to this point
+		globalSpace(bool): globalSpace?
+	Returns:
+		(list): float UV values
+	'''
+	if globalSpace:
+		space = om.MSpace.kWorld
+	else:
+		space = om.MSpace.kObject
+
+	point = om.MPoint(*point)
+
+	#shape = cmds.listRelatives(surface, shapes=True, path=True)[0]
+	fnSurface = _getMFnNurbsSurface(surface)
+
+	utilA = om.MScriptUtil()
+	utilB = om.MScriptUtil()
+
+	closestPointU = utilA.asDoublePtr()
+	closestPointV = utilB.asDoublePtr()
+
+	fnSurface.closestPoint(point, closestPointU, closestPointV, False, 1e-4, space)
+
+	closestPointU = utilA.getDouble(closestPointU)
+	closestPointV = utilB.getDouble(closestPointV)
+	return [closestPointU, closestPointV]
+
+def _getMFnNurbsSurface(path):
+	mobj = om.MObject()
+	dagPath = om.MDagPath()
+	selectionList = om.MSelectionList()
+	selectionList.add(str(path))
+	selectionList.getDependNode(0,mobj)
+
+
+	selectionList.getDagPath(0, dagPath)
+
+	return om.MFnNurbsSurface(dagPath)

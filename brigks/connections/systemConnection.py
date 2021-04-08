@@ -1,8 +1,8 @@
 import json
 import xml.etree.cElementTree as etree
 from maya import cmds
-import dcc.maya.compound
 
+from brigks.utils import compounds
 
 class SystemConnection(object):
 
@@ -24,8 +24,8 @@ class SystemConnection(object):
 	def setSettings(self, settings):
 		self._settings.update(settings)
 
-	def settings(self):
-		return self._settings
+	def settings(self, key=None):
+		return self._settings if key is None else self._settings[key]
 
 	# ----------------------------------------------------------------------------------
 	# REIMPLEMENT
@@ -38,6 +38,49 @@ class SystemConnection(object):
 
 	def splitSymmetry(self, location):
 		pass
+
+	# ----------------------------------------------------------------------------------
+	# 
+	# ----------------------------------------------------------------------------------
+	def getParentFromSlot(self, key, slot):
+		parent = None
+		if key in self._builder.coreBuilder.systems:
+			system = self._builder.coreBuilder.systems[key]
+			parent = system.getObjectFromSlot(slot)
+		if parent is None:
+			parent = self._builder.coreBuilder.localCtl
+		return parent
+
+	def getParentFromMesh(self, mesh, useClosest, useOrientation, componentType, componentIndex, key, slot, position):
+		parent = self.getParentFromSlot(key, slot)
+
+		attachName = self.getObjectName(usage="Rig", part="MeshAttach")
+		attach = cmds.createNode("transform", name=attachName)
+		cmds.parent(attach, parent)
+		cmds.xform(attach, translation=position, worldSpace=True)
+
+		compounds.meshMultiAttach(attach, mesh, componentType, componentIndex, useOrientation)
+		return attach
+
+	def getParentFromSurface(self, surface, useClosest, u, v, key, slot, position):
+		parent = self.getParentFromSlot(key, slot)
+
+		if useClosest:
+			u, v = None, None
+
+		attachName = self.getObjectName(usage="Rig", part="MeshAttach")
+		attach = cmds.createNode("transform", name=attachName)
+		cmds.parent(attach, parent)
+		cmds.xform(attach, translation=position, worldSpace=True)
+
+		compounds.surfaceAttach(attach, surface, u, v)
+		return attach
+
+	def getParentFromName(self, name):
+		model = self._builder.coreBuilder.model()
+		for name in [cmds.ls(name, long=True)]:
+			if name.startswith(model):
+				return name
 
 	# ----------------------------------------------------------------------------------
 	# CONNECTION HELPERS
@@ -55,7 +98,7 @@ class SystemConnection(object):
 
 	def _parentConstraint(self, slave, masters):
 		name = "MultiParent"
-		dcc.maya.compound.create("PoseConstraint2", name, slave, masters, compensation=True)
+		return compounds.blendMatrix(slave, masters, maintainOffset=True)
 
 	# ----------------------------------------------------------------------------------
 	# XML IO

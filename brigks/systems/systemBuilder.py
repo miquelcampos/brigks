@@ -3,7 +3,7 @@ import itertools
 
 from maya import cmds
 
-from brigks.utils import attr, create, compounds
+from brigks.utils import attributes, create, compounds
 from brigks.core import naming 
 
 class SystemBuilder():
@@ -175,7 +175,7 @@ class SystemBuilder():
 			keyable=False, writable=True, readable=True, channelBox=True):
 
 		longName = self.getObjectName("Rig", displayName)
-		a = attr.create(parent, longName, attrType, value, minValue, maxValue,
+		a = attributes.create(parent, longName, attrType, value, minValue, maxValue,
 					keyable, writable, readable, channelBox, displayName)
 		self.attributeNames.append(longName)
 		return a

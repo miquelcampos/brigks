@@ -1,47 +1,60 @@
-from brigks.connections.systemConnection import SystemConnection
-from brigks.connections.customParent.connection import CustomParentSystemConnection
-from brigks.connections.meshAttach.connection import MeshAttachSystemConnection
-from brigks.connections.nurbsAttach.connection import NurbsAttachSystemConnection
-from brigks.connections.slotParent.connection import SlotParentSystemConnection
+from maya import cmds
 
+from brigks.utils import attributes, compounds
+
+from brigks.connections.systemConnection import SystemConnection
 
 class MultiParentSystemConnection(SystemConnection):
 
 	def __init__(self):
 		super(MultiParentSystemConnection, self).__init__()
-		self._settings = dict(definitions=[], default=0)
+		self._settings = dict(definitions=[], default=0, key=None, slot=None)
 
 	def connect(self, child):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		parent = None
 		masters = []
 		for definition in self._settings["definitions"]:
 			cnxType = definition["type"]
 
 			if cnxType == "slot":
-				master = SlotParentSystemConnection.getParent(definition)
-				if parent is None:
-					parent = master
+				master = self.getParentFromSlot(definition["key"], definition["slot"])
 			elif cnxType == "custom":
-				master = CustomParentSystemConnection.getParent(definition)
+				master = self.getParentFromName(definition["name"])
 			elif cnxType == "mesh":
-				master = MeshAttachSystemConnection.getParent(definition)
+				kwargs = dict(
+					componentType=COMPONENT_TYPES.index(definition["componentType"]),
+					componentIndex=-1 if useClosest else definition["componentIndex"],
+					position=cmds.xform(child, q=True, translation=True, worldSpace=True)
+					)
+				kwargs.update(definition)
+				master = getParentFromMesh(**kwargs)
 			elif cnxType == "nurbs":
-				master = NurbsAttachSystemConnection.getParent(definition)
+				kwargs = dict(
+					position=cmds.xform(child, q=True, translation=True, worldSpace=True)
+					)
+				kwargs.update(definition)
+				master = self.getParentFromSurface(**kwargs)
 
 			if master:
 				masters.append(master)
 
-		if not masters:
+		if len(masters) <= 1:
 			return
 
-		self._parent(child, parent)
-		if len(masters) == 1 and masters[0] == parent:
-			return
+		bmNode = self._parentConstraint(child, masters)
 
-		self._parentConstraint(child, masters)
+		# TODO Should be replaced with Enum
+		attrType = "float" if len(masters) == 2 else "short"
+		attr = self._builder.createAnimAttr("Blend", attrType, value=self.settings("default"), minValue=0, maxValue=len(masters)-1)
+
+		if len(masters) == 2:
+			cmds.connectAttr(attr, bmNode+".target[1].weight")
+		elif len(masters) > 2:
+			for i in range(len(masters)):
+				cond = compounds.compare(attr, i, "==")
+				cmds.connectAttr(cond+".outColorR", bmNode+".target[{}].weight".format(i))
 
 	def getTargetSystems(self):
 		keys = []

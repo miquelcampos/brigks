@@ -3,7 +3,7 @@ from itertools import izip
 from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attr, create, compounds
+from brigks.utils import constants, attributes, create, compounds
 from brigks.utils import math as mathu
 
 from math3d.transformation import Transformation, TransformationArray
@@ -77,7 +77,7 @@ class ChainSystemBuilder(SystemBuilder):
 				fkCtl = self.createController(fkBfr, "Fk{}".format(i), tfm, "sphere", so=[0,1,1], color=self.settings("colorFk"))
 										  
 				# self.setInversedParameters(fkCtl, middle=["posz", "rotx", "roty"])
-				attr.setRotOrder(fkCtl, self.settings("defaultRotationOrder"))
+				attributes.setRotOrder(fkCtl, self.settings("defaultRotationOrder"))
 
 				parent = fkCtl
 
@@ -97,13 +97,13 @@ class ChainSystemBuilder(SystemBuilder):
 			# Ik Controller
 			self.ikBfr = self.createBuffer(self._root, "Ik", tfm=ikTfm)
 			self.ikCtl = self.createController(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.settings("colorIk"))
-			attr.setKeyables(self.ikCtl, constants.tr_attrs)
+			attributes.setKeyables(self.ikCtl, constants.tr_attrs)
 			# self.setInversedParameters(self.ikCtl, middle=["posz", "rotx", "roty"])
 
 			# UpVector Controller
 			self.upvBfr = self.createBuffer(self._root, "upv", upvTfm)
 			self.upvCtl = self.createController(self.upvBfr, "upv", upvTfm, "diamond", color=self.settings("colorIk"))
-			attr.setKeyables(self.upvCtl, constants.t_attrs)
+			attributes.setKeyables(self.upvCtl, constants.t_attrs)
 			# self.setInversedParameters(self.upvCtl, middle=["posz"])
 
 			# Ik Chain

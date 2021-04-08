@@ -1,6 +1,6 @@
 from maya import cmds
 
-from brigks.utils import constants, attr, compounds
+from brigks.utils import constants, attributes, compounds
 from brigks.systems.systemBuilder import SystemBuilder
 
 class BasicSystemBuilder(SystemBuilder):
@@ -23,10 +23,10 @@ class BasicSystemBuilder(SystemBuilder):
 			if self.settings("addControllers"):
 				ctl = self.createController(bfr, part, tfm=tfm, icon="cube", color=color)
 				self.ctl.append(ctl)	
-				attr.setRotOrder(ctl, self.settings("defaultRotationOrder"))
+				attributes.setRotOrder(ctl, self.settings("defaultRotationOrder"))
 
 				keyables = [attr for attr in constants.trs_attrs if self.settings(attr)]
-				attr.setKeyables(ctl, keyables)
+				attributes.setKeyables(ctl, keyables)
 				jntparent = ctl
 			else:
 				jntparent = bfr

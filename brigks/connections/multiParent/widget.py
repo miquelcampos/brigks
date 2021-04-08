@@ -26,7 +26,7 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 			if cnxType == "slot":
 				name = "{key}.{slot}".format(**definition)
 			elif cnxType == "custom":
-				name = "{parent}".format(**definition)
+				name = "{name}".format(**definition)
 			elif cnxType == "mesh":
 				name = "{mesh}.{componentType}[{componentIndex}] orient={useOrientation}".format(**definition)
 			elif cnxType == "nurbs":

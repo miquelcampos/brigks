@@ -14,7 +14,7 @@ class SlotParentSystemConnection(SystemConnection):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		parent = self.getParent()
+		parent = self.getParentFromSlot(self.settings("key"), self.settings("slot"))
 		self._parent(child, parent)
 
 	def getTargetSystems(self):
@@ -28,7 +28,3 @@ class SlotParentSystemConnection(SystemConnection):
 		otherName, otherLocation = key.split("_")
 		if otherLocation == "X":
 			self._settings["key"] = "{n}_{l}".format(n=otherName, l=location)
-
-	def getParent(self):
-		system = self._builder.coreBuilder.systems[self._settings["key"]]
-		return system.getObjectFromSlot(self._settings["slot"])
