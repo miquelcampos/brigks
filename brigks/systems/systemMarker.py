@@ -5,8 +5,7 @@ from maya import cmds
 from math3d import Transformation, Matrix4, Vector3
 
 def checkMarkersMinMax(markers, markerNames, markerMinMax):
-	"""
-	Checks that all the mandatory markers exist.
+	"""Checks that all the mandatory markers exist.
 	It return the name of the marker and the object from the dictionary if it is found
 
 	Args:
@@ -63,6 +62,8 @@ class SystemMarker(object):
 			matrix = cmds.xform(self._marker, q=True, matrix=True, worldSpace=True)
 			self._transform = Matrix4(matrix).asTransform()
 			self._translation = self._transform.translation
+			self._scale = self._transform.scale
+			self._transform.scale = Vector3([1,1,1])
 
 		return self._transform
 
@@ -73,11 +74,6 @@ class SystemMarker(object):
 
 		return self._translation
 
-
-	# TODO
-	# Direction (X, Y, Z Vectors from the Matrix3)
-	# Scale 
-	# TRANSFORM Should HAVE NO SCALE
-
-
-
+	def direction(self, axis="x"):
+		tfm = self.transform()
+		return tfm.rotation.asMatrix()["xyz".index(axis)]

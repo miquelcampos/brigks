@@ -3,22 +3,24 @@ import itertools
 
 from maya import cmds
 
-from brigks.core.useful import createTransform, createJoint, createAttr, createIcon
+from brigks.utils import create
+from brigks.utils import attr
 from brigks.core import naming 
-
 
 class SystemBuilder():
 
 	def __init__(self, coreBuilder, guide):
 		self.coreBuilder = coreBuilder
 		self.guide = guide
-		self._settings = self.guide._settings
+		self.settings = self.guide.settings
+		self.setSettings = self.guide.setSettings
 		self._connections = self.guide._connections
 		self.attributeNames = []
 
 		self.key = self.guide.key
 		self.transforms = self.guide.transforms
 		self.translations = self.guide.translations
+		self.directions = self.guide.directions
 		self.count = self.guide.count
 
 		# Building Steps
@@ -28,19 +30,16 @@ class SystemBuilder():
 		# Having Attributes created after the Operators, allow us to recreate and reconnect attributes if needed
 		self.steps = OrderedDict()
 		self.steps["Create Objects"] = self.stepObjects
-		self.steps["Create Operators"] = self.stepOperators
 		self.steps["Create Attributes"] = self.stepAttributes
+		self.steps["Create Operators"] = self.stepOperators
 		self.steps["Connect System"] = self.stepConnections
 		self.steps["Post Process"] = self.stepPost
 
 	# ----------------------------------------------------------------------------------
 	#  SETTINGS
 	# ----------------------------------------------------------------------------------
-	def settings(self):
-		return self._settings
-
 	def negate(self):
-		return self._settings["location"] == "R"
+		return self.settings("location") == "R"
 
 	def sign(self):
 		return "-" if self.negate() else ""
@@ -57,7 +56,7 @@ class SystemBuilder():
 	def stepObjects(self):
 		self.deleteobjects()
 		self.createObjects()
-		if self._settings["addJoints"]:
+		if self.settings("addJoints"):
 			self.createJoints()
 
 	def stepOperators(self):
@@ -113,7 +112,7 @@ class SystemBuilder():
 		pass
 
 	def createConnections(self):
-		for slot, cnx in self.guide.connections.iteritems():
+		for slot, cnx in self._connections.iteritems():
 			cnx.connect(self, slot)
 
 	# ----------------------------------------------------------------------------------
@@ -122,9 +121,9 @@ class SystemBuilder():
 	def createTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		parent = parent if parent is not None else self.coreBuilder.localCtl
 		name = self.getObjectName(usage, part)
-		node = createTransform(parent, name, tfm)
+		node = create.transform(parent, name, tfm)
 		if icon:
-			createIcon(icon, node, size, po, ro, so)
+			create.icon(icon, node, size, po, ro, so)
 		return node
 
 	def createController(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
@@ -148,33 +147,33 @@ class SystemBuilder():
 		color = [1,0,0]
 		parent = parent if parent is not None else self.coreBuilder.localCtl
 		name = self.getObjectName(usage, part)
-		return createJoint(parent, name, tfm=None, color=None)
+		return create.joint(parent, name, tfm=None, color=None)
 
 	def _createAttr(self, parent, displayName, attrType, value=None, minValue=None, maxValue=None,
 			keyable=False, writable=True, readable=True, channelBox=True):
 
 		longName = self.getObjectName("Rig", displayName)
-		attr = createAttr(parent, longName, attrType, value, minValue, maxValue,
+		a = attr.create(parent, longName, attrType, value, minValue, maxValue,
 					keyable, writable, readable, channelBox, displayName)
 		self.attributeNames.append(longName)
-		return attr
+		return a
 
 	def createAnimAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
 
 		parent = self.coreBuilder.localCtl
-		attr = self._createAttr(parent, name, attrType, value,
+		a = self._createAttr(parent, name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
-		return attr
+		return a
 
 	def createSetupAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
 			keyable=False, writable=False):
 
 		parent = self.coreBuilder.localCtl
-		attr = self._createAttr(parent, name, attrType, value,
+		a = self._createAttr(parent, name, attrType, value,
 					minValue, maxValue, keyable, writable)
-		return attr
+		return a
 
 	def _createNode(self, nodeType, name):
 		name = self.getObjectName("Nde", name)
@@ -186,15 +185,15 @@ class SystemBuilder():
 	def getObjectName(self, usage, part):
 		return naming.getObjectName(
 			usage=usage,
-			location=self._settings["location"],
-			name=self._settings["name"],
+			location=self.settings("location"),
+			name=self.settings("name"),
 			part=part)
 
 	def getNodeName(self, part):
 		return naming.getObjectName(
 			usage="Nde",
-			location=self._settings["location"],
-			name=self._settings["name"],
+			location=self.settings("location"),
+			name=self.settings("name"),
 			part=part)
 
 	def getObject(self, usage, part):

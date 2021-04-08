@@ -113,8 +113,8 @@ class SystemGuide(object):
 	def type(self):
 		return self.__module__.split(".")[-2]
 
-	def settings(self):
-		return self._settings
+	def settings(self, key=None):
+		return self._settings if key is None else self._settings[key]
 
 	def setSettings(self, settings):
 		self._settings.update(settings)
@@ -218,7 +218,7 @@ class SystemGuide(object):
 		if name is None:
 			return {k:m.transform() for k,m in self.markers().iteritems()}
 		elif name in self.markerMinMax:
-			return [m.transform() for m in self.markers(name)]
+			return TransformationArray([m.transform() for m in self.markers(name)])
 		else:
 			return self.markers(name).transform()
 
@@ -226,9 +226,17 @@ class SystemGuide(object):
 		if name is None:
 			return {k:m.translation() for k,m in self.markers().iteritems()}
 		elif name in self.markerMinMax:
-			return [m.translation() for m in self.markers(name)]
+			return Vector3Array([m.translation() for m in self.markers(name)])
 		else:
 			return self.markers(name).translation()
+
+	def directions(self, name=None, axis="x"):
+		if name is None:
+			return {k:m.direction(axis) for k,m in self.markers().iteritems()}
+		elif name in self.markerMinMax:
+			return Vector3Array([m.direction(axis) for m in self.markers(name)])
+		else:
+			return self.markers(name).direction(axis)
 
 	def count(self, name):
 		if name not in self.markerMinMax:

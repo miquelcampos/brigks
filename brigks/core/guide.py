@@ -6,7 +6,7 @@ import datetime
 
 from layer import Layer
 from builder import Builder
-from useful import indent
+from brigks.utils.xml import indent
 
 DATA_ATTRIBUTE = "_userProps"
 

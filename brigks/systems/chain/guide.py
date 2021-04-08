@@ -10,7 +10,6 @@ class ChainSystemGuide(SystemGuide):
 		)
 
 	def addSettings(self):
-
 		self._settings["orientation"] = "Auto"  # Auto, Guide
 
 		self._settings["kinematic"] = "FK"  # FK, IK or FK/IK

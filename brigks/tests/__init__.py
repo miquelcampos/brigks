@@ -14,7 +14,7 @@ from brigks import Guide, Builder
 from brigks.gui.guideTreeWidget import GuideTreeWidget
 from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 from brigks.utils.convert import convertXmlHarbie
-from brigks.core.useful import indent
+from brigks.utils.xml import indent
 
 from math3d.transformation import Transformation
 from math3d.vectorN import Vector3
