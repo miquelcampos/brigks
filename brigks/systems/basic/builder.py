@@ -1,8 +1,6 @@
 from maya import cmds
 
-from brigks.core.useful import createHarmonic
-from brigks.utils import constants
-from brigks.utils import attr
+from brigks.utils import constants, attr, compounds
 from brigks.systems.systemBuilder import SystemBuilder
 
 class BasicSystemBuilder(SystemBuilder):
@@ -27,7 +25,7 @@ class BasicSystemBuilder(SystemBuilder):
 				self.ctl.append(ctl)	
 				attr.setRotOrder(ctl, self.settings("defaultRotationOrder"))
 
-				keyables = [attr for attr in constants.trs_attrs if self.settings(attr])
+				keyables = [attr for attr in constants.trs_attrs if self.settings(attr)]
 				attr.setKeyables(ctl, keyables)
 				jntparent = ctl
 			else:
@@ -89,7 +87,7 @@ class BasicSystemBuilder(SystemBuilder):
 			for i, harmonic in enumerate(self.jntparent):
 				nodeName = self.getObjectName("Nde", "Harmonic{}".format(i))
 				parent = cmds.listRelatives(harmonic, parent=True)[0]
-				cns = createHarmonic(nodeName, harmonic, parent, 
+				cns = compounds.harmonic(nodeName, harmonic, parent, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
 					frequency=self.settings("frequency"), 
@@ -103,27 +101,25 @@ class BasicSystemBuilder(SystemBuilder):
 
 					# Connect to Attributes
 					mulNode = self.getObjectName("Nde", "AmplitudeGlobal{}".format(i))
-					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1X", force=True)
-					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Y", force=True)
-					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Z", force=True)
+					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1X")
+					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Y")
+					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Z")
 
 					activeNode = self.getObjectName("Nde", "Active{}".format(i))
-					cmds.connectAttr(self.dynamicAttr, activeNode+".input2X", force=True)
-					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Y", force=True)
-					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Z", force=True)
+					cmds.connectAttr(self.dynamicAttr, activeNode+".input2X")
+					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Y")
+					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Z")
 
 				# Connect to Attributes
 				axis = "XYZ"[i%3]
-				cmds.connectAttr(self.localAmplAttr[i], mulNode+".input2"+axis, force=True)
-				cmds.connectAttr(activeNode+".output"+axis, harmonic+".amplitude", force=True)
+				cmds.connectAttr(self.localAmplAttr[i], mulNode+".input2"+axis)
+				cmds.connectAttr(activeNode+".output"+axis, cns+".amplitude")
 
 			if self.settings("dynamicAnimatable"):
-
-				# Connect
-				cmds.connectAttr(self.axisAttr, harmonic+".axisAmp", force=True)
-				cmds.connectAttr(self.decayAttr, harmonic+".decay", force=True)
-				cmds.connectAttr(self.terminationAttr, harmonic+".termination", force=True)
-				cmds.connectAttr(self.frequencyAttr, harmonic+".frequencyMult", force=True)
+				cmds.connectAttr(self.axisAttr, cns+".axisAmp")
+				cmds.connectAttr(self.decayAttr, cns+".decay")
+				cmds.connectAttr(self.terminationAttr, cns+".termination")
+				cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 
 	def createConnections(self):
 

@@ -6,8 +6,6 @@ from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attr, create, compounds
 from brigks.utils import math as mathu
 
-from brigks.core.useful import createHarmonic
-
 from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
@@ -25,7 +23,7 @@ class ChainSystemBuilder(SystemBuilder):
 
 		# Normal
 		if self.count("Part") > 2:
-			normal = Vector3.planeNormal(*positions[:3])
+			normal = Vector3.planeNormal(*positions[:3]) * -1 # TODO Remove *-1 when math3d is fixed
 			if normal.length() < 1E-6:
 				normal = self.directions("Part1", "z")
 			if self.negate(): 
@@ -59,7 +57,7 @@ class ChainSystemBuilder(SystemBuilder):
 		if self.settings("dynamic"):
 			tgtTfm = boneTfm[1:]
 			tfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
-			tgtTfm.append(tfm)
+			tgtTfm = tgtTfm.appended(tfm)
 			
 
 		# OBJECTS
@@ -153,21 +151,21 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			self.dfmHost = self.bones
 
-
 		# Strap ----------------------------
 		if self.settings("strap"):
-			endTfm = Transformation.fromParts(translation=self.translations()[-1], rotation=boneTfm[-1].rotation)
+			endTfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
 			self.end = self.createRig(self.dfmHost[-1], "End", endTfm)
 
-	def createDeformers(self):
+	def createJoints(self):
 		centers = [self.createJoint(master, i) for i, master in enumerate(self.dfmHost, start=1)]
 			
 		# Strap ----------------------------
 		if self.settings("strap"):
 			centers.append(self.createJoint(self.end, "End"))
 
-			surface = self.addCnsSurface(centers, "Strap", width=self.size(), tangent=.25)
-		 	self.addSurfaceDeformers(surface, self.settings("strapDeformers"))
+			name = self.getObjectName("Rig", "Strap")
+			surface = create.cnsSurface(name, self._root, centers, width=1.0, tangent=.25)
+		 	self.createSurfaceJoints(surface, self.settings("strapDeformers"))
 
 	#----------------------------------------------------------------------------
 	# PROPERTIES 
@@ -183,8 +181,8 @@ class ChainSystemBuilder(SystemBuilder):
 
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.createAnimAttr("Dynamic", "bool", self.settings("dynActive"))
-			self.globalAmplitudeAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplitudeAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
+			self.globalAmplAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
+			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
 			
 			if self.settings("dynamicAnimatable"):
 				self.axisAttr = self.createAnimAttr("Axis", "vector", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
@@ -232,7 +230,8 @@ class ChainSystemBuilder(SystemBuilder):
 				else:
 					master = self._tip
 					
-				self._createAimConstraint(fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
+				name = self.getObjectName("Nde", "FkAim")
+				compounds.aimConstraint(name, fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
 				
 		# # Bones -----------------------------------------
 		if self.isFkIk:# or (self.isFk and self.settings("dynamic")):
@@ -246,40 +245,43 @@ class ChainSystemBuilder(SystemBuilder):
 					
 		if self.settings("dynamic"):
 			for i, (harmonic, target, dynCns, dynBone, bone) in enumerate(izip(self.harmonic, self.target, self.dynCns, self.dynBone, self.bones)):
-				cns = self._createCompound("Harmonics", harmonic, target, 
+				nodeName = self.getObjectName("Nde", "Harmonic{}".format(i))
+				cns = compounds.harmonic(nodeName, harmonic, target, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
 					frequency=self.settings("frequency"), 
-					termination=self.settings("termination"),
-					amplitudeAxis=(self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")) )
+					termination=self.settings("termination"), 
+					amplitudeAxis=(self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
 
 				if i%3 == 0:
-					mulNode = self._createNode("multiplyDivide", "amplitudeGlobal{}".format(i))
-					self._connectAttr(self.globalAmplitudeAttr, (mulNode, "input1X"))
-					self._connectAttr(self.globalAmplitudeAttr, (mulNode, "input1Y"))
-					self._connectAttr(self.globalAmplitudeAttr, (mulNode, "input1Z"))
+					mulNode = self._createNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
 
-					activeNode = self._createNode("multiplyDivide", "active{}".format(i))
-					self._connectAttr((mulNode, "output"), (activeNode, "input1"))
-					self._connectAttr(self.dynamicAttr, (activeNode, "input2X"))
-					self._connectAttr(self.dynamicAttr, (activeNode, "input2Y"))
-					self._connectAttr(self.dynamicAttr, (activeNode, "input2Z"))
+					# Connect to Attributes
+					mulNode = self.getObjectName("Nde", "AmplitudeGlobal{}".format(i))
+					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1X")
+					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Y")
+					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Z")
+
+					activeNode = self._createNode("multiplyDivide", name="Active{}".format(i))
+					cmds.connectAttr(mulNode+".output", activeNode+".input1")
+					cmds.connectAttr(self.dynamicAttr, activeNode+".input2X")
+					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Y")
+					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Z")
 
 				axis = "XYZ"[i%3]
-				self._connectAttr(self.localAmplitudeAttr[i], (mulNode, "input2"+axis))
-				cns.connectAmplitude((activeNode, "output"+axis))
+				cmds.connectAttr(self.localAmplAttr[i], mulNode+".input2"+axis)
+				cmds.connectAttr(activeNode+".output"+axis, cns+".amplitude")
 
 				if self.settings("dynamicAnimatable"):
-					cns.connectAxis(self.toNative(self.axisAttr))
-					cns.connectDecay(self.toNative(self.decayAttr))
-					cns.connectTermination(self.toNative(self.terminationAttr))
-					cns.connectFrequency(self.toNative(self.frequencyAttr))
+					cmds.connectAttr(self.axisAttr, cns+".axisAmp")
+					cmds.connectAttr(self.decayAttr, cns+".decay")
+					cmds.connectAttr(self.terminationAttr, cns+".termination")
+					cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 
-				cns = self._createAimConstraint(dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
-				cns = self._createCompound("PoseConstraint2", dynCns, [bone], translate=False, rotate=True, scale=False)
+				name = self.getObjectName("Nde", "DynAim")
+				cns = compounds.aimConstraint(name, dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
+				compounds.blendMatrix(dynCns, [bone], translate=False, rotate=True, scale=False)
 
-
-		
 	#----------------------------------------------------------------------------
 	# CONNECTION
 	def createConnection(self):
@@ -306,27 +308,3 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			self.connect_object2Cluster(root, "RootCls")
 
-
-
-	#----------------------------------------------------------------------------
-	# MISC
-	def _createAimConstraint(self, slave, master, axis="xy", upMaster=None, upVector=None):
-			name = self.getObjectName("Nde", "Aim")
-			cns = cmds.aimConstraint(master, slave, worldUpType="objectrotation", maintainOffset=False, name=name, skip="none")[0]
-
-			# UpVector
-			cmds.setAttr(cns+".worldUpVectorX", upVector[0])
-			cmds.setAttr(cns+".worldUpVectorY", upVector[1])
-			cmds.setAttr(cns+".worldUpVectorZ", upVector[2])
-
-			cmds.connectAttr(upMaster+".worldMatrix[0]", cns+".worldUpMatrix")
-
-
-			# Direction Axis
-			aimAttr = ["aimVectorX", "aimVectorY", "aimVectorZ", "upVectorX", "upVectorY", "upVectorZ"]
-			a = axis.replace("-", "")
-			out = [0]*6
-			out["xyz".index(a[0])] = -1 if axis[0] == "-" else 1
-			out["xyz".index(a[1])+3] = -1 if axis[-2] == "-" else 1
-			for name, value in izip(aimAttr, out):
-				cmds.setAttr(cns+"."+name, value)

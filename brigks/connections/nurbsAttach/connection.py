@@ -1,6 +1,7 @@
 from maya import cmds
 from maya import OpenMaya as om
 
+from brigks.utils import compounds
 from brigks.connections.systemConnection import SystemConnection
 
 class NurbsAttachSystemConnection(SystemConnection):
@@ -61,7 +62,7 @@ class NurbsAttachSystemConnection(SystemConnection):
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)
 
-		self._surfaceMultiAttach([[attach]], surface, 0, [u], [v])
+		compounds.surfaceMultiAttach([[attach]], surface, 0, [u], [v])
 		return attach
 
 
@@ -108,75 +109,3 @@ class NurbsAttachSystemConnection(SystemConnection):
 		selectionList.getDagPath(0, dagPath)
 
 		return om.MFnNurbsSurface(dagPath)
-
-	def _surfaceMultiAttach(self, slaves, surface, attach=0, uParams=None, vParams=None, evenly=False):
-		'''
-		Args:
-			slaves(List of List of Transform): 
-			surface(): 
-			attach(int): 0 Parametric, 1 Percentage, 2 Fixed Length
-			uParams(list of double|None): None for linear distribution. double must be between 0.0 and 1.0
-			vParams(list of double|None): None for linear distribution. double must be between 0.0 and 1.0
-		'''
-		if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
-			cmds.loadPlugin("HarbieNodes")
-
-		shape = cmds.listRelatives(surface, shapes=True, path=True)[0]
-
-		vCount = len(slaves)
-		uCount = len(slaves[0])
-
-		if uParams is not None and len(uParams) != uCount:
-			raise RuntimeError("Number of uParams doesn't match u count")
-		if vParams is not None and len(vParams) != vCount:
-			raise RuntimeError("Number of vParams doesn't match u count")
-
-		
-		# This is a custom command part of the Harbie Plugin
-		length = cmds.surfaceInfo(surface, length=True)
-
-		cmaNode = cmds.createNode("SurfaceMultiAttach", name="SrfMAttch")
-
-		cmds.connectAttr(shape+".local", cmaNode+".surface")
-		cmds.connectAttr(surface+".worldMatrix[0]", cmaNode+".surfaceMatrix")
-		cmds.connectAttr(slaves[0][0]+".parentInverseMatrix[0]", cmaNode+".parentInverse")
-		cmds.setAttr(cmaNode+".attach", attach)
-		cmds.setAttr(cmaNode+".length", length)
-
-		# V
-		if vParams is None:
-			if vCount == 1:
-				vParams = [0.5]
-			else:
-				vParams = [j/float(vCount-1) for j in range(vCount)]
-		
-		# U
-		if uParams is None:
-			uParams = []
-			if uCount == 1:
-				uParams = [0.5]
-			else:
-				isClosed = cmds.getAttr(shape+".formU") != 0 
-				count = float(uCount) if isClosed else float(uCount-1)
-				for i in range(uCount):
-					step = i/count
-					if attach==0 and evenly:
-						# This is a custom command part of the Harbie Plugin
-						uParams.append(cmds.surfaceInfo(surface, pfp=step))
-					else:
-						uParams.append(step)
-
-				
-		for j, v in enumerate(vParams):
-			cmds.setAttr(cmaNode+".v[%s]"%j, v)
-		for i, u in enumerate(uParams):
-			cmds.setAttr(cmaNode+".u[%s]"%i, u)
-
-
-		for j in range(vCount):
-			for i in range(uCount):
-				index = j*uCount+i
-				slave = slaves[j][i]
-				cmds.connectAttr(cmaNode+".output[%s].translate"%index, slave+".translate")
-				cmds.connectAttr(cmaNode+".output[%s].rotate"%index, slave+".rotate")
-

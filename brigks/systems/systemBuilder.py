@@ -3,8 +3,7 @@ import itertools
 
 from maya import cmds
 
-from brigks.utils import create
-from brigks.utils import attr
+from brigks.utils import attr, create, compounds
 from brigks.core import naming 
 
 class SystemBuilder():
@@ -148,6 +147,29 @@ class SystemBuilder():
 		parent = parent if parent is not None else self.coreBuilder.localCtl
 		name = self.getObjectName(usage, part)
 		return create.joint(parent, name, tfm=None, color=None)
+
+	def createSurfaceJoints(self, surface, count, part="Strap"):
+		parent = surface
+		joints = [self.createJoint(parent, "{}{}".format(part,i)) for i in xrange(1, count+1)]
+		
+		# Disconnect the deformer if there is a left over constraint
+		for jnt in joints:
+			connections = cmds.listConnections(jnt, destination=True)
+			if connections:
+				srfAttach = [node for node in connections if cmds.nodeType(node) == "SurfaceMultiAttach"]
+				if srfAttach:
+					cmds.delete(srfAttach)
+
+		# 0 Parametric, 1 Percentage, 2 Fixed Length
+		name = self.getObjectName("Rig", "Srf")
+		compounds.surfaceMultiAttach([joints], surface, attach=0, evenly=True)
+
+		for jnt in joints:
+			cmds.connectAttr(self.coreBuilder.localCtl+".sx" ,jnt+".sx")
+			cmds.connectAttr(self.coreBuilder.localCtl+".sx" ,jnt+".sy")
+			cmds.connectAttr(self.coreBuilder.localCtl+".sx" ,jnt+".sz")
+
+		return joints
 
 	def _createAttr(self, parent, displayName, attrType, value=None, minValue=None, maxValue=None,
 			keyable=False, writable=True, readable=True, channelBox=True):
