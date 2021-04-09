@@ -101,6 +101,9 @@ class SystemTreeWidgetItem(QTreeWidgetItem):
 	def system(self):
 		return self._system
 
+	def setSystem(self, system):
+		self._system = system
+
 
 class SubSystemTreeWidgetItem(QTreeWidgetItem):
 

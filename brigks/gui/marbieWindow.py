@@ -59,6 +59,7 @@ class MarbieWindow(QDialog):
 		elif isinstance(items[0], (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
 			if not self._systemSettingsWidget:
 				self._systemSettingsWidget = SystemSettingsWidget(items[0].system())
+				self._systemSettingsWidget.systemChanged.connect(items[0].setSystem)
 			else:
 				self._systemSettingsWidget.setSystem(items[0].system())
 			self._settingsWidget = self._systemSettingsWidget

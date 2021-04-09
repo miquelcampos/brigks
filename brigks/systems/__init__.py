@@ -11,9 +11,11 @@ def getSystemWidgetClass(systemType, version=None):
 	return _getClass(systemType, "widget", "SystemWidget", version)
 
 def _getClass(systemType, moduleName, classSuffix, version=None):
-	#TODO Implement version. Requires moving code in v001 folder for each system
+	if version is None:
+		version = getSystemVersions(systemType)[-1]
+
 	# Get Module
-	moduleName = ".".join(["brigks", "systems", systemType, moduleName])
+	moduleName = ".".join(["brigks", "systems", systemType, version, moduleName])
 	module = __import__(moduleName, globals(), locals(), ["*"], -1)
 
 	# Get Class
@@ -29,5 +31,14 @@ def _getClass(systemType, moduleName, classSuffix, version=None):
 
 def getSystemList():
 	folder = os.path.dirname(__file__)
+	for root, dirs, files in os.walk(folder, topdown=True):
+	   	return sorted(dirs)
+
+def getSystemVersions(systemType):
+	# Get Module
+	moduleName = ".".join(["brigks", "systems", systemType])
+	module = __import__(moduleName, globals(), locals(), ["*"], -1)
+
+	folder = os.path.dirname(module.__file__)
 	for root, dirs, files in os.walk(folder, topdown=True):
 	   	return sorted(dirs)

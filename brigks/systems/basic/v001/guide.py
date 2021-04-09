@@ -12,6 +12,9 @@ class BasicSystemGuide(SystemGuide):
 	defaultPositions = dict(
 		Part1=Vector3([0,1,0]),
 		)
+	markerCompatibility = dict(
+		chain=dict(Part="Bone"),
+		)
 
 	def addSettings(self):
 		self._settings["addControllers"] = True

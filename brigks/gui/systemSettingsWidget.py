@@ -2,15 +2,17 @@ import os.path
 import sip
 
 from Qt import QtCompat
+from Qt.QtCore import Signal
 from Qt.QtWidgets import QWidget
 
-from brigks.systems import getSystemList, getSystemWidgetClass
+from brigks.core.config import LOCATIONS
+from brigks.systems import getSystemWidgetClass, getSystemVersions
 from brigks.gui.connectionWidget import ConnectionWidget
 
-SYSTEM_TYPES = getSystemList()
-SYSTEM_LOCATIONS = ["M", "L", "R", "X"]
 
 class SystemSettingsWidget(QWidget):
+
+	systemChanged = Signal(object)
 
 	def __init__(self, system):
 		super(SystemSettingsWidget, self).__init__()
@@ -23,9 +25,10 @@ class SystemSettingsWidget(QWidget):
 		self._settingsWidget = None
 
 		# Common
-		# self.uiTypeCBOX.currentIndexChanged.connect(self.save)
-		# self.uiLocationCBOX.currentIndexChanged.connect(self.save)
-		# self.uiNameLINE.editingFinished.connect(self.save)
+		self.uiTypeCBOX.currentIndexChanged.connect(self.swap)
+		self.uiVersionCBOX.currentIndexChanged.connect(self.swap)
+		self.uiLocationCBOX.currentIndexChanged.connect(self.rename)
+		self.uiNameLINE.editingFinished.connect(self.rename)
 
 		if system:
 			self.setSystem(system)
@@ -37,14 +40,23 @@ class SystemSettingsWidget(QWidget):
 	def setSystem(self, system):
 		self._system = system
 
+		# Block Signals
+		self.blockSignals(True)
+
 		# Common
-		systemTypeTitles = [t.title() for t in SYSTEM_TYPES]
-
+		compatibleSystems = [self._system.type()] + self._system.markerCompatibility.keys()
 		self.uiTypeCBOX.clear()
-		self.uiTypeCBOX.addItems(systemTypeTitles)
-		self.uiTypeCBOX.setCurrentIndex(SYSTEM_TYPES.index(system.type()))
+		self.uiTypeCBOX.addItems(compatibleSystems)
+		self.uiTypeCBOX.setCurrentIndex(0)
 
-		self.uiLocationCBOX.setCurrentIndex(SYSTEM_LOCATIONS.index(system.settings()["location"]))
+		versions = getSystemVersions(self._system.type())
+		self.uiVersionCBOX.clear()
+		self.uiVersionCBOX.addItems(versions)
+		self.uiVersionCBOX.setCurrentIndex(versions.index(self._system.version()))
+
+		self.uiLocationCBOX.clear()
+		self.uiLocationCBOX.addItems(LOCATIONS.values())
+		self.uiLocationCBOX.setCurrentIndex(LOCATIONS.keys().index(system.settings()["location"]))
 
 		self.uiNameLINE.setText(system.settings()["name"])
 
@@ -69,14 +81,39 @@ class SystemSettingsWidget(QWidget):
 		self.uiSettingsTAB.layout().addWidget(self._settingsWidget)
 		self._settingsWidget.setVisible(True)
 
+		# Block Signals
+		self.blockSignals(False)
+
+	def blockSignals(self, block):
+		self.uiTypeCBOX.blockSignals(block)
+		self.uiVersionCBOX.blockSignals(block)
+		self.uiLocationCBOX.blockSignals(block)
+		self.uiNameLINE.blockSignals(block)
+
 	def save(self):
 		if not self._system:
 			return
 
-		self._system.settings()["location"] = SYSTEM_LOCATIONS[self.uiLocationCBOX.currentIndex()]
+		self._system.settings()["location"] = LOCATIONS.keys()[self.uiLocationCBOX.currentIndex()]
 		self._system.settings()["name"] = self.uiNameLINE.currentText()
 
-		self._system.coreGuide.dumps()
+		self._system.guide().commit()
+
+	# ----------------------------------------------------------------------------------
+	# SYSTEMS
+	# ----------------------------------------------------------------------------------
+	def rename(self):
+		pass
+
+	def swap(self):
+		systemType = self.uiTypeCBOX.currentText()
+		systemVersion = self.uiVersionCBOX.currentText()
+
+		newSystem = self._system.layer().swapSystem(self._system, systemType, systemVersion)
+		self.setSystem(newSystem)
+		self._system.guide().commit()
+
+		self.systemChanged.emit(newSystem)
 
 	# ----------------------------------------------------------------------------------
 	# CONNECTIONS
@@ -119,7 +156,7 @@ class SystemSettingsWidget(QWidget):
 		connection = self._system.addConnection(connectionType, port)
 		self.addConnectionWidget(port, connection)
 
-		self._system.coreGuide.dumps()
+		self._system.guide().commit()
 
 	def addConnectionWidget(self, port, connection):
 		if port in self._connectionWidgets:
@@ -135,7 +172,7 @@ class SystemSettingsWidget(QWidget):
 	def deleteConnectionWidget(self, port):
 		# Delete Connection from System
 		self._system.deleteConnection(port)
-		self._system.coreGuide.dumps()
+		self._system.guide().commit()
 
 		# Delete Connection Widget
 		widget = self._connectionWidgets.pop(port)

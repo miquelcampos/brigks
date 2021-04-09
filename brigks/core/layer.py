@@ -124,7 +124,7 @@ class Layer():
 			if system:
 				return system
 
-	def addSystem(self, systemType, location, name, matrices={}, version=-1):
+	def addSystem(self, systemType, location, name, matrices={}, version=None):
 		"""Add a new system guide to the layer
 
 		Args:
@@ -155,7 +155,18 @@ class Layer():
 
 	def removeSystem(self, system):
 		index = self._systems.index(system)
-		return self._systems.pop(system)
+		return self._systems.pop(index)
+
+	def swapSystem(self, oldSystem, systemType, version):
+		oldSystem.swapMarkers(systemType)
+		self.removeSystem(oldSystem)
+
+		SystemClass = getSystemGuideClass(systemType, version)
+		newSystem = SystemClass(self)
+		newSystem.setSettings(oldSystem.settings())
+
+		self._systems.append(newSystem)
+		return newSystem
 
 
 	# ----------------------------------------------------------------------------------
@@ -190,7 +201,8 @@ class Layer():
 			elif xmlObject.tag == "System":
 			 	key = xmlObject.get("key")
 			 	systemType = xmlObject.get("type")
-				SystemClass = getSystemGuideClass(systemType)
+			 	systemVersion = xmlObject.get("type")
+				SystemClass = getSystemGuideClass(systemType, systemVersion)
 				system = SystemClass.fromXml(layer, xmlObject)
 				layer._systems.append(system)
 

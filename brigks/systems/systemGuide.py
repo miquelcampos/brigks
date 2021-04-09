@@ -17,6 +17,7 @@ class SystemGuide(object):
 	markerPicked = ("Part",)
 	markerMinMax = dict(Part=(1,-1))
 	defaultPositions = {}
+	markerCompatibility = {}
 	compatibles = ()
 
 	def __init__(self, layer):
@@ -111,13 +112,19 @@ class SystemGuide(object):
 		return naming.getSystemKey(self._settings["location"], self._settings["name"])
 
 	def type(self):
-		return self.__module__.split(".")[-2]
+		return self.__module__.split(".")[-3]
+
+	def version(self):
+		return self.__module__.split('.')[-2]
 
 	def settings(self, key=None):
 		return self._settings if key is None else self._settings[key]
 
 	def setSettings(self, settings):
 		self._settings.update(settings)
+
+	def layer(self):
+		return self._layer
 
 	def setLayer(self, layer):
 		if layer == self._layer:
@@ -217,6 +224,25 @@ class SystemGuide(object):
 		else:
 			return self._markers[name]
 
+	def swapMarkers(self, systemType):
+		for oldPart, newPart in self.markerCompatibility[systemType].iteritems():
+			if oldPart in self.markerMinMax:
+				markerMin, markerMax = self.markerMinMax[oldPart]
+				limit = lambda x: x <= markerMax if markerMax > 0 else lambda i: True
+				i = 1
+				while limit(i):
+					oldName = self.getMarkerName("{}{}".format(oldPart, i))
+					newName = self.getMarkerName("{}{}".format(newPart, i))
+					if not cmds.objExists(oldName):
+						break
+					cmds.rename(oldName, newName)
+					i += 1
+			else:
+				oldName = self.getMarkerName(oldPart)
+				newName = self.getMarkerName(newPart)
+				if cmds.objExists(oldName):
+					cmds.rename(oldName, newName)
+
 	def transforms(self, name=None):
 		if name is None:
 			return {k:m.transform() for k,m in self.markers().iteritems()}
@@ -267,6 +293,7 @@ class SystemGuide(object):
 
 		xmlRoot = etree.Element("System")
 		xmlRoot.set("type", self.type())
+		xmlRoot.set("version", self.version())
 		xmlRoot.set("key", self.key())
 		xmlRoot.set("settings", json.dumps(self._settings))
 

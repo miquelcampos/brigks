@@ -4,9 +4,12 @@ from brigks.systems.systemGuide import SystemGuide
 
 class ChainSystemGuide(SystemGuide):
 
-	markerNames = ("Part",)
+	markerNames = ("Bone",)
 	markerMinMax = dict(
-		Part=(2,-1)
+		Bone=(2,-1)
+		)
+	markerCompatibility = dict(
+		basic=dict(Bone="Part")
 		)
 
 	def addSettings(self):
@@ -64,7 +67,7 @@ class ChainSystemGuide(SystemGuide):
 			name = "Ik{02d}"
 
 		slots = dict()
-		for i in xrange(1, self.count("Part")):
+		for i in xrange(1, self.count("Bone")):
 			slots["Bone{}".format(i)] = (usage, name.format(i))
 
 		return slots
