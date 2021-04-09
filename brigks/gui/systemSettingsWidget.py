@@ -56,9 +56,9 @@ class SystemSettingsWidget(QWidget):
 
 		self.uiLocationCBOX.clear()
 		self.uiLocationCBOX.addItems(LOCATIONS.values())
-		self.uiLocationCBOX.setCurrentIndex(LOCATIONS.keys().index(system.settings()["location"]))
+		self.uiLocationCBOX.setCurrentIndex(LOCATIONS.keys().index(system.settings("location")))
 
-		self.uiNameLINE.setText(system.settings()["name"])
+		self.uiNameLINE.setText(system.settings("name"))
 
 		# Add Connections Widget
 		self.clearConnectionWidgets()
@@ -90,20 +90,13 @@ class SystemSettingsWidget(QWidget):
 		self.uiLocationCBOX.blockSignals(block)
 		self.uiNameLINE.blockSignals(block)
 
-	def save(self):
-		if not self._system:
-			return
-
-		self._system.settings()["location"] = LOCATIONS.keys()[self.uiLocationCBOX.currentIndex()]
-		self._system.settings()["name"] = self.uiNameLINE.currentText()
-
-		self._system.guide().commit()
-
 	# ----------------------------------------------------------------------------------
 	# SYSTEMS
 	# ----------------------------------------------------------------------------------
 	def rename(self):
-		pass
+		location = LOCATIONS.keys()[self.uiLocationCBOX.currentIndex()]
+		name = self.uiNameLINE.text()
+		self._system.rename(location, name)
 
 	def swap(self):
 		systemType = self.uiTypeCBOX.currentText()

@@ -1,8 +1,9 @@
 from maya import cmds
 
-# TODO: Replace with new math3D linbray
-# from cross3d.xmathutils import Transform, Matrix, Vector
 from math3d import Transformation, Matrix4, Vector3
+
+from brigks.core import naming
+
 
 def checkMarkersMinMax(markers, markerNames, markerMinMax):
 	"""Checks that all the mandatory markers exist.
@@ -42,20 +43,24 @@ def checkMarkersMinMax(markers, markerNames, markerMinMax):
 
 class SystemMarker(object):
 
-	def __init__(self, marker):
+	def __init__(self, marker, system):
 		self._marker = marker
+		self._system = system
 		self._transform = None
 		self._translation = None
 
 	@classmethod
-	def create(cls, name, parent, matrix=None):
+	def create(cls, name, system, parent, matrix=None):
 		node = cmds.spaceLocator(name=name)
 		if matrix is not None:
 			cmds.xform(node, matrix=matrix, worldSpace=True)
 		parent = parent._marker if isinstance(parent, cls) else parent
 		node = cmds.parent(node, parent)
 
-		return cls(node)
+		return cls(node, system)
+
+	def rename(self, newName):
+		self._marker = cmds.rename(self._marker, newName)
 
 	def transform(self):
 		if self._transform is None:

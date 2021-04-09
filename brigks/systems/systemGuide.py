@@ -62,14 +62,14 @@ class SystemGuide(object):
 
 		# Create Markers
 		parent = system.model()
-		for name, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
+		for part, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
 			if matrix is None:
-				position = cls.defaultPositions[name]
+				position = cls.defaultPositions[part]
 				transform = Transformation.fromParts(translation=position)
 				matrix = transform.asMatrix().tolist()
 				matrix = [j for sub in matrix for j in sub]
-			name = system.getMarkerName(name)
-			SystemMarker.create(name, parent, matrix)
+			name = self.getMarkerName(part)
+			SystemMarker.create(name, self, parent, matrix)
 
 		return system
 
@@ -194,15 +194,31 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
-	def loadMarkers(self):
-		if self._markers is None:
+	def rename(self, location, name):
+		self.loadMarkers(force=True)
+
+		for part, marker in self._markers.iteritems():
+			newName = self.getMarkerName(part, location, name)
+			marker.rename(newName)
+
+		self._settings["location"] = location
+		self._settings["name"] = name
+
+		# # Connections
+		# for system in self.guide().systems():
+		# 	pass
+
+		self.guide().commit()
+
+	def loadMarkers(self, force=False):
+		if self._markers is None or force:
 			self._markers = dict()
 			search = self.getMarkerName("*")
 			markers = cmds.ls(search, type="transform", long=True)
 			markers = [m for m in markers if m.startswith("|"+self.model())]
 			for marker in markers:
 				part = marker.split("_")[-1]
-				self._markers[part] = SystemMarker(marker)
+				self._markers[part] = SystemMarker(marker, self)
 
 	def markers(self, name=None):
 		self.loadMarkers()
@@ -279,11 +295,11 @@ class SystemGuide(object):
 	# 		cmds.xform(node, matrix=matrix, worldSpace=True)
 	# 	cmds.parent(node, self.model())
 
-	def getMarkerName(self, part):
-		return naming.getObjectName("Gde",
-					self._settings["location"],
-					self._settings["name"],
-					part)
+	def getMarkerName(self, part, location=None, name=None):
+		use = "Gde"
+		location = location if location is not None else self._settings["location"]
+		name = name if name is not None else self._settings["name"]
+		return naming.getObjectName(use, location, name, part)
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT
