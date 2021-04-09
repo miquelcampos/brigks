@@ -11,8 +11,7 @@ class UiHostSystemConnection(SystemConnection):
 			)
 
 	def connect(self):
-		parent = self.getParent(self._connection.settings)
-		return
+		pass
 
 	def getTargetSystems(self):
 		if self._settings["key"]:
@@ -25,11 +24,3 @@ class UiHostSystemConnection(SystemConnection):
 		otherName, otherLocation = key.split("_")
 		if otherLocation == "X":
 			self._settings["key"] = "{n}_{l}".format(n=otherName, l=location)
-
-	@staticmethod
-	def getParent(settings):
-		key = settings["key"]
-		slot = settings["slot"]
-		system = self._builder.coreBuilder.systems[key]
-		parent = system.getObjectFromSlot(slot)
-		return parent

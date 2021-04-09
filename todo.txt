@@ -1,0 +1,6 @@
+
+
+- System Compatibiliy
+- System X Symmetry
+- Check if Basic and Chain are building properly on Neg side
+- 

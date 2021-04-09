@@ -21,42 +21,43 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 	def loadSettings(self):
 		self.uiParentsTREE.clear()
 		items = []
-		for definition in self._connection.settings["definitions"]:
+		for definition in self._connection.settings("definitions"):
 			cnxType = definition["type"]
 			if cnxType == "slot":
-				name = "{key}.{slot}".format(**definition)
+				name = "Slot {key}.{slot}".format(**definition)
 			elif cnxType == "custom":
-				name = "{name}".format(**definition)
+				name = "Custom {name}".format(**definition)
 			elif cnxType == "mesh":
-				name = "{mesh}.{componentType}[{componentIndex}] orient={useOrientation}".format(**definition)
+				name = "Mesh {mesh}.{componentType}[{componentIndex}] orient={useOrientation}".format(**definition)
 			elif cnxType == "nurbs":
-				name = "{mesh}.[{u};{v}]".format(**definition)
+				name = "Nurbs {mesh}.[{u};{v}]".format(**definition)
 
 			self.uiParentsTREE.addTopLevelItem(QtWidgets.QTreeWidgetItem([name]))
 			items.append(name)
 
-		default = self._connection.settings["default"]
+		default = self._connection.settings("default")
 		self.uiDefaultCBOX.clear()
 		self.uiDefaultCBOX.addItems(items)
 		self.uiDefaultCBOX.setCurrentIndex(default)
 
 	def saveSettings(self, definitions):
-		definitions = definitions if definitions else self._connection.settings["definitions"]
-		self._connection.settings["definitions"] = definitions
-		self._connection.settings["default"] = self.uiDefaultCBOX.currentIndex()
-		self._system.coreGuide.dumps()
+		definitions = definitions if definitions else self._connection.settings("definitions")
+		self._connection.setSettings(
+			dict(definitions=definitions, 
+				default=self.uiDefaultCBOX.currentIndex()))
+		self._system.guide().commit()
 
 	def addParent(self):
 		pass
 
 	def removeParent(self):
 		index = self.uiParentsTREE.currentIndex()
-		self._connection.settings["definitions"].pop(index)
-		self._system.coreGuide.dumps()
+		self._connection.settings("definitions").pop(index)
+		self._system.guide().commit()
 
-		default = self._connection.settings["default"]
+		default = self._connection.settings("default")
 		if default == index:
-			self._connection.settings["default"] = 0
+			self._connection.setSettings(dict(default=0))
 		else:
 			pass
 			#TODO do something to update default if neededd
@@ -65,7 +66,7 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 
 	def editParent(self):
 		index = self.uiParentsTREE.currentIndex()
-		definition = self._connection.settings["definitions"][index]
+		definition = self._connection.settings("definitions")[index]
 		cnxType = definition["type"]
 		if cnxType == "slot":
 			pass
@@ -82,16 +83,16 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 			return
 
 		newindex = index + 1 if direction == "down" else index - 1
-		definitions = self._connection.settings["definitions"]
+		definitions = self._connection.settings("definitions")
 		if newindex < 0 or newindex > len(definitions) - 1:
 			return
 
 		definition = definitions.pop(index)
 		definitions.insert(newindex, definition)
 
-		default = self._connection.settings["default"]
+		default = self._connection.settings("default")
 		if default == index:
-			self._connection.settings["default"] == newindex
+			self._connection.setSettings(dict(default=newindex))
 		else:
 			pass
 			#TODO do something to update default if neededd

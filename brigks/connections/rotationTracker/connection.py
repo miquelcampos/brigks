@@ -1,4 +1,6 @@
 from maya import cmds
+
+from brigks.utils import compounds
 from brigks.connections.systemConnection import SystemConnection
 
 class RotationTrackerSystemConnection(SystemConnection):
@@ -16,19 +18,10 @@ class RotationTrackerSystemConnection(SystemConnection):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		referenceKey = self._settings["referenceKey"]
-		referenceSlot = self._settings["referenceSlot"]
-		system = self._builder.coreBuilder.systems[referenceKey]
-		reference = system.getObjectFromSlot(referenceSlot)
+		reference = system.getParentFromSlot(self._settings["referenceKey"], self._settings["referenceSlot"])
+		tracker = system.getParentFromSlot(self._settings["trackerKey"], self._settings["trackerSlot"])
 
-		trackerKey = self._settings["trackerKey"]
-		trackerSlot = self._settings["trackerSlot"]
-		system = self._builder.coreBuilder.systems[trackerKey]
-		tracker = system.getObjectFromSlot(trackerSlot)
-
-		cns = dcc.maya.compound.create("rotationTracker", "rotTracker", outrotAttr, reference, tracker)
-
-		return
+		cns = compounds.rotationTracker(outrotAttr, reference, tracker)
 
 	def getTargetSystems(self):
 		keys = []

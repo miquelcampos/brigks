@@ -50,7 +50,7 @@ class SystemSettingsWidget(QWidget):
 
 		# Add Connections Widget
 		self.clearConnectionWidgets()
-		connections = sorted(system.connections.items(), key=lambda x: x[0])
+		connections = sorted(system.connections().items(), key=lambda x: x[0])
 		for port, connection in connections:
 			self.addConnectionWidget(port, connection)
 
@@ -98,7 +98,7 @@ class SystemSettingsWidget(QWidget):
 
 	def portsAvailable(self):
 		allPorts = self._system.connectionPorts().keys()
-		cnxPorts = self._system.connections.keys()
+		cnxPorts = self._system.connections().keys()
 		return [p for p in allPorts if p not in cnxPorts]
 
 	def loadConnectionPorts(self):

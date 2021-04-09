@@ -115,6 +115,28 @@ def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termi
 
 	return hNode
 
+
+def rotationTracker(attr, reference, tracker):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	node = cmds.createNode("RotationTracker", name="RotTrk")
+
+	cmds.connectattr(reference+".worldMatrix[0]", node+".reference")
+	cmds.connectattr(tracker+".worldMatrix[0]", node+".tracker")
+
+	# Offset
+	m = transform.getTransform(tracker).asMatrix() * transform.getTransform(reference).asMatrixInverse()
+	er = om.MTransformationMatrix(m).eulerRotation()
+	x = math.degrees(er.x)
+	y = math.degrees(er.y)
+	z = math.degrees(er.z)
+	cmds.setAttr(node+".restX", x)
+	cmds.setAttr(node+".restY", y)
+	cmds.setAttr(node+".restZ", z)
+
+	cmds.connectattr(node+".output", attr, force=True)
+
 # ----------------------------------------------------------------------------------
 # ATTACH
 # ----------------------------------------------------------------------------------

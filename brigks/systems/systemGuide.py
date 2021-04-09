@@ -162,6 +162,9 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# CONNECTIONS
 	# ----------------------------------------------------------------------------------
+	def connections(self, key=None):
+		return self._connections if key is None else self._connections[key]
+
 	def addConnection(self, connectionType, port):
 		Connection = getSystemConnectionClass(connectionType)
 		connection = Connection()

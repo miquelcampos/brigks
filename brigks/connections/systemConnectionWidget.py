@@ -92,4 +92,4 @@ class SystemConnectionWidget(QWidget):
 
 		if self._connection is not None:
 			self._connection.setSettings(settings)
-			self._system.coreGuide.commit()
+			self._system.guide().commit()
