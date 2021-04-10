@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>316</width>
     <height>302</height>
    </rect>
   </property>
@@ -14,13 +14,7 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget[warning=true] {
-	background-color: rgb(200, 58, 58);
-}
-QWidget[warning=true]:pressed {
-	background-color: rgb(150, 40, 40);
-}
-</string>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

@@ -129,6 +129,7 @@ class SystemBuilder():
 				value = f.read()
 
 		args = dict(
+			cmds=cmds,
 			this_model=self.coreBuilder.model,
 			this_guide=self.guide,
 			this_builder=self,

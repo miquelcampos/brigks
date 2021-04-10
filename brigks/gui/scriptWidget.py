@@ -6,6 +6,8 @@ from Qt import QtCompat
 from Qt.QtCore import Signal
 from Qt.QtWidgets import QWidget
 
+from maya import cmds
+
 from brigks.utils import gui
 from brigks.core.guide import Guide
 from brigks.systems.systemGuide import SystemGuide
@@ -64,7 +66,7 @@ class ScriptWidget(QWidget):
 			return
 
 		self.uiScriptPathLINE.setText(path)
-		self.reloadScript(script, self.uiScriptPathLINE, self.uiScriptTEXT)
+		self.reloadScript()
 
 	def reloadScript(self):
 		path = self.uiScriptPathLINE.text()
@@ -92,6 +94,7 @@ class ScriptWidget(QWidget):
 			model = self._object.guide().setup()
 
 		args = dict(
+			cmds=cmds,
 			this_model=model,
 			this_guide=self._object,
 			#this_builder=self,

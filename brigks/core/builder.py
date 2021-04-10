@@ -170,6 +170,7 @@ class Builder():
 				value = f.read()
 
 		args = dict(
+			cmds=cmds,
 			this_model=self.model,
 			this_guide=self.guide,
 			this_builder=self,
