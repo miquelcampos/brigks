@@ -6,27 +6,25 @@ import datetime
 
 from layer import Layer
 from builder import Builder
+from brigks.core.config import DATA_ATTRIBUTE
 from brigks.utils.xml import indent
 
-DATA_ATTRIBUTE = "_userProps"
+
+scriptDefaultValue = '''# this_model returns the root node
+# this_guide returns the guide
+# this_builder returns the builder
+'''
 
 class Guide():
 
 	def __init__(self, model=None):
 		self._model = None
 		self._layers = []
-		self._settings = dict(characterization="None",
-							version=[1,0,0],
-							defaultScaling=1.0,
-							synoptic=[],
-							variations=[],
-							colorRFk=[0,.25,.75], colorRIk=[0,.5,1], 
-							colorMFk=[.5,.25,.5], colorMIk=[.85,.6,.85],
-							colorLFk=[.6,.2,.2],  colorLIk=[1,.35,.35], 
-							resetControlLook=False,
-							motionConnections=dict(mocap=None, crowd=None),
-							motionRigPresets=dict(mocap='default', crowd='default'),
-							motionRigNodes=dict(mocap='', crowd='')
+		self._settings = dict(version=[1,0,0],
+							preScriptPath="",
+							preScriptValue=scriptDefaultValue,
+							postScriptPath="",
+							postScriptValue=scriptDefaultValue
 							)
 
 		# If we pass a model, then we load the settings
@@ -76,6 +74,14 @@ class Guide():
 	# ----------------------------------------------------------------------------------
 	def model(self):
 		return self._model
+
+	def setup(self):
+		connections = cmds.listConnections("Guide.model", destination=False, type="transform")
+		if connections:
+			return connections[0]
+
+	def settings(self, key=None):
+		return self._settings if key is None else self._settings[key]
 
 	def setSettings(self, settings):
 		self._settings.update(settings)

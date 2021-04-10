@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>311</width>
-    <height>476</height>
+    <width>295</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
    <item>
     <widget class="QTabWidget" name="uiMainTAB">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="uiCommonTAB">
       <attribute name="title">
@@ -191,6 +191,28 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="uiSettingsTAB">
+      <attribute name="title">
+       <string>Settings</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+      </layout>
+     </widget>
      <widget class="QWidget" name="uiConnectionsTAB">
       <attribute name="title">
        <string>Connections</string>
@@ -291,11 +313,11 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="uiSettingsTAB">
+     <widget class="QWidget" name="uiScriptsTAB">
       <attribute name="title">
-       <string>Settings</string>
+       <string>Scripts</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
        <property name="spacing">
         <number>3</number>
        </property>

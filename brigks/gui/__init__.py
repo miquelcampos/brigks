@@ -1,15 +1,11 @@
-import sip
-from Qt.QtWidgets import QWidget
-import maya.OpenMayaUI as mui
 
-from marbieWindow import MarbieWindow
 
+from brigks.utils.gui import getMayaWindow
+from brigks.gui.marbieWindow import MarbieWindow
 
 def showWindow():
 	# Get Maya Window for parenting
-	ptr = mui.MQtUtil.mainWindow()
-	maya = sip.wrapinstance(long(ptr), QWidget)
-
+	maya = getMayaWindow()
 	window = MarbieWindow(maya)
-
 	window.show()
+

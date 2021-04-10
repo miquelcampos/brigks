@@ -38,6 +38,7 @@ class MarbieWindow(QDialog):
 		for guideAttr in cmds.ls("*.guide"):
 			guide, attr = guideAttr.split(".")
 			self._guide = Guide(model=guide)
+			self._guideSettingsWidget.setGuide(self._guide)
 			self.uiGuideTREE.setGuide(self._guide)
 			break
 

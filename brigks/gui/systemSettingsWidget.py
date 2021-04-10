@@ -5,10 +5,11 @@ from Qt import QtCompat
 from Qt.QtCore import Signal
 from Qt.QtWidgets import QWidget
 
+from brigks.utils import gui
 from brigks.core.config import LOCATIONS
 from brigks.systems import getSystemWidgetClass, getSystemVersions
 from brigks.gui.connectionWidget import ConnectionWidget
-
+from brigks.gui.scriptWidget import ScriptWidget
 
 class SystemSettingsWidget(QWidget):
 
@@ -24,18 +25,24 @@ class SystemSettingsWidget(QWidget):
 		self._settingsWidgets = {}
 		self._settingsWidget = None
 
-		# Common
-		self.uiTypeCBOX.currentIndexChanged.connect(self.swap)
-		self.uiVersionCBOX.currentIndexChanged.connect(self.swap)
-		self.uiLocationCBOX.currentIndexChanged.connect(self.rename)
-		self.uiNameLINE.editingFinished.connect(self.rename)
+		self.uiPreScriptWDG = ScriptWidget("pre")
+		self.uiScriptsTAB.layout().addWidget(self.uiPreScriptWDG)
+		self.uiPostScriptWDG = ScriptWidget("post")
+		self.uiScriptsTAB.layout().addWidget(self.uiPostScriptWDG)
 
 		if system:
 			self.setSystem(system)
 
 		# Connect Signals
+		self.uiTypeCBOX.currentIndexChanged.connect(self.swap)
+		self.uiVersionCBOX.currentIndexChanged.connect(self.swap)
+		self.uiLocationCBOX.currentIndexChanged.connect(self.rename)
+		self.uiNameLINE.editingFinished.connect(self.rename)
 		self.uiAddConnectionBTN.clicked.connect(self.addConnection)
 		self.uiConnectionPortCBOX.currentIndexChanged.connect(self.loadConnectionTypes)
+
+		self.uiPreScriptWDG.updated.connect(self.scriptUpdated)
+		self.uiPostScriptWDG.updated.connect(self.scriptUpdated)
 
 	def setSystem(self, system):
 		self._system = system
@@ -60,12 +67,6 @@ class SystemSettingsWidget(QWidget):
 
 		self.uiNameLINE.setText(system.settings("name"))
 
-		# Add Connections Widget
-		self.clearConnectionWidgets()
-		connections = sorted(system.connections().items(), key=lambda x: x[0])
-		for port, connection in connections:
-			self.addConnectionWidget(port, connection)
-
 		# Settings
 		if self._settingsWidget:
 			self.uiSettingsTAB.layout().removeWidget(self._settingsWidget)
@@ -81,6 +82,16 @@ class SystemSettingsWidget(QWidget):
 		self.uiSettingsTAB.layout().addWidget(self._settingsWidget)
 		self._settingsWidget.setVisible(True)
 
+		# Add Connections Widget
+		self.clearConnectionWidgets()
+		connections = sorted(system.connections().items(), key=lambda x: x[0])
+		for port, connection in connections:
+			self.addConnectionWidget(port, connection)
+
+		# Script Widgets
+		self.uiPreScriptWDG.setObject(system)
+		self.uiPostScriptWDG.setObject(system)
+
 		# Block Signals
 		self.blockSignals(False)
 
@@ -89,6 +100,9 @@ class SystemSettingsWidget(QWidget):
 		self.uiVersionCBOX.blockSignals(block)
 		self.uiLocationCBOX.blockSignals(block)
 		self.uiNameLINE.blockSignals(block)
+
+	def commit(self):
+		self._system.guide().commit()
 
 	# ----------------------------------------------------------------------------------
 	# SYSTEMS
@@ -104,7 +118,7 @@ class SystemSettingsWidget(QWidget):
 
 		newSystem = self._system.layer().swapSystem(self._system, systemType, systemVersion)
 		self.setSystem(newSystem)
-		self._system.guide().commit()
+		self.commit()
 
 		self.systemChanged.emit(newSystem)
 
@@ -149,7 +163,7 @@ class SystemSettingsWidget(QWidget):
 		connection = self._system.addConnection(connectionType, port)
 		self.addConnectionWidget(port, connection)
 
-		self._system.guide().commit()
+		self.commit()
 
 	def addConnectionWidget(self, port, connection):
 		if port in self._connectionWidgets:
@@ -165,7 +179,7 @@ class SystemSettingsWidget(QWidget):
 	def deleteConnectionWidget(self, port):
 		# Delete Connection from System
 		self._system.deleteConnection(port)
-		self._system.guide().commit()
+		self.commit()
 
 		# Delete Connection Widget
 		widget = self._connectionWidgets.pop(port)
@@ -173,3 +187,10 @@ class SystemSettingsWidget(QWidget):
 		sip.delete(widget)
 
 		self.updateConnectionWidgets()
+
+	# ----------------------------------------------------------------------------------
+	# SCRIPTS
+	# ----------------------------------------------------------------------------------
+	def scriptUpdated(self, settings):
+		self._system.setSettings(settings)
+		self.commit()

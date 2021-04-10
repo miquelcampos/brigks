@@ -1,11 +1,11 @@
 import json
-from maya import cmds
-
+import os.path
 from datetime import datetime as dt
 
-from brigks.core import naming
+from maya import cmds
 
-DATA_ATTRIBUTE = "_userProps"
+from brigks.core import naming
+from brigks.core.config import DATA_ATTRIBUTE
 
 class Builder():
 
@@ -19,8 +19,6 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	def build(self, systemGuides):
 		self.buildCore()
-		if not systemGuides:
-			return
 
 		start = dt.now()
 		superstart = dt.now()
@@ -46,7 +44,6 @@ class Builder():
 		for key, settings in self._settings["systems"].iteritems():
 			if key in toBuild:
 				continue
-
 
 			if settings["split"]:
 				key = key[:-1] + "X"
@@ -76,20 +73,25 @@ class Builder():
 		self.systems.update(toBuild)
 		self.systems.update(toConnect)
 
-		# Getting all the building steps
-		steps = self.systems.values()[0].steps.keys()
-		for step in steps:
-			start = dt.now()
-			
-			if step == "Connect System":
-				builders = toBuild.values() + toConnect.values()
-			else:
-				builders = toBuild.values()
+		# Pre Script
+		self._executeScript(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"))
+		print "PRE SCRIPT", dt.now() - start
 
-			for builder in builders:
-				builder.steps[step]()
-			
-			print step, dt.now() - start
+		# Getting all the building steps and then build
+		if self.systems:
+			steps = self.systems.values()[0].steps.keys()
+			for step in steps:
+				start = dt.now()
+				
+				if step == "Connect System":
+					builders = toBuild.values() + toConnect.values()
+				else:
+					builders = toBuild.values()
+
+				for builder in builders:
+					builder.steps[step]()
+				
+				print step, dt.now() - start
 
 
 		# Saving the keys of the systems that have been built
@@ -99,6 +101,10 @@ class Builder():
 
 		self._settings["systems"].update(newSystemsData)
 		self.dumps()
+
+		# Post Script
+		self._executeScript(self.guide.settings("postScriptPath"), self.guide.settings("postScriptValue"))
+		print "POST SCRIPT", dt.now() - start
 
 		print "DONE", dt.now() - superstart
 
@@ -117,6 +123,9 @@ class Builder():
 		data = self._settings
 		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
 
+	# ----------------------------------------------------------------------------------
+	# CREATE
+	# ----------------------------------------------------------------------------------
 	def _createModel(self):
 		connections = cmds.listConnections(self.guide.model()+".model", type="transform", destination=False)
 		if connections:
@@ -152,3 +161,17 @@ class Builder():
 			cmds.parent(controller, parent)
 		return controller
 
+	# ----------------------------------------------------------------------------------
+	# 
+	# ----------------------------------------------------------------------------------
+	def _executeScript(self, path, value):
+		if os.path.exists(path):
+			with open(path, "r") as f:
+				value = f.read()
+
+		args = dict(
+			this_model=self.model,
+			this_guide=self.guide,
+			this_builder=self,
+			)
+		exec(value, args, args)

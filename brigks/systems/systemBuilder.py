@@ -1,5 +1,6 @@
-from collections import OrderedDict
+import os.path
 import itertools
+from collections import OrderedDict
 
 from maya import cmds
 
@@ -28,11 +29,13 @@ class SystemBuilder():
 		# before we start connecting systems together.
 		# Having Attributes created after the Operators, allow us to recreate and reconnect attributes if needed
 		self.steps = OrderedDict()
+		self.steps["Pre Script"] = self.stepPreScript
 		self.steps["Create Objects"] = self.stepObjects
 		self.steps["Create Attributes"] = self.stepAttributes
 		self.steps["Create Operators"] = self.stepOperators
 		self.steps["Connect System"] = self.stepConnections
 		self.steps["Post Process"] = self.stepPost
+		self.steps["Post Script"] = self.stepPostScript
 
 	# ----------------------------------------------------------------------------------
 	#  SETTINGS
@@ -52,6 +55,9 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	# BUILDING STEPS
 	# ----------------------------------------------------------------------------------
+	def stepPreScript(self):
+		self.executeScript(self.settings("preScriptPath"), self.settings("preScriptValue"))
+
 	def stepObjects(self):
 		self.deleteobjects()
 		self.createObjects()
@@ -73,6 +79,9 @@ class SystemBuilder():
 
 	def stepPost(self):
 		pass
+
+	def stepPostScript(self):
+		self.executeScript(self.settings("postScriptPath"), self.settings("postScriptValue"))
 
 	# ----------------------------------------------------------------------------------
 	# BUILDING STEPS
@@ -113,6 +122,18 @@ class SystemBuilder():
 	def createConnections(self):
 		for slot, cnx in self._connections.iteritems():
 			cnx.connect(self, slot)
+
+	def executeScript(self, path, value):
+		if os.path.exists(path):
+			with open(path, "r") as f:
+				value = f.read()
+
+		args = dict(
+			this_model=self.coreBuilder.model,
+			this_guide=self.guide,
+			this_builder=self,
+			)
+		exec(value, args, args)
 
 	# ----------------------------------------------------------------------------------
 	#  OBJECTS / ATTRIBUTES

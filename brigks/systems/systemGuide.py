@@ -11,6 +11,11 @@ from brigks.core import naming
 from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
 
+scriptDefaultValue = '''# this_model returns the root node
+# this_guide returns the system guide
+# this_builder returns the system builder
+'''
+
 class SystemGuide(object):
 
 	markerNames = ("Part",)
@@ -24,6 +29,10 @@ class SystemGuide(object):
 		self._layer = layer
 		self._settings = dict(
 					version=[1,0,0],
+					preScriptPath="",
+					preScriptValue=scriptDefaultValue,
+					postScriptPath="",
+					postScriptValue=scriptDefaultValue,
 					name="Name",
 					location="X",
 					split=False,
@@ -68,8 +77,8 @@ class SystemGuide(object):
 				transform = Transformation.fromParts(translation=position)
 				matrix = transform.asMatrix().tolist()
 				matrix = [j for sub in matrix for j in sub]
-			name = self.getMarkerName(part)
-			SystemMarker.create(name, self, parent, matrix)
+			name = system.getMarkerName(part)
+			SystemMarker.create(name, system, parent, matrix)
 
 		return system
 
