@@ -19,10 +19,10 @@ class ChainSystemBuilder(SystemBuilder):
 		
 		# TRANSFORMATION
 		# Positions 
-		positions = self.translations("Part")
+		positions = self.translations("Bone")
 
 		# Normal
-		if self.count("Part") > 2:
+		if self.count("Bone") > 2:
 			normal = Vector3.planeNormal(*positions[:3]) * -1 # TODO Remove *-1 when math3d is fixed
 			if normal.length() < 1E-6:
 				normal = self.directions("Part1", "z")
@@ -32,12 +32,10 @@ class ChainSystemBuilder(SystemBuilder):
 			normal = self.directions("Part1", "z")
 
 		boneTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
-		d = [(positions[i],positions[i+1]) for i in range(self.count("Part")-1)]
+		d = [(positions[i],positions[i+1]) for i in range(self.count("Bone")-1)]
 		boneLen = [Vector3.distance(a,b) for a,b in d]
 
-		self.setSettings(dict(
-			count=len(boneLen),
-			lengths=boneLen))
+		self.setSettings(count=len(boneLen), lengths=boneLen)
 		
 		if self.settings("setNeutralPose"):
 			bfrTfm = boneTfm
@@ -48,7 +46,7 @@ class ChainSystemBuilder(SystemBuilder):
 			ikTfm = Transformation.fromParts(positions[-1], boneTfm[-1].rotation)
 			
 			# Up Vector
-			if self.count("Part") > 2:
+			if self.count("Bone") > 2:
 				translation = mathu.upVector(positions[0], positions[2], normal, ratio=1, negate=self.negate())
 			else:
 				translation = mathu.upVector(positions[0], positions[1], normal, ratio=1, negate=self.negate())
@@ -182,10 +180,10 @@ class ChainSystemBuilder(SystemBuilder):
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.createAnimAttr("Dynamic", "bool", self.settings("dynActive"))
 			self.globalAmplAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
+			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Bone"))]
 			
 			if self.settings("dynamicAnimatable"):
-				self.axisAttr = self.createAnimAttr("Axis", "vector", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
+				self.axisAttr = self.createAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
 				self.decayAttr = self.createAnimAttr("Decay", "float", self.settings("decay"), 0, 10)
 				self.terminationAttr = self.createAnimAttr("Termination", "float", self.settings("termination"), 0, 1)
 				self.frequencyAttr = self.createAnimAttr("Frequency", "float", self.settings("frequency"), 0, 1)
@@ -284,27 +282,11 @@ class ChainSystemBuilder(SystemBuilder):
 
 	#----------------------------------------------------------------------------
 	# CONNECTION
-	def createConnection(self):
-		root = self.getObject("Root")
+	def createConnections(self):
 
-		if self.settings("connectionType") == "standard":
-			self.connect_parenting(root, "Root")
+		if "Root" in self._connections:
+			cnx = self._connections["Root"]
+			root = self.getObject("Rig", "Root")	
+			cnx.connect(root)
 
-			# Fk Ref
-			fk1Bfr = self.getObject("Fk1", "Hbfr")
-			if fk1Bfr:
-				self.connect_orientation(fk1Bfr, "FkRef", paramName="FkRef")
-
-			#UpV
-			if "IK" in self.settings("kinematic"):
-				upvBfr = self.getObject("upv", "Hbfr")
-				upvRef = "UpVector" if self.connectionObject("UpVector") else "Root"
-				self.connect_parenting(upvBfr, upvRef)
-
-				ikBfr = self.getObject("Ik", "Hbfr")
-				ikRef = "Effector" if self.connectionObject("Effector") else "Root"
-				self.connect_parenting(ikBfr, ikRef)
-
-		else:
-			self.connect_object2Cluster(root, "RootCls")
 

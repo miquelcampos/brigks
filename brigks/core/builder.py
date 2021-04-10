@@ -89,6 +89,7 @@ class Builder():
 					builders = toBuild.values()
 
 				for builder in builders:
+					print builder.key(), step
 					builder.steps[step]()
 				
 				print step, dt.now() - start
@@ -172,7 +173,6 @@ class Builder():
 		args = dict(
 			cmds=cmds,
 			this_model=self.model,
-			this_guide=self.guide,
-			this_builder=self,
+			this_guide=self.guide
 			)
 		exec(value, args, args)

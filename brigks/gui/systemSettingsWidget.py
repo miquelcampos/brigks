@@ -192,5 +192,5 @@ class SystemSettingsWidget(QWidget):
 	# SCRIPTS
 	# ----------------------------------------------------------------------------------
 	def scriptUpdated(self, settings):
-		self._system.setSettings(settings)
+		self._system.setSettings(**settings)
 		self.commit()

@@ -104,5 +104,5 @@ class SystemWidget(QWidget):
 			elif isinstance(widget, QPlainTextEdit):
 				settings[setting] = str(widget.toPlainText())
 
-		self._system.setSettings(settings)
+		self._system.setSettings(**settings)
 		self._system.coreGuide.commit()

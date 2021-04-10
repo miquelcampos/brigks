@@ -11,9 +11,9 @@ from brigks.core import naming
 from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
 
-scriptDefaultValue = '''# this_model returns the root node
+scriptDefaultValue = '''# cmds returns the maya.cmds module
+# this_model returns the root node
 # this_guide returns the system guide
-# this_builder returns the system builder
 '''
 
 class SystemGuide(object):
@@ -85,12 +85,12 @@ class SystemGuide(object):
 	@classmethod
 	def load(cls, layer, data):
 		system = cls(layer)
-		system.setSettings(data["settings"])
+		system.setSettings(**data["settings"])
 
 		for slot, connectionData in data["connections"].iteritems():
 			Connection = getSystemConnectionClass(connectionData["type"])
 			connection = Connection()
-			connection.setSettings(connectionData["settings"])
+			connection.setSettings(**connectionData["settings"])
 			system._connections[slot] = connection
 
 		return system
@@ -129,7 +129,7 @@ class SystemGuide(object):
 	def settings(self, key=None):
 		return self._settings if key is None else self._settings[key]
 
-	def setSettings(self, settings):
+	def setSettings(self, **settings):
 		self._settings.update(settings)
 
 	def layer(self):
@@ -352,7 +352,7 @@ class SystemGuide(object):
 
 		# Create the system
 		system = cls.create(layer, location, name, matrices)
-		system.setSettings(settings)
+		system.setSettings(**settings)
 
 		# Connections
 		xmlConnections = xmlRoot.findall("Connection")

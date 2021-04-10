@@ -91,5 +91,5 @@ class SystemConnectionWidget(QWidget):
 				settings[setting] = str(widget.toPlainText())
 
 		if self._connection is not None:
-			self._connection.setSettings(settings)
+			self._connection.setSettings(**settings)
 			self._system.guide().commit()

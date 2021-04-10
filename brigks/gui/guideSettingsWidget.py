@@ -36,5 +36,5 @@ class GuideSettingsWidget(QWidget):
 	# SCRIPTS
 	# ----------------------------------------------------------------------------------
 	def scriptUpdated(self, settings):
-		self._guide.setSettings(settings)
+		self._guide.setSettings(**settings)
 		self._guide.commit()

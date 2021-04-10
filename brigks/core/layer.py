@@ -65,7 +65,7 @@ class Layer():
 	def settings(self):
 		return self._settings
 
-	def setSettings(self, settings):
+	def setSettings(self, **settings):
 		self._settings.update(settings)
 
 	def name(self):
@@ -163,7 +163,7 @@ class Layer():
 
 		SystemClass = getSystemGuideClass(systemType, version)
 		newSystem = SystemClass(self)
-		newSystem.setSettings(oldSystem.settings())
+		newSystem.setSettings(**oldSystem.settings())
 
 		self._systems.append(newSystem)
 		return newSystem
@@ -191,7 +191,7 @@ class Layer():
 		settings = json.loads(xmlRoot.get("settings", "{}"))
 
 		layer = parent.addLayer(name)
-		layer.setSettings(settings)
+		layer.setSettings(**settings)
 
 		for xmlObject in xmlRoot:
 			if xmlObject.tag == "Layer":

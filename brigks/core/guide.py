@@ -10,9 +10,9 @@ from brigks.core.config import DATA_ATTRIBUTE
 from brigks.utils.xml import indent
 
 
-scriptDefaultValue = '''# this_model returns the root node
+scriptDefaultValue = '''# cmds returns the maya.cmds module
+# this_model returns the root node
 # this_guide returns the guide
-# this_builder returns the builder
 '''
 
 class Guide():
@@ -83,7 +83,7 @@ class Guide():
 	def settings(self, key=None):
 		return self._settings if key is None else self._settings[key]
 
-	def setSettings(self, settings):
+	def setSettings(self, **settings):
 		self._settings.update(settings)
 
 	def layers(self):
@@ -133,7 +133,7 @@ class Guide():
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", "{}"))
-		guide.setSettings(settings)
+		guide.setSettings(**settings)
 
 		# Load Layers
 		for xmlLayer in xmlRoot:

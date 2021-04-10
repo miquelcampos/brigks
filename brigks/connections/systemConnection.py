@@ -21,7 +21,7 @@ class SystemConnection(object):
 		self._builder = builder
 		self.getObjectName = self._builder.getObjectName
 
-	def setSettings(self, settings):
+	def setSettings(self, **settings):
 		self._settings.update(settings)
 
 	def settings(self, key=None):
@@ -116,6 +116,6 @@ class SystemConnection(object):
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", {}))
-		connection.setSettings(settings)
+		connection.setSettings(**settings)
 
 		return connection

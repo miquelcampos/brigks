@@ -119,9 +119,8 @@ class SystemBuilder():
 	def createAttributes(self):
 		pass
 
-	def createConnections(self):
-		for slot, cnx in self._connections.iteritems():
-			cnx.connect(self, slot)
+	def createConnections(self):\
+		pass
 
 	def executeScript(self, path, value):
 		if os.path.exists(path):
@@ -131,8 +130,7 @@ class SystemBuilder():
 		args = dict(
 			cmds=cmds,
 			this_model=self.coreBuilder.model,
-			this_guide=self.guide,
-			this_builder=self,
+			this_guide=self.guide
 			)
 		exec(value, args, args)
 

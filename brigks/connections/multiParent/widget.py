@@ -43,8 +43,8 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 	def saveSettings(self, definitions):
 		definitions = definitions if definitions else self._connection.settings("definitions")
 		self._connection.setSettings(
-			dict(definitions=definitions, 
-				default=self.uiDefaultCBOX.currentIndex()))
+			definitions=definitions, 
+			default=self.uiDefaultCBOX.currentIndex())
 		self._system.guide().commit()
 
 	def addParent(self):
@@ -57,7 +57,7 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 
 		default = self._connection.settings("default")
 		if default == index:
-			self._connection.setSettings(dict(default=0))
+			self._connection.setSettings(default=0)
 		else:
 			pass
 			#TODO do something to update default if neededd
@@ -92,7 +92,7 @@ class MultiParentConnectionWidget(SystemConnectionWidget):
 
 		default = self._connection.settings("default")
 		if default == index:
-			self._connection.setSettings(dict(default=newindex))
+			self._connection.setSettings(default=newindex)
 		else:
 			pass
 			#TODO do something to update default if neededd
