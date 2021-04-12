@@ -16,7 +16,7 @@ class SystemBuilder():
 		self.setSettings = self.guide.setSettings
 		self._connections = self.guide._connections
 		self.attributeNames = []
-		self.uiHost = self.coreBuilder.localCtl
+		self._uiHosts = {}
 
 		self.key = self.guide.key
 		self.transforms = self.guide.transforms
@@ -53,6 +53,13 @@ class SystemBuilder():
 	def factor(self):
 		return -1 if self.negate() else 1
 
+	def connections(self, key=None, includeUIHosts=False):
+		if includeUIHosts:
+			connections = self._connections
+		else:
+			connections = {k:v for k, v in self._connections.iteritems() if v.type() != "uiHost"}
+		return connections if key is None else connections[key]
+		
 	# ----------------------------------------------------------------------------------
 	# BUILDING STEPS
 	# ----------------------------------------------------------------------------------
@@ -60,7 +67,7 @@ class SystemBuilder():
 		self.executeScript(self.settings("preScriptPath"), self.settings("preScriptValue"))
 
 	def stepObjects(self):
-		self.deleteobjects()
+		self.deleteObjects()
 		self.createObjects()
 		if self.settings("addJoints"):
 			self.createJoints()
@@ -72,16 +79,16 @@ class SystemBuilder():
 		self.deleteAttributes()
 
 		# Get UIHost
-		if "UI" in self._connections:
-			cnx = self._connections["UI"]
-			cnx.setBuilder(self)
-			self.uiHost = cnx.getHost()
+		for port, cnx in self._connections.iteritems():
+			if cnx.type() == "uiHost":
+				cnx.setBuilder(self)
+				self._uiHosts[port] = cnx.getHost()
 
 		self.createAttributes()
 
 	def stepConnections(self):
 		# Init Connections
-		for slot, cnx in self._connections.iteritems():
+		for slot, cnx in self.connections(includeUIHosts=False).iteritems():
 			cnx.setBuilder(self)
 		self.createConnections()
 
@@ -94,13 +101,13 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	# BUILDING STEPS
 	# ----------------------------------------------------------------------------------
-	def deleteobjects(self):
+	def deleteObjects(self):
 		search = self.getObject("*", "*")
 		parent = cmds.ls(self.coreBuilder.localCtl, long=True)[0]
 		toDelete = [x for x in cmds.ls(search, type="transform", long=True) if x.startswith(parent)]
 		if toDelete:
 			# Unparent all the children
-			children = cmds.listRelatives(toDelete, children=True, path=True)
+			children = cmds.listRelatives(toDelete, children=True, type="transform", path=True)
 			children = [x for x in cmds.ls(children, long=True) if x not in toDelete]
 			if children:
 				cmds.parent(children, self.coreBuilder.localCtl)
@@ -111,6 +118,20 @@ class SystemBuilder():
 	def createObjects(self):
 		pass
 
+	def deleteJoints(self):
+		search = self.getObject("Jnt", "*")
+		parent = cmds.ls(self.coreBuilder.localCtl, long=True)[0]
+		toDelete = [x for x in cmds.ls(search, type="joint", long=True) if x.startswith(parent)]
+		if toDelete:
+			# Unparent all the children
+			children = cmds.listRelatives(toDelete, children=True, type="transform", path=True)
+			children = [x for x in cmds.ls(children, long=True) if x not in toDelete]
+			if children:
+				cmds.parent(children, self.coreBuilder.localCtl)
+
+			# Delete objects
+			cmds.delete(toDelete)
+
 	def createJoints(self):
 		pass
 
@@ -118,11 +139,10 @@ class SystemBuilder():
 		pass
 
 	def deleteAttributes(self):
-		if self.key() in self.coreBuilder.settings():
-			settings = self.coreBuilder.settings(self.key())
+		if self.key() in self.coreBuilder.builtSystems():
+			settings = self.coreBuilder.builtSystems(self.key())
 			for name in settings["attributes"]:
 				attr = cmds.ls("*."+name)
-				print name, attr
 				if attr:
 					cmds.deleteAttr(attr)
 
@@ -139,10 +159,15 @@ class SystemBuilder():
 
 		args = dict(
 			cmds=cmds,
-			this_model=self.coreBuilder.model,
+			this_model=self.coreBuilder.model(),
 			this_guide=self.guide
 			)
 		exec(value, args, args)
+
+	def delete(self):
+		self.deleteObjects()
+		self.deleteJoints()
+		self.deleteAttributes()
 
 	# ----------------------------------------------------------------------------------
 	#  HELPERS to CREATE OBJECTS / ATTRIBUTES
@@ -203,9 +228,13 @@ class SystemBuilder():
 
 	def _createAttr(self, displayName, attrType, value=None, minValue=None, maxValue=None,
 			keyable=False, writable=True, readable=True, channelBox=True):
-		parent = self.uiHost
+
+		# For now we only support one UIHost, but we could 
+		# pass an argument for which host to crete the attr to
+		host = self._uiHosts.get("UI", self.coreBuilder.localCtl)
+
 		longName = self.getObjectName("Rig", displayName)
-		a = attributes.create(parent, longName, attrType, value, minValue, maxValue,
+		a = attributes.create(host, longName, attrType, value, minValue, maxValue,
 					keyable, writable, readable, channelBox, displayName)
 		self.attributeNames.append(longName)
 		return a

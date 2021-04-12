@@ -49,6 +49,9 @@ class SystemMarker(object):
 		self._transform = None
 		self._translation = None
 
+	def name(self):
+		return self._marker
+
 	@classmethod
 	def create(cls, name, system, parent, matrix=None):
 		node = cmds.spaceLocator(name=name)

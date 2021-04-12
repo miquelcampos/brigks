@@ -53,13 +53,24 @@ class Guide():
 
 	def build(self, systemGuides=None):
 		if systemGuides is None:
-			systemGuides = []
-			for layer in self._layers:
-				systems = layer.systems().values()
-				systemGuides.extend(systems)
+			systemGuides = self._getAllSystems()
 
 		builder = Builder(self)
 		builder.build(systemGuides)
+
+	def delete(self, systemGuides=None, deleteGuide=False):
+		if systemGuides is None:
+			systemGuides = self._getAllSystems()
+
+		builder = Builder(self)
+		builder.delete(systemGuides)
+
+		if deleteGuide:
+			for systemGuide in systemGuides:
+				systemGuide.layer().popSystem(systemGuide)
+				systemGuide.deleteMarkers()
+
+			self.commit()
 
 	def dumps(self):
 		return dict(settings=self._settings,
@@ -103,6 +114,13 @@ class Guide():
 			system = layer.findSystem(key)
 			if system:
 				return system
+
+	def _getAllSystems(self):	
+		systemGuides = []
+		for layer in self._layers:
+			systems = layer.systems().values()
+			systemGuides.extend(systems)
+		return systemGuides
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT

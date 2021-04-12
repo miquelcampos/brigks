@@ -41,11 +41,11 @@ class ChainSystemGuide(SystemGuide):
 		super(ChainSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=["parent", "attachToGeo", "multi", "customParent"],
-			FkRef=["parent", "attachToGeo", "multi", "customParent"],
-			IK=["parent", "attachToGeo", "multi", "customParent"],
-			UpVector=["parent", "attachToGeo", "multi", "customParent"],
-			UI=["parent"],
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			FkRef=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			IK=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UpVector=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=["uiHost"],
 			)
 
 		return ports

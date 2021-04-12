@@ -46,6 +46,9 @@ class Layer():
 	def build(self):
 		self.guide().build(self._systems)
 
+	def delete(self, deleteGuide=False):
+		self.guide().delete(self._systems, deleteGuide)
+
 	def dumps(self):
 		data = dict(name=self._name,
 					settings=self._settings,
@@ -153,13 +156,13 @@ class Layer():
 
 		return system
 
-	def removeSystem(self, system):
+	def popSystem(self, system):
 		index = self._systems.index(system)
 		return self._systems.pop(index)
 
 	def swapSystem(self, oldSystem, systemType, version):
 		oldSystem.swapMarkers(systemType)
-		self.removeSystem(oldSystem)
+		self.popSystem(oldSystem)
 
 		SystemClass = getSystemGuideClass(systemType, version)
 		newSystem = SystemClass(self)

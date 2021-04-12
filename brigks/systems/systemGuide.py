@@ -46,10 +46,6 @@ class SystemGuide(object):
 
 		self._markers = None
 		self._aMarkers = dict()
-		# self._transforms = dict()
-		# self._aTransforms = None
-		# self._positions = dict()
-		# self._aPositions = None
 
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
@@ -98,6 +94,9 @@ class SystemGuide(object):
 	def build(self):
 		self.guide().build([self])
 
+	def delete(self, deleteGuide=False):
+		self.guide().delete([self], deleteGuide)
+
 	def dumps(self):
 		"""
 		Returns:
@@ -139,7 +138,7 @@ class SystemGuide(object):
 		if layer == self._layer:
 			return 
 
-		self._layer.removeSystem(self)
+		self._layer.popSystem(self)
 		layer._systems.append(self)
 		self._layer = layer
 
@@ -181,14 +180,22 @@ class SystemGuide(object):
 	def connections(self, key=None):
 		return self._connections if key is None else self._connections[key]
 
-	def addConnection(self, connectionType, port):
+	def addConnection(self, port, connectionType):
+		if port not in self.connectionPorts():
+			msg = "No such port ({p}) for this system ({k} - {t})"
+			raise ValueError(msg.format(p=port, k=self.key(), t=self.type()))
+		elif connectionType not in self.connectionPorts()[port]:
+			msg = "Not a valid connection type for port ({p}), only supporting types {t}"
+			raise ValueError(msg.format(p=port, t=self.connectionPorts()[port]))
+
 		Connection = getSystemConnectionClass(connectionType)
 		connection = Connection()
 		self._connections[port] = connection
 		return connection
 
 	def deleteConnection(self, port):
-		self._connections.pop(port)
+		if port in self._connections:
+			self._connections.pop(port)
 
 	def connectionPorts(self):
 		# Returns the ports as a dictionary of portName, connectionsTypes
@@ -213,6 +220,7 @@ class SystemGuide(object):
 		self._settings["location"] = location
 		self._settings["name"] = name
 
+		# TODO Rename Connections
 		# # Connections
 		# for system in self.guide().systems():
 		# 	pass
@@ -309,6 +317,12 @@ class SystemGuide(object):
 		location = location if location is not None else self._settings["location"]
 		name = name if name is not None else self._settings["name"]
 		return naming.getObjectName(use, location, name, part)
+
+	def deleteMarkers(self):
+		self.loadMarkers(force=True)
+		markers = [m.name() for m in self._markers.values()]
+		if markers:
+			cmds.delete(markers)
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT

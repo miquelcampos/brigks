@@ -12,6 +12,7 @@ class Builder():
 
 	def __init__(self, guide):
 		self.guide = guide
+		self._model = None
 		self._systems = {}
 		self._settings = dict(systems={})
 
@@ -21,16 +22,23 @@ class Builder():
 	def systems(self, key=None):
 		return self._systems if key is None else self._systems[key]
 
+	def builtSystems(self, key=None):	
+		return self._settings["systems"] if key is None else self._settings["systems"][key]
+
+	def model(self):
+		return self._model
+
 	# ----------------------------------------------------------------------------------
-	# BUILD
+	# BUILD / DELETE
 	# ----------------------------------------------------------------------------------
 	def build(self, systemGuides):
-		self._buildCore()
+		self._initCore()
 
 		start = dt.now()
 		superstart = dt.now()
 
 		# Init all the systems that needs to be built
+		self._systems = self._initSystems()
 		toBuild = self._initSystemsToBuild(systemGuides)
 
 		logging.info("INIT BUILD SYSTEMS {time}".format(time=dt.now() - start))
@@ -60,16 +68,49 @@ class Builder():
 
 		logging.info("DONE {time}".format(time=dt.now() - superstart))
 
-	def delete(self, systemGuide):
-		pass
+	def delete(self, systemGuides):
+		self._initCore(create=False)
+		# If there is no model, thewre is nothing to delete
+		if not self._model:
+			return
+
+		# Filter out the systems that have not been built
+		systemGuides = [g for g in systemGuides if g.key() in self.builtSystems()]
+
+		toDelete = self._initSystemsToBuild(systemGuides)
+		for key, system in toDelete.iteritems():
+			system.delete()	
+
+			# Removing system from meta data
+			self.builtSystems().pop(key)
+
+		self._commit()
 
 	# ----------------------------------------------------------------------------------
 	# BUILD HELPERS
 	# ----------------------------------------------------------------------------------
-	def _buildCore(self):
-		self.model = self._createModel()
-		self.globalCtl = self._createController(self.model, part="Global")
-		self.localCtl = self._createController(self.globalCtl, part="Local")
+	def _initCore(self, create=True):
+		self._model = self._createModel(create)
+		self.globalCtl = self._createController(self._model, part="Global", create=create)
+		self.localCtl = self._createController(self.globalCtl, part="Local", create=create)
+
+	def _initSystems(self):
+		builders = {}
+		# Looping over all the systems that have already been built 
+		for key, settings in self.builtSystems().iteritems():
+
+			if settings["split"]:
+				key = key[:-1] + "X"
+				systemGuide = self.guide.findSystem(key)
+				systemGuide.loadMarkers()
+				leftSystem, rightSystem = systemGuide.splitSymmetry()
+				builders[leftSystem.key()] = leftSystem.builder(self)
+				builders[rightSystem.key()] = rightSystem.builder(self)
+			else:
+				systemGuide = self.guide.findSystem(key)
+				systemGuide.loadMarkers()
+				builders[key] = systemGuide.builder(self)
+		return builders
 
 	def _initSystemsToBuild(self, systemGuides):
 		builders = {}
@@ -88,7 +129,7 @@ class Builder():
 	def _initSystemsToConnect(self, toBuild):
 		builders = {}
 		# Looping over all the systems that have already been built 
-		for key, settings in self._settings["systems"].iteritems():
+		for key, settings in self.builtSystems().iteritems():
 			if key in toBuild:
 				continue
 
@@ -104,7 +145,7 @@ class Builder():
 				systemGuide.loadMarkers()
 
 				# Check if any of those systems are connected to something we're rebuilding
-				for cnx in systemGuide.connections.values():
+				for cnx in systemGuide.connections().values():
 					for otherKey in cnx.getTargetSystems():
 						if otherKey in toBuild:
 							break
@@ -134,19 +175,22 @@ class Builder():
 		# Update with the latest data
 		newSystemsData = {}
 		for k, v in self._systems.iteritems():
-			newSystemsData[k] = dict(settings=v.settings(), attributes=v.attributeNames)
-		self._settings["systems"].update(newSystemsData)
+			v.setSettings(attributes=v.attributeNames)
+			newSystemsData[k] = v.settings()
+		self.builtSystems().update(newSystemsData)
 
 		data = self._settings
-		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
+		cmds.setAttr(self._model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
 
 	# ----------------------------------------------------------------------------------
 	# CREATE
 	# ----------------------------------------------------------------------------------
-	def _createModel(self):
+	def _createModel(self, create=True):
 		connections = cmds.listConnections(self.guide.model()+".model", type="transform", destination=False)
 		if connections:
 			model = connections[0]
+		elif not create:
+			return
 		else:
 			model = cmds.createNode("transform", name="Setup")
 	
@@ -164,12 +208,14 @@ class Builder():
 		cmds.connectAttr(model+".model", self.guide.model()+".model", force=True)
 		return model
 
-	def _createController(self, parent, part):
+	def _createController(self, parent, part, create):
 		name = naming.getObjectName(naming.USAGES["Controller"], "M", "Root", part)
 
-		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self.model)]
+		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
 		if exisiting:
 			controller = cmds.ls(exisiting)[0]
+		elif not create:
+			return
 		else:
 			controller = cmds.createNode("transform", name=name)
 	
@@ -188,7 +234,7 @@ class Builder():
 
 		args = dict(
 			cmds=cmds,
-			this_model=self.model,
+			this_model=self._model,
 			this_guide=self.guide
 			)
 		exec(value, args, args)

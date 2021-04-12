@@ -122,8 +122,6 @@ class BasicSystemBuilder(SystemBuilder):
 
 	def createConnections(self):
 
-		for port, cnx in self._connections.iteritems():
-			if cnx.type() == "uiHost":
-				continue
+		for port, cnx in self.connections(includeUIHosts=False).iteritems():
 			bfr = self.getObject("Bfr", port)
 			cnx.connect(bfr)

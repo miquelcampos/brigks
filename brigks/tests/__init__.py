@@ -6,6 +6,7 @@ from Qt.QtWidgets import QDialog, QVBoxLayout
 from brigks import Guide
 from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 from brigks.utils import context, xml
+from brigks.gui import showWindow
 
 from math3d.transformation import Transformation
 from math3d.vectorN import Vector3
@@ -23,12 +24,7 @@ def guideToXml(guide, path):
 	tree.write(path)
 
 
-def createSimpleGuideAndBuild():
-	from brigks.gui import showWindow
-	from brigks import Guide
-	from math3d.transformation import Transformation
-	from math3d.vectorN import Vector3
-
+def createSimpleGuideAndBuild(showWindow=False):
 	# Building Matrix for guide positions
 	basicMatrices = {}
 	chainMatrices = {}
@@ -47,30 +43,33 @@ def createSimpleGuideAndBuild():
 	chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
 
 	# System Settings
-	basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
+	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematics="FK/IK", strap=True)
 
 	# Add Pre/Pest Script to System
-	basic.setSettings(preScriptValue="print 'hello system', this_model")
-	basic.setSettings(postScriptValue="print 'bye system', this_guide")
+	basic.setSettings(preScriptValue="print 'This is a Pre Script for the system {k}'.format(k=this_guide.key())")
+	basic.setSettings(postScriptValue="print 'This is a Post Script for the system {k}'.format(k=this_guide.key())")
 
 	# System Connections
-	cnx = basic.addConnection("uiHost", "UI")
+	cnx = basic.addConnection("UI", connectionType="uiHost")
 	cnx.setSettings(key="Basic_L", slot="Part1")
 
-	cnx = basic.addConnection("multiParent", "Part2")
+	cnx = basic.addConnection("Part2", connectionType="multiParent")
 	cnx.setSettings(definitions=[
 		dict(type="slot",key="Basic_L", slot="Part1"),
 		dict(type="slot",key="Basic_L", slot="Part3"),
 		dict(type="slot",key="Basic_L", slot="Part4")
 	])
 
-	cnx = chain.addConnection("slotParent", "Root")
+	cnx = chain.addConnection("UI", connectionType="uiHost")
+	cnx.setSettings(key="Basic_L", slot="Part1")
+
+	cnx = chain.addConnection("Root", connectionType="slotParent")
 	cnx.setSettings(key="Basic_L", slot="Part1")
 
 	# Add Pre/Post Script to Guide
-	#g.setSettings(preScriptValue="print 'hello', this_model")
-	#g.setSettings(postScriptValue="print 'bye', this_guide")
+	g.setSettings(preScriptValue="print 'This is a Pre Global Script for the guide {g}'.format(g=this_guide)")
+	g.setSettings(postScriptValue="print 'This is a Post Global Script for the model {m}'.format(m=this_model)")
 
 	# Save edit
 	g.commit()
@@ -78,9 +77,41 @@ def createSimpleGuideAndBuild():
 	# Build all rig
 	g.build()
 
-	showWindow()
+	if showWindow:
+		showWindow()
+
+	return g
+
+def rebuild(showWindow=False):
+	g = createSimpleGuideAndBuild(showWindow=False)
+
+	chain = g.findSystem("Chain_L")
+
+	# Change settings and rebuild
+	cnx = chain.connections("UI")
+	cnx.setSettings(key="Basic_L", slot="Part2")
+
+	# Save edit
+	g.commit()
+
+	# Build all rig
+	chain.build()
+
+	if showWindow:
+		showWindow()
 
 
+def deleteGuides(deleteGuide=False, showWindow=False):
+	g = createSimpleGuideAndBuild(showWindow=False)
+
+	basic = g.findSystem("Basic_L")
+	chain = g.findSystem("Chain_L")
+
+	basic.delete(deleteGuide)
+	chain.delete(deleteGuide)
+
+	if showWindow:
+		showWindow()
 
 
 @context.command()
