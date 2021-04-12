@@ -180,7 +180,7 @@ class ChainSystemBuilder(SystemBuilder):
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.createAnimAttr("Dynamic", "bool", self.settings("dynActive"))
 			self.globalAmplAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Bone"))]
+			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i+1), "float", 1, 0, 10) for i in xrange(1, self.count("Bone"))]
 			
 			if self.settings("dynamicAnimatable"):
 				self.axisAttr = self.createAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))

@@ -15,7 +15,7 @@ from math3d.vectorN import Vector3
 # - Implement systemMarker to manipulate shapes and transforms
 # - Build a simple biped (Arms, Basics)
 
-@context.mayacommand()
+@context.command()
 def guideToXml(guide, path):
 	xmlRoot = guide.toXml()
 	xml.indent(xmlRoot)
@@ -55,6 +55,9 @@ def createSimpleGuideAndBuild():
 	basic.setSettings(postScriptValue="print 'bye system', this_guide")
 
 	# System Connections
+	cnx = basic.addConnection("uiHost", "UI")
+	cnx.setSettings(key="Basic_L", slot="Part1")
+
 	cnx = basic.addConnection("multiParent", "Part2")
 	cnx.setSettings(definitions=[
 		dict(type="slot",key="Basic_L", slot="Part1"),
@@ -80,7 +83,7 @@ def createSimpleGuideAndBuild():
 
 
 
-@context.mayacommand()
+@context.command()
 def showSystemSettings(system):
 	from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 	widget = SystemSettingsWidget(system)
@@ -109,3 +112,35 @@ def fromHarbie():
 	tree.write(outputPath)
 
 	print "Exported to", outputPath
+
+
+def reloadModule():
+	import os, sys
+	path = r'\\source\source\dev\passerin\brigks'
+	path = os.path.normcase(os.path.normpath(path))
+	if sys.path[0] != path:
+		sys.path.insert(0, path)
+
+	for key, value in sys.modules.items():
+		try:
+			packPath = value.__file__
+		except AttributeError:
+			continue
+
+		packPath = os.path.normcase(os.path.normpath(packPath))
+		if packPath.startswith(path):
+			sys.modules.pop(key)
+
+def loggingFormatter():
+	import logging
+	import sys
+
+	sh = logging.StreamHandler(stream=sys.stdout)
+	fmt = logging.Formatter("%(levelname)s: %(message)s")
+	sh.setFormatter(fmt)
+
+	logging.root.handlers = []
+	logging.root.addHandler(sh)
+
+	logging.info("Hello Info")
+	logging.warning("Hello Warning")

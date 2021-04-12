@@ -16,6 +16,7 @@ class SystemBuilder():
 		self.setSettings = self.guide.setSettings
 		self._connections = self.guide._connections
 		self.attributeNames = []
+		self.uiHost = self.coreBuilder.localCtl
 
 		self.key = self.guide.key
 		self.transforms = self.guide.transforms
@@ -69,6 +70,13 @@ class SystemBuilder():
 
 	def stepAttributes(self):
 		self.deleteAttributes()
+
+		# Get UIHost
+		if "UI" in self._connections:
+			cnx = self._connections["UI"]
+			cnx.setBuilder(self)
+			self.uiHost = cnx.getHost()
+
 		self.createAttributes()
 
 	def stepConnections(self):
@@ -110,16 +118,18 @@ class SystemBuilder():
 		pass
 
 	def deleteAttributes(self):
-		pass
-		# search = self.getObjectName(naming.USAGES["Rig"], "")
-		# attributes = cmds.ls("*."+search+"*")
-		# if attributes:
-		# 	cmds.deleteAttr(attributes)
+		if self.key() in self.coreBuilder.settings():
+			settings = self.coreBuilder.settings(self.key())
+			for name in settings["attributes"]:
+				attr = cmds.ls("*."+name)
+				print name, attr
+				if attr:
+					cmds.deleteAttr(attr)
 
 	def createAttributes(self):
 		pass
 
-	def createConnections(self):\
+	def createConnections(self):
 		pass
 
 	def executeScript(self, path, value):
@@ -135,7 +145,7 @@ class SystemBuilder():
 		exec(value, args, args)
 
 	# ----------------------------------------------------------------------------------
-	#  OBJECTS / ATTRIBUTES
+	#  HELPERS to CREATE OBJECTS / ATTRIBUTES
 	# ----------------------------------------------------------------------------------
 	def createTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		parent = parent if parent is not None else self.coreBuilder.localCtl
@@ -191,9 +201,9 @@ class SystemBuilder():
 
 		return joints
 
-	def _createAttr(self, parent, displayName, attrType, value=None, minValue=None, maxValue=None,
+	def _createAttr(self, displayName, attrType, value=None, minValue=None, maxValue=None,
 			keyable=False, writable=True, readable=True, channelBox=True):
-
+		parent = self.uiHost
 		longName = self.getObjectName("Rig", displayName)
 		a = attributes.create(parent, longName, attrType, value, minValue, maxValue,
 					keyable, writable, readable, channelBox, displayName)
@@ -203,8 +213,7 @@ class SystemBuilder():
 	def createAnimAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
 
-		parent = self.coreBuilder.localCtl
-		a = self._createAttr(parent, name, attrType, value,
+		a = self._createAttr(name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
 		return a
 
@@ -212,8 +221,7 @@ class SystemBuilder():
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
 			keyable=False, writable=False):
 
-		parent = self.coreBuilder.localCtl
-		a = self._createAttr(parent, name, attrType, value,
+		a = self._createAttr(name, attrType, value,
 					minValue, maxValue, keyable, writable)
 		return a
 
@@ -222,7 +230,7 @@ class SystemBuilder():
 		return cmds.createNode(nodeType, name=name)
 
 	# ----------------------------------------------------------------------------------
-	# 
+	# GET OBJECTS and NAMES
 	# ----------------------------------------------------------------------------------
 	def getObjectName(self, usage, part):
 		return naming.getObjectName(

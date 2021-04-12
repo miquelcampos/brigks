@@ -7,3 +7,8 @@
 - Action Menu
 - Build Stop After
 - UIHOST, delete Attributes, reconnect 
+- Rebuild
+
+NEW FEATURE: 
+Multiple UIHOSTs?
+Ability to have some attr on different controllers? 

@@ -13,6 +13,9 @@ class UiHostSystemConnection(SystemConnection):
 	def connect(self):
 		pass
 
+	def getHost(self):
+		return self.getParentFromSlot(self._settings["key"], self._settings["slot"])
+
 	def getTargetSystems(self):
 		if self._settings["key"]:
 			return [self._settings["key"]]

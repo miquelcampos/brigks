@@ -1,5 +1,6 @@
 import json
 import os.path
+import logging
 from datetime import datetime as dt
 
 from maya import cmds
@@ -11,36 +12,82 @@ class Builder():
 
 	def __init__(self, guide):
 		self.guide = guide
-		self.systems = {}
+		self._systems = {}
 		self._settings = dict(systems={})
 
+	def settings(self, key=None):
+		return self._settings if key is None else self._settings[key]
+
+	def systems(self, key=None):
+		return self._systems if key is None else self._systems[key]
+
 	# ----------------------------------------------------------------------------------
-	# 
+	# BUILD
 	# ----------------------------------------------------------------------------------
 	def build(self, systemGuides):
-		self.buildCore()
+		self._buildCore()
 
 		start = dt.now()
 		superstart = dt.now()
 
 		# Init all the systems that needs to be built
-		toBuild = {}
+		toBuild = self._initSystemsToBuild(systemGuides)
+
+		logging.info("INIT BUILD SYSTEMS {time}".format(time=dt.now() - start))
+		start = dt.now()
+
+		# Init the systems that needs to be connected
+		toConnect = self._initSystemsToConnect(toBuild)
+		logging.info("INIT CONNECT SYSTEMS {time}".format(time=dt.now() - start))
+
+		self._systems.update(toBuild)
+		self._systems.update(toConnect)
+
+		# Pre Script
+		self._executeScript(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"))
+		logging.info("PRE SCRIPT {time}".format(time=dt.now() - start))
+
+		# Getting all the building steps and then build
+		if self._systems:
+			self._buildSystems(toBuild, toConnect)
+
+		# Saving the keys of the systems that have been built
+		self._commit()
+
+		# Post Script
+		self._executeScript(self.guide.settings("postScriptPath"), self.guide.settings("postScriptValue"))
+		logging.info("POST SCRIPT {time}".format(time=dt.now() - start))
+
+		logging.info("DONE {time}".format(time=dt.now() - superstart))
+
+	def delete(self, systemGuide):
+		pass
+
+	# ----------------------------------------------------------------------------------
+	# BUILD HELPERS
+	# ----------------------------------------------------------------------------------
+	def _buildCore(self):
+		self.model = self._createModel()
+		self.globalCtl = self._createController(self.model, part="Global")
+		self.localCtl = self._createController(self.globalCtl, part="Local")
+
+	def _initSystemsToBuild(self, systemGuides):
+		builders = {}
 		for systemGuide in systemGuides:
 			systemGuide.loadMarkers()
 
 			# If marker is X, we create a Left and Right builder
 			if systemGuide.settings()["location"] == "X":
 				leftSystem, rightSystem = systemGuide.splitSymmetry()
-				toBuild[leftSystem.key()] = leftSystem.builder(self)
-				toBuild[rightSystem.key()] = rightSystem.builder(self)
+				builders[leftSystem.key()] = leftSystem.builder(self)
+				builders[rightSystem.key()] = rightSystem.builder(self)
 			else:
-				toBuild[systemGuide.key()] = systemGuide.builder(self)
+				builders[systemGuide.key()] = systemGuide.builder(self)
+		return builders
 
-		print "INIT BUILD SYSTEMS", dt.now() - start, len(toBuild)
-		start = dt.now()
-
-		# Init the systems that needs to be connected
-		toConnect = {}
+	def _initSystemsToConnect(self, toBuild):
+		builders = {}
+		# Looping over all the systems that have already been built 
 		for key, settings in self._settings["systems"].iteritems():
 			if key in toBuild:
 				continue
@@ -50,15 +97,13 @@ class Builder():
 				systemGuide = self.guide.findSystem(key)
 				systemGuide.loadMarkers()
 				leftSystem, rightSystem = systemGuide.splitSymmetry()
-				toConnect[leftSystem.key()] = leftSystem.builder(self)
-				toConnect[rightSystem.key()] = rightSystem.builder(self)
+				builders[leftSystem.key()] = leftSystem.builder(self)
+				builders[rightSystem.key()] = rightSystem.builder(self)
 			else:
 				systemGuide = self.guide.findSystem(key)
 				systemGuide.loadMarkers()
 
-				# TODO: So we should filter to only build the connect on systems that are connected to the toBuild systems
-				# How fast can we do that?
-				# That seem to be plenty fast enough
+				# Check if any of those systems are connected to something we're rebuilding
 				for cnx in systemGuide.connections.values():
 					for otherKey in cnx.getTargetSystems():
 						if otherKey in toBuild:
@@ -66,61 +111,32 @@ class Builder():
 				else:
 					continue
 
-				toConnect[key] = systemGuide.builder(self)
+				builders[key] = systemGuide.builder(self)
+		return builders
 
-		print "INIT CONNECT SYSTEMS", dt.now() - start, len(toConnect)
+	def _buildSystems(self, toBuild, toConnect):
+		steps = self._systems.values()[0].steps.keys()
+		for step in steps:
+			start = dt.now()
+			
+			if step == "Connect System":
+				builders = toBuild.values() + toConnect.values()
+			else:
+				builders = toBuild.values()
 
-		self.systems.update(toBuild)
-		self.systems.update(toConnect)
+			for builder in builders:
+				logging.info("{key} {step}".format(key=builder.key(), step=step))
+				builder.steps[step]()
+			
+			logging.info("{step} Completed in {time}".format(step=step, time=dt.now() - start))
 
-		# Pre Script
-		self._executeScript(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"))
-		print "PRE SCRIPT", dt.now() - start
-
-		# Getting all the building steps and then build
-		if self.systems:
-			steps = self.systems.values()[0].steps.keys()
-			for step in steps:
-				start = dt.now()
-				
-				if step == "Connect System":
-					builders = toBuild.values() + toConnect.values()
-				else:
-					builders = toBuild.values()
-
-				for builder in builders:
-					print builder.key(), step
-					builder.steps[step]()
-				
-				print step, dt.now() - start
-
-
-		# Saving the keys of the systems that have been built
+	def _commit(self):
+		# Update with the latest data
 		newSystemsData = {}
-		for k, v in self.systems.iteritems():
+		for k, v in self._systems.iteritems():
 			newSystemsData[k] = dict(settings=v.settings(), attributes=v.attributeNames)
-
 		self._settings["systems"].update(newSystemsData)
-		self.dumps()
 
-		# Post Script
-		self._executeScript(self.guide.settings("postScriptPath"), self.guide.settings("postScriptValue"))
-		print "POST SCRIPT", dt.now() - start
-
-		print "DONE", dt.now() - superstart
-
-	def delete(self, systemGuide):
-		pass
-
-	# ----------------------------------------------------------------------------------
-	# 
-	# ----------------------------------------------------------------------------------
-	def buildCore(self):
-		self.model = self._createModel()
-		self.globalCtl = self._createController(self.model, part="Global")
-		self.localCtl = self._createController(self.globalCtl, part="Local")
-
-	def dumps(self):
 		data = self._settings
 		cmds.setAttr(self.model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
 
