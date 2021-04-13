@@ -31,7 +31,7 @@ class MeshAttachSystemConnection(SystemConnection):
 			)
 		kwargs.update(self._settings)
 
-		parent = getParentFromMesh(**kwargs)
+		parent = self.getParentFromMesh(**kwargs)
 		self._parent(child, parent)
 
 	def getTargetSystems(self):

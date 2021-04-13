@@ -42,6 +42,27 @@ MARKER_NAMES = dict(
 		),
 	)
 
+PORT_NAMES = dict(
+	lookAt01=dict(
+		Target="Eff",
+		),
+	basic01=dict(
+		Control="Part"
+		),
+	leg01=dict(
+		IkRef="IK",
+		FkRef="FK",
+		),
+	arm01=dict(
+		IkRef="IK",
+		FkRef="FK",
+		),
+	leg3bones01=dict(
+		IkRef="IK",
+		FkRef="FK",
+		),
+	)
+
 COMPONENT_TYPES = dict(
 	pntSubComponent="vertex",
 	edgeSubComponent="edge",
@@ -49,6 +70,9 @@ COMPONENT_TYPES = dict(
 	)
 
 
+# ----------------------------------------------------------------------------------
+# 
+# ----------------------------------------------------------------------------------
 def convertXmlHarbie(xmlHarbie, useSymmetrySystems=False):
 	xmlRoot = etree.Element("Guide")
 	xmlRoot.set("user", getpass.getuser())
@@ -68,6 +92,9 @@ def convertXmlHarbie(xmlHarbie, useSymmetrySystems=False):
 	return xmlRoot
 
 
+# ----------------------------------------------------------------------------------
+# LAYERS
+# ----------------------------------------------------------------------------------
 def _convertXmlLayer(xmlHarbieLayer, useSymmetrySystems):
 	xmlLayer = etree.Element("Layer")
 	xmlLayer.set("name", xmlHarbieLayer.get("name"))
@@ -84,7 +111,9 @@ def _convertXmlLayer(xmlHarbieLayer, useSymmetrySystems):
 
 	return xmlLayer
 
-
+# ----------------------------------------------------------------------------------
+# SYSTEMS
+# ----------------------------------------------------------------------------------
 def _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems):
 	systemKey = xmlHarbieSystem.get("key")
 	systemType = xmlHarbieSystem.get("type")
@@ -133,7 +162,9 @@ def _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems):
 
 	return xmlSystem
 
-
+# ----------------------------------------------------------------------------------
+# CONNECTIONS
+# ----------------------------------------------------------------------------------
 def _convertXmlConnection(connectionType, connectionData, systemType):
 	xmlConnections = []
 	if connectionType == "standard":
@@ -142,7 +173,21 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 			if "keyslots" not in data or not data["keyslots"]:
 				continue
 
-			if port == "UI":
+			# Renaming ports
+			if systemType in PORT_NAMES:
+				if port in PORT_NAMES[systemType]:
+					port = PORT_NAMES[systemType][port]
+				else:
+					for xport, nport in PORT_NAMES[systemType].iteritems():
+						if port.startswith(xport):
+							port = port.replace(xport, nport)
+							break
+
+			if systemType == "foot01" and port == "Root":
+				# Foot Attach
+				xmlConnection = _convertXmlConnectionFootAttach(port, data)
+				xmlConnections.append(xmlConnection)
+			elif port == "UI":
 				xmlConnection = _convertXmlConnectionUI(port, data)
 				xmlConnections.append(xmlConnection)
 			elif systemType in ["transformDriven01", "slider01", "rotationalSlider01", "tracker01"]\
@@ -161,26 +206,22 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 			if "geometry" not in data or not data["geometry"]:
 				continue
 
+			if "Cls" in port:
+				port = port.replace("Cls", "")
+
+			if systemType in PORT_NAMES:
+				if port in PORT_NAMES[systemType]:
+					port = PORT_NAMES[systemType][port]
+				else:
+					for xport, nport in PORT_NAMES[systemType].iteritems():
+						if port.startswith(xport):
+							port = port.replace(xport, nport)
+							break
+
 			xmlConnection = _convertXmlConnectionObj2Cls(port, data)
 			xmlConnections.append(xmlConnection)
 
 	return xmlConnections
-
-
-def _convertXmlConnectionUI(port, data):
-	keyslots = data["keyslots"]
-	key, slot = keyslots[0]
-	settings = dict(
-		key=key,
-		slot=slot)
-
-	xmlConnection = etree.Element("Connection")
-	xmlConnection.set("port", port)
-	xmlConnection.set("type", "uiHost")
-	xmlConnection.set("settings", json.dumps(settings))
-
-	return xmlConnection
-
 
 def _convertXmlConnectionStandard(port, data):
 	keyslots = data["keyslots"]
@@ -204,9 +245,42 @@ def _convertXmlConnectionStandard(port, data):
 
 		settings = dict(definitions=definitions)
 
+	if port.startswith("Control"):
+		port.replace("Control", "Part")
+
 	xmlConnection = etree.Element("Connection")
 	xmlConnection.set("port", port)
 	xmlConnection.set("type", cnxType)
+	xmlConnection.set("settings", json.dumps(settings))
+
+	return xmlConnection
+
+
+def _convertXmlConnectionUI(port, data):
+	keyslots = data["keyslots"]
+	key, slot = keyslots[0]
+	settings = dict(
+		key=key,
+		slot=slot)
+
+	xmlConnection = etree.Element("Connection")
+	xmlConnection.set("port", port)
+	xmlConnection.set("type", "uiHost")
+	xmlConnection.set("settings", json.dumps(settings))
+
+	return xmlConnection
+
+
+def _convertXmlConnectionFootAttach(port, data):
+	keyslots = data["keyslots"]
+	key, slot = keyslots[0]
+	settings = dict(
+		key=key,
+		slot=slot)
+
+	xmlConnection = etree.Element("Connection")
+	xmlConnection.set("port", port)
+	xmlConnection.set("type", "legAttach")
 	xmlConnection.set("settings", json.dumps(settings))
 
 	return xmlConnection
@@ -229,7 +303,7 @@ def _convertXmlConnectionRotationTracker(data):
 
 def _convertXmlConnectionObj2Cls(port, data):
 	settings = dict(
-		mesh=data["geometry"],
+		mesh=data["geometry"].replace("-", ""),
 		componentType=COMPONENT_TYPES[data["clusterType"]],
 		componentIndex=data["componentIndex"],
 		key=data["oriReference"][0],
@@ -245,8 +319,9 @@ def _convertXmlConnectionObj2Cls(port, data):
 
 	return xmlConnection
 
-
-
+# ----------------------------------------------------------------------------------
+# MARKERS
+# ----------------------------------------------------------------------------------
 def _convertXmlMarker(xmlHarbieMarker, systemType):
 	xmlMarker = etree.Element("Marker")
 	name = xmlHarbieMarker.get("name")

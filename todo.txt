@@ -8,8 +8,8 @@
 - Check if Basic and Chain are building properly on Neg side
 - Action Menu
 - Build Stop After
-- UIHOST, delete Attributes, reconnect 
-- Rebuild
+- Get the full harbie biped to build without error
+- Connection UI could be nicer
 
 NEW FEATURE: 
 Multiple UIHOSTs?
@@ -22,3 +22,10 @@ Check if it's used as a uiHost
 Store attr Name and Connections
 Rerun the createAttributes of other systems
 Recreate connections
+
+
+
+
+DONE
+- UIHOST, delete Attributes, reconnect 
+- Rebuild

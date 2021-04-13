@@ -15,7 +15,7 @@ class CameraSystemGuide(SystemGuide):
 		super(CameraSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=["uiHost"]
+			Root=["slotParent", "meshAttach", "multiParent", "customParent"],
 			)
 
 		return ports

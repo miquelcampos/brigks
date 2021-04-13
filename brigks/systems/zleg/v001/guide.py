@@ -18,6 +18,7 @@ class ZlegSystemGuide(SystemGuide):
 
 		ports = dict(
 			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			FK=["slotParent", "meshAttach", "multiParent", "customParent"],
 			IK=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
 			UpVector=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
 			UI=["uiHost"],

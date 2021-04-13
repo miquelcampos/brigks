@@ -30,7 +30,7 @@ class SystemGuide(object):
 	markerCompatibility = {}
 	compatibles = ()
 
-	def __init__(self, layer):
+	def __init__(self, layer, name="Name", location="M"):
 		self._layer = layer
 		self._settings = dict(
 					version=[1,0,0],
@@ -38,8 +38,8 @@ class SystemGuide(object):
 					preScriptValue=scriptDefaultValue,
 					postScriptPath="",
 					postScriptValue=scriptDefaultValue,
-					name="Name",
-					location="X",
+					name=name,
+					location=location,
 					split=False,
 					inheritColors=True,
 					colorIk=[1,0,0],
@@ -79,6 +79,8 @@ class SystemGuide(object):
 				matrix = [j for sub in matrix for j in sub]
 			name = system.getMarkerName(part)
 			SystemMarker.create(name, system, parent, matrix)
+
+		system.loadMarkers(force=True)
 
 		return system
 
@@ -186,11 +188,11 @@ class SystemGuide(object):
 
 	def addConnection(self, port, connectionType):
 		if port not in self.connectionPorts():
-			msg = "No such port ({p}) for this system ({k} - {t})"
-			raise ValueError(msg.format(p=port, k=self.key(), t=self.type()))
+			msg = "No such port ({p} - {x}) for this system ({k} - {t})"
+			raise ValueError(msg.format(p=port, x=connectionType, k=self.key(), t=self.type()))
 		elif connectionType not in self.connectionPorts()[port]:
-			msg = "Not a valid connection type for port ({p}), only supporting types {t}"
-			raise ValueError(msg.format(p=port, t=self.connectionPorts()[port]))
+			msg = "{st}:{p} connection has invalid type ({x}), supported types {ct}"
+			raise ValueError(msg.format(st=self.type(), p=port, x=connectionType, ct=self.connectionPorts()[port]))
 
 		Connection = getSystemConnectionClass(connectionType)
 		connection = Connection()
@@ -234,6 +236,7 @@ class SystemGuide(object):
 	def loadMarkers(self, force=False):
 		if self._markers is None or force:
 			self._markers = dict()
+			self._multiMarkers = dict()
 			search = self.getMarkerName("*")
 			markers = cmds.ls(search, type="transform", long=True)
 			markers = [m for m in markers if m.startswith("|"+self.model())]
@@ -377,8 +380,12 @@ class SystemGuide(object):
 		xmlConnections = {xmlCnx.get("port"):xmlCnx for xmlCnx in xmlConnections}
 		for port, xmlConnection in xmlConnections.iteritems():
 		 	connectionType = xmlConnection.get("type")
-			Connection = getSystemConnectionClass(connectionType)
-			connection = Connection.fromXml(xmlConnection)
-			system._connections[port] = connection
+		 	settings = json.loads(xmlConnection.get("settings"))
+			cnx = system.addConnection(port, connectionType)
+			cnx.setSettings(**settings)
+
+			# Connection = getSystemConnectionClass(connectionType)
+			# connection = Connection.fromXml(xmlConnection)
+			# system._connections[port] = connection
 
 		return system

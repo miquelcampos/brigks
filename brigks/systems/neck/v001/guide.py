@@ -30,6 +30,6 @@ class NeckSystemGuide(SystemGuide):
 
 		slots = {}
 		for i, s in enumerate(["Root", "Mid", "Head"], start=1):
-			slots[s] = ("Rig", "Hook%s"%i)
+			slots[s] = ("Rig", "Hook{}".format(i))
 
 		return slots

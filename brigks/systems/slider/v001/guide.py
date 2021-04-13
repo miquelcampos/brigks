@@ -23,12 +23,12 @@ class SliderSystemGuide(SystemGuide):
 		super(SliderSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Reference=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			Tracker=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			Reference=["rotationTracker"],
+			Tracker=["rotationTracker"]
 			)
 
 		for i in xrange(1, self.count("Rail")+1):
-			ports["Rail{}".format(i)] = ("parent")
+			ports["Rail{}".format(i)] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 
 		return ports
 

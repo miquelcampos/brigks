@@ -54,6 +54,9 @@ class SystemConnection(object):
 	def getParentFromMesh(self, mesh, useClosest, useOrientation, componentType, componentIndex, key, slot, position):
 		parent = self.getParentFromSlot(key, slot)
 
+		if not cmds.objExists(mesh):
+			return parent
+
 		attachName = self.getObjectName(usage="Rig", part="MeshAttach")
 		attach = cmds.createNode("transform", name=attachName)
 		cmds.parent(attach, parent)
@@ -64,6 +67,9 @@ class SystemConnection(object):
 
 	def getParentFromSurface(self, surface, useClosest, u, v, key, slot, position):
 		parent = self.getParentFromSlot(key, slot)
+
+		if not cmds.objExists(surface):
+			return parent
 
 		if useClosest:
 			u, v = None, None

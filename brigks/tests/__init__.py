@@ -1,6 +1,7 @@
 
 import os.path
 import xml.etree.cElementTree as etree
+from datetime import datetime as dt
 from Qt.QtWidgets import QDialog, QVBoxLayout
 
 from brigks import Guide
@@ -129,6 +130,7 @@ def showSystemSettings(system):
 
 
 
+@context.command()
 def fromHarbie():
 	from brigks.utils.convert import convertXmlHarbie
 	# Convert the Harbie template to Brigks
@@ -136,18 +138,29 @@ def fromHarbie():
 	outputFPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieFullBiped.xml"
 	outputXPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieXBiped.xml"
 
+	start = dt.now()
+
 	xmlHarbie = etree.parse(path).getroot()
 	xmlRoot = convertXmlHarbie(xmlHarbie, useSymmetrySystems=False)
 	xmldom.indent(xmlRoot)
 	tree = etree.ElementTree(xmlRoot)
 	tree.write(outputFPath)
 
+	print "conversion Full", dt.now() - start
+	start = dt.now()
+
 	xmlRoot = convertXmlHarbie(xmlHarbie, useSymmetrySystems=True)
 	xmldom.indent(xmlRoot)
 	tree = etree.ElementTree(xmlRoot)
 	tree.write(outputXPath)
 
-	guide = Guide.fromXml(outputXPath)
+	print "conversion X", dt.now() - start
+	start = dt.now()
+
+	guide = Guide.fromXml(outputFPath)
+
+	print "guide creation", dt.now() - start
+
 
 	print "Exported to", outputFPath
 	print "Exported to", outputXPath

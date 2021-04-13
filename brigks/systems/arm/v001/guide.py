@@ -18,6 +18,7 @@ class ArmSystemGuide(SystemGuide):
 
 		ports = dict(
 			Root=["slotParent", "meshAttach", "multiParent", "customParent"],
+			FK=["slotParent", "meshAttach", "multiParent", "customParent"],
 			IK=["slotParent", "meshAttach", "multiParent", "customParent"],
 			UpVector=["slotParent", "meshAttach", "multiParent", "customParent"],
 			UI=["uiHost"],
