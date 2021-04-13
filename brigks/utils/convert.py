@@ -34,26 +34,8 @@ HARBIE_TYPES = dict(
 	)
 
 MARKER_NAMES = dict(
-	stretch01=dict(
-		),
 	lookAt01=dict(
 		Target="Eff",
-		),
-	bean01=dict(
-		),
-	transformAverage01=dict(
-		),
-	spine01=dict(
-		),
-	slider01=dict(
-		),
-	leg01=dict(
-		),
-	arm01=dict(
-		),
-	neck01=dict(
-		),
-	camera01=dict(
 		),
 	breast01=dict(
 		Tip="Eff"
@@ -67,7 +49,7 @@ COMPONENT_TYPES = dict(
 	)
 
 
-def convertXmlHarbie(xmlHarbie):
+def convertXmlHarbie(xmlHarbie, useSymmetrySystems=False):
 	xmlRoot = etree.Element("Guide")
 	xmlRoot.set("user", getpass.getuser())
 	xmlRoot.set("date", str(datetime.datetime.now()))
@@ -80,13 +62,13 @@ def convertXmlHarbie(xmlHarbie):
 	# Layers
 	xmlHarbieLayers = xmlHarbie.find("Layers")
 	for xmlHarbieLayer in xmlHarbieLayers:
-		xmlLayer = _convertXmlLayer(xmlHarbieLayer)
+		xmlLayer = _convertXmlLayer(xmlHarbieLayer, useSymmetrySystems)
 		xmlRoot.append(xmlLayer)
 
 	return xmlRoot
 
 
-def _convertXmlLayer(xmlHarbieLayer):
+def _convertXmlLayer(xmlHarbieLayer, useSymmetrySystems):
 	xmlLayer = etree.Element("Layer")
 	xmlLayer.set("name", xmlHarbieLayer.get("name"))
 
@@ -96,14 +78,14 @@ def _convertXmlLayer(xmlHarbieLayer):
 
 	xmlHarbieSystems = xmlHarbieLayer.find("Systems")
 	for xmlHarbieSystem in xmlHarbieSystems:
-		xmlSystem = _convertXmLSystem(xmlHarbieSystem)
+		xmlSystem = _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems)
 		if xmlSystem:
 			xmlLayer.append(xmlSystem)
 
 	return xmlLayer
 
 
-def _convertXmLSystem(xmlHarbieSystem):
+def _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems):
 	systemKey = xmlHarbieSystem.get("key")
 	systemType = xmlHarbieSystem.get("type")
 	if systemType not in HARBIE_TYPES:
@@ -121,6 +103,12 @@ def _convertXmLSystem(xmlHarbieSystem):
 		suffix = settings["location"][1:]
 		settings["location"] = settings["location"][0]
 		settings["name"] = settings["name"] + suffix
+
+	if useSymmetrySystems:
+		if settings["location"] == "L":
+			settings["location"] = "X"
+		elif settings["location"] == "R":
+			return
 
 	systemKey = "{n}_{l}".format(n=settings["name"], l=settings["location"])
 

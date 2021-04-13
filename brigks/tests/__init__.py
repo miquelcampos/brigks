@@ -133,18 +133,24 @@ def fromHarbie():
 	from brigks.utils.convert import convertXmlHarbie
 	# Convert the Harbie template to Brigks
 	path = r"K:\Departments\Rigging\Prefab\Harbie\Templates\biped_AllXML.xml"
-	outputPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieFullBiped.xml"
+	outputFPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieFullBiped.xml"
+	outputXPath = r"\\source\source\dev\passerin\brigks\brigks\tests\harbieXBiped.xml"
 
 	xmlHarbie = etree.parse(path).getroot()
-	xmlRoot = convertXmlHarbie(xmlHarbie)
-
+	xmlRoot = convertXmlHarbie(xmlHarbie, useSymmetrySystems=False)
 	xmldom.indent(xmlRoot)
 	tree = etree.ElementTree(xmlRoot)
-	tree.write(outputPath)
+	tree.write(outputFPath)
 
-	guide = Guide.fromXml(outputPath)
+	xmlRoot = convertXmlHarbie(xmlHarbie, useSymmetrySystems=True)
+	xmldom.indent(xmlRoot)
+	tree = etree.ElementTree(xmlRoot)
+	tree.write(outputXPath)
 
-	print "Exported to", outputPath
+	guide = Guide.fromXml(outputXPath)
+
+	print "Exported to", outputFPath
+	print "Exported to", outputXPath
 
 	return guide
 
