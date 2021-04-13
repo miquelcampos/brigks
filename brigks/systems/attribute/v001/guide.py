@@ -15,7 +15,7 @@ class AttributeSystemGuide(SystemGuide):
 		super(AttributeSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			UI=("parent,")
+			UI=["uiHost"]
 			)
 
 		return ports

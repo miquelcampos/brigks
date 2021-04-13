@@ -5,7 +5,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class CameraSystemGuide(SystemGuide):
 
-	markerNames = ("Part1",)
+	markerNames = ("Root",)
 	markerMinMax = {}
 
 	def addSettings(self):
@@ -15,7 +15,7 @@ class CameraSystemGuide(SystemGuide):
 		super(CameraSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent",)
+			Root=["uiHost"]
 			)
 
 		return ports

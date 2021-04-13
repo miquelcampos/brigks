@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class NeckSystemGuide(SystemGuide):
 
-	markerNames = ("Part1", "Part2", "Part3")
+	markerNames = ("Root", "Head", "Eff")
 	markerMinMax = {}
 
 	def addSettings(self):
@@ -17,10 +17,10 @@ class NeckSystemGuide(SystemGuide):
 		super(NeckSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent"),
-			IkRef=("parent"),
-			OriRef=("parent"),
-			UI=("parent")
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			IkRef=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			OriRef=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=("uiHost")
 		)
 
 		return ports

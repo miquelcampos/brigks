@@ -17,7 +17,7 @@ class MetaSystemGuide(SystemGuide):
 		super(MetaSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent",)
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 			)
 
 		return ports

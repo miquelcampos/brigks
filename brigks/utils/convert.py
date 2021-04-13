@@ -3,9 +3,6 @@ import getpass
 import datetime
 import xml.etree.cElementTree as etree
 
-#from math3d import Transformation, Quaternion, Vector3
-import math3d.transformation as t
-reload(t)
 from math3d.transformation import Transformation
 from math3d.quaternion import Quaternion
 from math3d.vectorN import Vector3
@@ -14,7 +11,7 @@ HARBIE_TYPES = dict(
 		arm01="arm",
 		basic01="basic",
 		bean01="quadrant",
-		# breast01="breast",
+		breast01="breast",
 		camera01="camera",
 		chain01="chain",
 		foot01="foot",
@@ -25,7 +22,7 @@ HARBIE_TYPES = dict(
 		neck01="neck",
 		params01="attribute",
 		psdDriver01="psd",
-		# piston="piston",
+		piston="piston",
 		slider01="slider",
 		spine01="spine",
 		stretch01="stretch",
@@ -38,55 +35,35 @@ HARBIE_TYPES = dict(
 
 MARKER_NAMES = dict(
 	stretch01=dict(
-		Root="Part1",
-		End="Part2"
 		),
 	lookAt01=dict(
-		Root="Part1",
-		Target="Part2"
+		Target="Eff",
 		),
 	bean01=dict(
-		Root="Part1",
 		),
 	transformAverage01=dict(
-		Root="Part1",
 		),
 	spine01=dict(
-		Root="Part1",
-		Eff="Part2",
 		),
 	slider01=dict(
-		Rail1="Part1",
-		Rail2="Part2",
-		Rail3="Part3",
-		Rail4="Part4"
 		),
 	leg01=dict(
-		Root="Part1",
-		Knee="Part2",
-		Ankle="Part3",
-		Eff="Part4",
 		),
 	arm01=dict(
-		Root="Part1",
-		Elbow="Part2",
-		Wrist="Part3",
-		Eff="Part4",
 		),
 	neck01=dict(
-		Root="Part1",
-		Head="Part2",
-		Eff="Part3",
 		),
 	camera01=dict(
-		Root="Part1",
+		),
+	breast01=dict(
+		Tip="Eff"
 		),
 	)
 
 COMPONENT_TYPES = dict(
-	pntSubComponent="vtx",
-	edgeSubComponent="edg",
-	polySubComponent="fac",
+	pntSubComponent="vertex",
+	edgeSubComponent="edge",
+	polySubComponent="face",
 	)
 
 
@@ -138,7 +115,14 @@ def _convertXmLSystem(xmlHarbieSystem):
 
 	if settings["location"] == "X":
 		settings["location"] = "M"
-		systemKey = systemKey.replace("_X", "_M")
+
+	settings["location"] = settings["location"].replace("-", "")
+	if len(settings["location"]) > 1:
+		suffix = settings["location"][1:]
+		settings["location"] = settings["location"][0]
+		settings["name"] = settings["name"] + suffix
+
+	systemKey = "{n}_{l}".format(n=settings["name"], l=settings["location"])
 
 	xmlSystem = etree.Element("System")
 	xmlSystem.set("key", systemKey)

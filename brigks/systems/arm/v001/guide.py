@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class ArmSystemGuide(SystemGuide):	
 
-	markerNames = ("Part1", "Part2", "Part3", "Part4", "Prop")
+	markerNames = ("Root", "Elbow", "Wrist", "Eff", "Prop")
 	markerMinMax = {}
 
 	def addSettings(self):

@@ -5,7 +5,7 @@ from Qt.QtWidgets import QDialog, QVBoxLayout
 
 from brigks import Guide
 from brigks.gui.systemSettingsWidget import SystemSettingsWidget
-from brigks.utils import context, xml
+from brigks.utils import context, xmldom
 from brigks.gui import showWindow
 
 from math3d.transformation import Transformation
@@ -19,7 +19,7 @@ from math3d.vectorN import Vector3
 @context.command()
 def guideToXml(guide, path):
 	xmlRoot = guide.toXml()
-	xml.indent(xmlRoot)
+	xmldom.indent(xmlRoot)
 	tree = etree.ElementTree(xmlRoot)
 	tree.write(path)
 
@@ -47,8 +47,8 @@ def createSimpleGuideAndBuild(showWindow=False):
 	chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematics="FK/IK", strap=True)
 
 	# Add Pre/Pest Script to System
-	basic.setSettings(preScriptValue="print 'This is a Pre Script for the system {k}'.format(k=this_guide.key())")
-	basic.setSettings(postScriptValue="print 'This is a Post Script for the system {k}'.format(k=this_guide.key())")
+	# basic.setSettings(preScriptValue="print 'This is a Pre Script for the system {k}'.format(k=this_guide.key())")
+	# basic.setSettings(postScriptValue="print 'This is a Post Script for the system {k}'.format(k=this_guide.key())")
 
 	# System Connections
 	cnx = basic.addConnection("UI", connectionType="uiHost")
@@ -64,12 +64,12 @@ def createSimpleGuideAndBuild(showWindow=False):
 	cnx = chain.addConnection("UI", connectionType="uiHost")
 	cnx.setSettings(key="Basic_L", slot="Part1")
 
-	cnx = chain.addConnection("Root", connectionType="slotParent")
-	cnx.setSettings(key="Basic_L", slot="Part1")
+	# cnx = chain.addConnection("Root", connectionType="slotParent")
+	# cnx.setSettings(key="Basic_L", slot="Part1")
 
 	# Add Pre/Post Script to Guide
-	g.setSettings(preScriptValue="print 'This is a Pre Global Script for the guide {g}'.format(g=this_guide)")
-	g.setSettings(postScriptValue="print 'This is a Post Global Script for the model {m}'.format(m=this_model)")
+	# g.setSettings(preScriptValue="print 'This is a Pre Global Script for the guide {g}'.format(g=this_guide)")
+	# g.setSettings(postScriptValue="print 'This is a Post Global Script for the model {m}'.format(m=this_model)")
 
 	# Save edit
 	g.commit()
@@ -85,17 +85,17 @@ def createSimpleGuideAndBuild(showWindow=False):
 def rebuild(showWindow=False):
 	g = createSimpleGuideAndBuild(showWindow=False)
 
+	basic = g.findSystem("Basic_L")
 	chain = g.findSystem("Chain_L")
 
 	# Change settings and rebuild
-	cnx = chain.connections("UI")
-	cnx.setSettings(key="Basic_L", slot="Part2")
-
-	# Save edit
-	g.commit()
+	# cnx = chain.connections("UI")
+	# cnx.setSettings(key="Basic_L", slot="Part2")
+	# g.commit()
 
 	# Build all rig
-	chain.build()
+	basic.build()
+	# chain.build()
 
 	if showWindow:
 		showWindow()
@@ -138,12 +138,15 @@ def fromHarbie():
 	xmlHarbie = etree.parse(path).getroot()
 	xmlRoot = convertXmlHarbie(xmlHarbie)
 
-	xml.indent(xmlRoot)
+	xmldom.indent(xmlRoot)
 	tree = etree.ElementTree(xmlRoot)
 	tree.write(outputPath)
 
+	guide = Guide.fromXml(outputPath)
+
 	print "Exported to", outputPath
 
+	return guide
 
 def reloadModule():
 	import os, sys

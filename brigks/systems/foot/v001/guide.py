@@ -19,8 +19,8 @@ class FootSystemGuide(SystemGuide):
 		super(FootSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Root=["foot"],
-			UI=["parent"]
+			Root=["legAttach"],
+			UI=["uiHost"]
 			)
 
 		return ports

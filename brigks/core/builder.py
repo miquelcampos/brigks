@@ -40,16 +40,13 @@ class Builder():
 		# Init all the systems that needs to be built
 		self._systems = self._initSystems()
 		toBuild = self._initSystemsToBuild(systemGuides)
-
-		logging.info("INIT BUILD SYSTEMS {time}".format(time=dt.now() - start))
-		start = dt.now()
-
 		# Init the systems that needs to be connected
-		toConnect = self._initSystemsToConnect(toBuild)
-		logging.info("INIT CONNECT SYSTEMS {time}".format(time=dt.now() - start))
-
+		toConnect, toCreateAttr = self._initSystemsToConnect(toBuild)
 		self._systems.update(toBuild)
 		self._systems.update(toConnect)
+		self._systems.update(toCreateAttr)
+
+		logging.info("INIT SYSTEMS {time}".format(time=dt.now() - start))
 
 		# Pre Script
 		self._executeScript(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"))
@@ -57,7 +54,7 @@ class Builder():
 
 		# Getting all the building steps and then build
 		if self._systems:
-			self._buildSystems(toBuild, toConnect)
+			self._buildSystems(toBuild, toConnect, toCreateAttr)
 
 		# Saving the keys of the systems that have been built
 		self._commit()
@@ -98,7 +95,6 @@ class Builder():
 		builders = {}
 		# Looping over all the systems that have already been built 
 		for key, settings in self.builtSystems().iteritems():
-
 			if settings["split"]:
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
@@ -127,49 +123,58 @@ class Builder():
 		return builders
 
 	def _initSystemsToConnect(self, toBuild):
-		builders = {}
+		toConnect = {}
+		toCreateAttr = {}
 		# Looping over all the systems that have already been built 
 		for key, settings in self.builtSystems().iteritems():
 			if key in toBuild:
 				continue
+			
+			# TODO, WE're Re-initializing systems that have already been initialized, we can do bette rthan that
 
 			if settings["split"]:
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
 				systemGuide.loadMarkers()
 				leftSystem, rightSystem = systemGuide.splitSymmetry()
-				builders[leftSystem.key()] = leftSystem.builder(self)
-				builders[rightSystem.key()] = rightSystem.builder(self)
+				toConnect[leftSystem.key()] = leftSystem.builder(self)
+				toConnect[rightSystem.key()] = rightSystem.builder(self)
 			else:
 				systemGuide = self.guide.findSystem(key)
 				systemGuide.loadMarkers()
 
 				# Check if any of those systems are connected to something we're rebuilding
 				for cnx in systemGuide.connections().values():
-					for otherKey in cnx.getTargetSystems():
-						if otherKey in toBuild:
-							break
-				else:
-					continue
+					if key not in toCreateAttr and cnx.type() == "uiHost":
+						for otherKey in cnx.getTargetSystems():
+							if otherKey in toBuild:
+								toCreateAttr[key] = systemGuide.builder(self)
+								break
+					elif key not in toConnect:
+						for otherKey in cnx.getTargetSystems():
+							if otherKey in toBuild:
+								toConnect[key] = systemGuide.builder(self)
+								break
 
-				builders[key] = systemGuide.builder(self)
-		return builders
+		return toConnect, toCreateAttr
 
-	def _buildSystems(self, toBuild, toConnect):
+	def _buildSystems(self, toBuild, toConnect, toCreateAttr):
 		steps = self._systems.values()[0].steps.keys()
 		for step in steps:
 			start = dt.now()
 			
 			if step == "Connect System":
 				builders = toBuild.values() + toConnect.values()
+			elif step == "Create Attributes":
+				builders = toBuild.values() + toCreateAttr.values()
 			else:
 				builders = toBuild.values()
 
 			for builder in builders:
-				logging.info("{key} {step}".format(key=builder.key(), step=step))
+				logging.debug("{step}: {key}".format(key=builder.key(), step=step))
 				builder.steps[step]()
 			
-			logging.info("{step} Completed in {time}".format(step=step, time=dt.now() - start))
+			logging.info("{step}: Completed in {time}".format(step=step, time=dt.now() - start))
 
 	def _commit(self):
 		# Update with the latest data

@@ -14,8 +14,8 @@ class TrackerSystemGuide(SystemGuide):
 		super(TrackerSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Reference=("parent"),
-			Tracker=("parent")
+			Reference=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			Tracker=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 			)
 
 		return ports

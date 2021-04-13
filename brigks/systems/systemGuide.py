@@ -22,6 +22,11 @@ class SystemGuide(object):
 	markerPicked = ("Part",)
 	markerMinMax = dict(Part=(1,-1))
 	defaultPositions = {}
+	# Marker Compatibility.
+	# Key is the type of systems compatible
+	# Value is a dictionary of markers to rename
+	# ie: markerCompatibility = dict(basic=dict(Bone="Part"))
+	# In this example the system is compatible with the chain, but markers 'Bone', must be renamed to 'Part'
 	markerCompatibility = {}
 	compatibles = ()
 
@@ -40,12 +45,11 @@ class SystemGuide(object):
 					colorIk=[1,0,0],
 					colorFk=[0,0,1],
 					addJoints=True)
+		self._markers = None
+		self._multiMarkers = dict() 
+		self._connections = {}
 		self.addSettings()
 
-		self._connections = {}
-
-		self._markers = None
-		self._aMarkers = dict()
 
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
@@ -242,8 +246,8 @@ class SystemGuide(object):
 		if name is None:
 			return self._markers
 		elif name in self.markerMinMax:
-			if name not in self._aMarkers:
-				self._aMarkers[name] = []
+			if name not in self._multiMarkers:
+				self._multiMarkers[name] = []
 				markerMin, markerMax = self.markerMinMax[name]
 				limit = lambda x: x <= markerMax if markerMax > 0 else lambda i: True
 				i = 1
@@ -251,9 +255,9 @@ class SystemGuide(object):
 					part = "{}{}".format(name, i)
 					if part not in self._markers:
 						break
-					self._aMarkers[name].append(self._markers[part])
+					self._multiMarkers[name].append(self._markers[part])
 					i += 1
-			return self._aMarkers[name]
+			return self._multiMarkers[name]
 		else:
 			return self._markers[name]
 
@@ -348,7 +352,7 @@ class SystemGuide(object):
 
 	@classmethod
 	def fromXml(cls, layer, xmlRoot):
-		system = cls(layer)
+		# system = cls(layer)
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", {}))

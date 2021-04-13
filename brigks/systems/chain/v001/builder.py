@@ -19,10 +19,10 @@ class ChainSystemBuilder(SystemBuilder):
 		
 		# TRANSFORMATION
 		# Positions 
-		positions = self.translations("Bone")
+		positions = self.translations("Part")
 
 		# Normal
-		if self.count("Bone") > 2:
+		if self.count("Part") > 2:
 			normal = Vector3.planeNormal(*positions[:3]) * -1 # TODO Remove *-1 when math3d is fixed
 			if normal.length() < 1E-6:
 				normal = self.directions("Part1", "z")
@@ -32,7 +32,7 @@ class ChainSystemBuilder(SystemBuilder):
 			normal = self.directions("Part1", "z")
 
 		boneTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
-		d = [(positions[i],positions[i+1]) for i in range(self.count("Bone")-1)]
+		d = [(positions[i],positions[i+1]) for i in range(self.count("Part")-1)]
 		boneLen = [Vector3.distance(a,b) for a,b in d]
 
 		self.setSettings(count=len(boneLen), lengths=boneLen)
@@ -46,7 +46,7 @@ class ChainSystemBuilder(SystemBuilder):
 			ikTfm = Transformation.fromParts(positions[-1], boneTfm[-1].rotation)
 			
 			# Up Vector
-			if self.count("Bone") > 2:
+			if self.count("Part") > 2:
 				translation = mathu.upVector(positions[0], positions[2], normal, ratio=1, negate=self.negate())
 			else:
 				translation = mathu.upVector(positions[0], positions[1], normal, ratio=1, negate=self.negate())
@@ -168,6 +168,11 @@ class ChainSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------
 	# PROPERTIES 
 	def createAttributes(self):
+		# Settings
+		self.isFk = "FK" in self.settings("kinematic")
+		self.isIk = "IK" in self.settings("kinematic")
+		self.isFkIk = self.isFk and self.isIk
+
 		if self.isFkIk:
 			self.blendAttr = self.createAnimAttr("Blend", "float", self.settings("blend")=="IK", 0, 1)
 			self.showCtrlAttr = self.createAnimAttr("showCtrl", "bool", False) 
@@ -180,7 +185,7 @@ class ChainSystemBuilder(SystemBuilder):
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.createAnimAttr("Dynamic", "bool", self.settings("dynActive"))
 			self.globalAmplAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Bone"))]
+			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
 			
 			if self.settings("dynamicAnimatable"):
 				self.axisAttr = self.createAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))

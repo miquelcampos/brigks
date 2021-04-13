@@ -4,9 +4,9 @@ from brigks.systems.systemGuide import SystemGuide
 
 class SliderSystemGuide(SystemGuide):	
 
-	markerNames = ("Part", "Pos", "Neg")
+	markerNames = ("Rail", "Pos", "Neg")
 	markerMinMax = dict(
-		Part=(1,-1),
+		Rail=(1,-1),
 		Pos=(1,-1),
 		Neg=(1,-1)
 		)
@@ -23,8 +23,9 @@ class SliderSystemGuide(SystemGuide):
 		super(SliderSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Reference=("parent"),
-			Tracker=("parent"))
+			Reference=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			Tracker=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			)
 
 		for i in xrange(1, self.count("Rail")+1):
 			ports["Rail{}".format(i)] = ("parent")

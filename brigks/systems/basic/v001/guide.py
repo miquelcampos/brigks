@@ -13,7 +13,8 @@ class BasicSystemGuide(SystemGuide):
 		Part1=Vector3([0,1,0]),
 		)
 	markerCompatibility = dict(
-		chain=dict(Part="Bone"),
+		chain={},
+		#chain=dict(Part="Bone"), # This is how it should be formated if you had to rename markers
 		)
 
 	def addSettings(self):

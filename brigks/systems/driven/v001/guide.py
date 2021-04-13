@@ -26,12 +26,12 @@ class DrivenSystemGuide(SystemGuide):
 
 		ports = {}
 		for i in xrange(1, self.count("Rail")+1):
-			self.port["Rail%s"%i] = ["parent", "attachToGeo", "multi", "customParent"]
-			self.port["RailCls%s"%i] = ["parent", "attachToGeo", "multi", "customParent"]
-			self.port["RailCustom%s"%i] = ["parent", "attachToGeo", "multi", "customParent"]
+			self.port["Rail%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			self.port["RailCls%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			self.port["RailCustom%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 			
-		self.port["Reference"] = ["parent", "attachToGeo", "multi", "customParent"]
-		self.port["Tracker"] = ["parent", "attachToGeo", "multi", "customParent"]
+		self.port["Reference"] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+		self.port["Tracker"] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 
 		return ports
 

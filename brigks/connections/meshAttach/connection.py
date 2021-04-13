@@ -26,7 +26,7 @@ class MeshAttachSystemConnection(SystemConnection):
 
 		kwargs = dict(
 			componentType=COMPONENT_TYPES.index(self._settings["componentType"]),
-			componentIndex=-1 if useClosest else self._settings["componentIndex"],
+			componentIndex=-1 if self._settings["useClosest"] else self._settings["componentIndex"],
 			position=cmds.xform(child, q=True, translation=True, worldSpace=True)
 			)
 		kwargs.update(self._settings)

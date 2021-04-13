@@ -2,6 +2,8 @@
 
 
 
+
+
 - System X Symmetry
 - Check if Basic and Chain are building properly on Neg side
 - Action Menu
@@ -12,3 +14,11 @@
 NEW FEATURE: 
 Multiple UIHOSTs?
 Ability to have some attr on different controllers? 
+
+
+New Feature:
+When deleting/rebuilding a system, 
+Check if it's used as a uiHost
+Store attr Name and Connections
+Rerun the createAttributes of other systems
+Recreate connections

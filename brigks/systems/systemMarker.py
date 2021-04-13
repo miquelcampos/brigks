@@ -3,7 +3,7 @@ from maya import cmds
 from math3d import Transformation, Matrix4, Vector3
 
 from brigks.core import naming
-
+from brigks.utils import create
 
 def checkMarkersMinMax(markers, markerNames, markerMinMax):
 	"""Checks that all the mandatory markers exist.
@@ -54,12 +54,11 @@ class SystemMarker(object):
 
 	@classmethod
 	def create(cls, name, system, parent, matrix=None):
-		node = cmds.spaceLocator(name=name)
-		if matrix is not None:
-			cmds.xform(node, matrix=matrix, worldSpace=True)
 		parent = parent._marker if isinstance(parent, cls) else parent
-		node = cmds.parent(node, parent)
-
+		tfm = Matrix4(matrix).asTransform()
+		node = create.transform(parent, name, tfm, color=[1,1,0])
+		create.icon("sphere", node, size=.5)
+		cmds.xform(node, matrix=matrix, worldSpace=True)
 		return cls(node, system)
 
 	def rename(self, newName):

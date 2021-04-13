@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class SpineSystemGuide(SystemGuide):
 
-	markerNames = ("Part1", "Part2")
+	markerNames = ("Root", "Eff")
 	markerMinMax = dict()
 
 	def addSettings(self):
@@ -14,8 +14,8 @@ class SpineSystemGuide(SystemGuide):
 		super(SpineSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent"),
-			UI=("parent"))
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=["uiHost"])
 
 		return ports
 

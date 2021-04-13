@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class StretchSystemGuide(SystemGuide):
 
-	markerNames = ("Part1", "Part2")
+	markerNames = ("Root", "End")
 	markerMinMax = dict()
 	
 	def addSettings(self):
@@ -24,9 +24,9 @@ class StretchSystemGuide(SystemGuide):
 		super(StretchSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Start=("parent"),
-			End=("parent"),
-			UI=("parent")
+			Start=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			End=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=("uiHost")
 			)
 
 		return ports

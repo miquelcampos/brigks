@@ -35,7 +35,7 @@ class SystemBuilder():
 		self.steps["Create Attributes"] = self.stepAttributes
 		self.steps["Create Operators"] = self.stepOperators
 		self.steps["Connect System"] = self.stepConnections
-		self.steps["Post Process"] = self.stepPost
+		# self.steps["Post Process"] = self.stepPostProcess
 		self.steps["Post Script"] = self.stepPostScript
 
 	# ----------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class SystemBuilder():
 			cnx.setBuilder(self)
 		self.createConnections()
 
-	def stepPost(self):
+	def stepPostProcess(self):
 		pass
 
 	def stepPostScript(self):
@@ -175,13 +175,14 @@ class SystemBuilder():
 	def createTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		parent = parent if parent is not None else self.coreBuilder.localCtl
 		name = self.getObjectName(usage, part)
-		node = create.transform(parent, name, tfm)
+		node = create.transform(parent, name, tfm, color=color)
 		if icon:
 			create.icon(icon, node, size, po, ro, so)
 		return node
 
 	def createController(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		usage = naming.USAGES["Controller"]
+		color = [0,1,0]
 		return self.createTransform(parent, part, usage, tfm, icon, size, po, ro, so, color)
 
 	def createBuffer(self, parent, part, tfm=None):
@@ -201,7 +202,7 @@ class SystemBuilder():
 		color = [1,0,0]
 		parent = parent if parent is not None else self.coreBuilder.localCtl
 		name = self.getObjectName(usage, part)
-		return create.joint(parent, name, tfm=None, color=None)
+		return create.joint(parent, name, tfm=None, color=color)
 
 	def createSurfaceJoints(self, surface, count, part="Strap"):
 		parent = surface
@@ -241,7 +242,6 @@ class SystemBuilder():
 
 	def createAnimAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
-
 		a = self._createAttr(name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
 		return a
@@ -249,7 +249,6 @@ class SystemBuilder():
 	def createSetupAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
 			keyable=False, writable=False):
-
 		a = self._createAttr(name, attrType, value,
 					minValue, maxValue, keyable, writable)
 		return a

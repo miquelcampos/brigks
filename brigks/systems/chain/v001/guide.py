@@ -4,12 +4,13 @@ from brigks.systems.systemGuide import SystemGuide
 
 class ChainSystemGuide(SystemGuide):
 
-	markerNames = ("Bone",)
+	markerNames = ("Part",)
 	markerMinMax = dict(
-		Bone=(2,-1)
+		Part=(2,-1)
 		)
 	markerCompatibility = dict(
-		basic=dict(Bone="Part")
+		basic=dict(),
+		# basic=dict(Bone="Part")
 		)
 
 	def addSettings(self):
@@ -58,7 +59,7 @@ class ChainSystemGuide(SystemGuide):
 			name = "Dynamic{}"
 		elif self._settings["kinematic"] == "FK/IK":
 			usage = "Rig"
-			name = "Bone{}"
+			name = "Part{}"
 		elif self._settings["kinematic"] == "FK":
 			usage = "Ctrl"
 			name = "Fk{}"
@@ -67,7 +68,7 @@ class ChainSystemGuide(SystemGuide):
 			name = "Ik{02d}"
 
 		slots = dict()
-		for i in xrange(1, self.count("Bone")):
-			slots["Bone{}".format(i)] = (usage, name.format(i))
+		for i in xrange(1, self.count("Part")):
+			slots["Part{}".format(i)] = (usage, name.format(i))
 
 		return slots

@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class LookatSystemGuide(SystemGuide):
 
-	markerNames = ("Part1", "Part2")
+	markerNames = ("Root", "Eff")
 	markerMinMax = {}
 
 	def addSettings(self):
@@ -18,10 +18,10 @@ class LookatSystemGuide(SystemGuide):
 		super(LookatSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent", "attachToGeo", "multi", "customParent"),
-			Target=("parent", "attachToGeo", "multi", "customParent"),
-			UpVector=("parent", "attachToGeo", "multi", "customParent"),
-			UI=("parent", "attachToGeo", "multi", "customParent")
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			Eff=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UpVector=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=["uiHost"]
 			)
 
 		return ports

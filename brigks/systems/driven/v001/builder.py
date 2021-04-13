@@ -7,4 +7,4 @@ class DrivenSystemBuilder(SystemBuilder):
 
 		bfr = self.createRig(None, "Driven")
 		bfr = self.createBuffer(None, "Driven")
-		ctl = self.createController(None, "Driven", tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None)
+		ctl = self.createController(None, "Driven")

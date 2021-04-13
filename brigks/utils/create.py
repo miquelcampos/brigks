@@ -18,7 +18,8 @@ def transform(parent, name, tfm=None, icon=None, size=1, po=None, ro=None, so=No
 	cmds.parent(node, parent)
 
 	# Transform
-	cmds.xform(node, matrix=tfm.asMatrix().flattened(), worldSpace=True)
+	if tfm is not None:
+		cmds.xform(node, matrix=tfm.asMatrix().flattened(), worldSpace=True)
 
 	return node
 

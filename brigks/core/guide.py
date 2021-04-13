@@ -7,7 +7,7 @@ import datetime
 from layer import Layer
 from builder import Builder
 from brigks.core.config import DATA_ATTRIBUTE
-from brigks.utils.xml import indent
+from brigks.utils.xmldom import indent
 
 
 scriptDefaultValue = '''# cmds returns the maya.cmds module

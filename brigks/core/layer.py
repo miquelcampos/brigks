@@ -204,10 +204,9 @@ class Layer():
 			elif xmlObject.tag == "System":
 			 	key = xmlObject.get("key")
 			 	systemType = xmlObject.get("type")
-			 	systemVersion = xmlObject.get("type")
+			 	systemVersion = xmlObject.get("version", None)
 				SystemClass = getSystemGuideClass(systemType, systemVersion)
 				system = SystemClass.fromXml(layer, xmlObject)
 				layer._systems.append(system)
 
 		return layer
-

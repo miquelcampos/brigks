@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class AverageSystemGuide(SystemGuide):	
 
-	markerNames = ("Part1",)
+	markerNames = ("Root",)
 	markerMinMax = {}
 
 	def addSettings(self):
@@ -20,10 +20,10 @@ class AverageSystemGuide(SystemGuide):
 		super(AverageSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Parent=["parent"],
-			MasterA=["parent"],
-			MasterB=["parent"],
-			UI=["parent"]
+			Parent=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			MasterA=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			MasterB=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=["uiHost"]
 			)
 
 		return ports

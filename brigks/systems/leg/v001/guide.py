@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class LegSystemGuide(SystemGuide):	
 
-	markerNames = ("Part1", "Part2", "Part3", "Part4")
+	markerNames = ("Root", "Knee", "Ankle", "Eff")
 	markerMinMax = {}
 
 	def addSettings(self):
@@ -17,10 +17,10 @@ class LegSystemGuide(SystemGuide):
 		super(LegSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=["parent", "attachToGeo", "multi", "customParent"],
-			IK=["parent", "attachToGeo", "multi", "customParent"],
-			UpVector=["parent", "attachToGeo", "multi", "customParent"],
-			UI=["parent"],
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			IK=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UpVector=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			UI=["uiHost"],
 			)
 
 		return ports

@@ -4,7 +4,7 @@ from brigks.systems.systemGuide import SystemGuide
 
 class QuadrantSystemGuide(SystemGuide):	
 
-	markerNames = ("Part1",)
+	markerNames = ("Root",)
 	markerMinMax = {}
 
 	def addSettings(self):
@@ -23,7 +23,7 @@ class QuadrantSystemGuide(SystemGuide):
 		super(QuadrantSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Root=("parent,")
+			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 			)
 
 		return ports
@@ -32,7 +32,7 @@ class QuadrantSystemGuide(SystemGuide):
 		super(QuadrantSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Ctl=("Ctl", "Part1")
+			Ctl=("Ctl", "Root")
 			)
 
 		return slots
