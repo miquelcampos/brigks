@@ -1,13 +1,14 @@
 from itertools import izip
+import math
 
 from maya import cmds
 
 from math3d.matrixN import Matrix4
 
-compareOps = ["==", "!=", ">", ">=", "<", "<="]
+COMPARE_OPS = ["==", "!=", ">", ">=", "<", "<="]
 def compare(first, second, operation):
-	if operation not in compareOps:
-		raise ValueError("Given operation must be in %s"%compareOps)
+	if operation not in COMPARE_OPS:
+		raise ValueError("Given operation must be in %s"%COMPARE_OPS)
 
 	node = cmds.createNode("condition", name="Cond")
 
@@ -22,7 +23,7 @@ def compare(first, second, operation):
 		second = attribute.get(*second)
 		cmds.connectAttr(second, node+".secondTerm")
 
-	cmds.setAttr(node+".operation", compareOps.index(operation))
+	cmds.setAttr(node+".operation", COMPARE_OPS.index(operation))
 
 	cmds.setAttr(node+".colorIfTrueR", 1)
 	cmds.setAttr(node+".colorIfFalseR", 0)
@@ -94,6 +95,22 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None):
 
 	return cns
 
+POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
+def pointAtBlendedAxis(cns, masterA, masterB, blend=.5, axis="Z"):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+	node = cmds.createNode("PointAtBlendedAxis", name="PtAtBlended")
+	cmds.connectAttr(masterA+".worldMatrix[0]", node+".mA")
+	cmds.connectAttr(masterB+".worldMatrix[0]", node+".mB")
+
+	cmds.setAttr(node+".axis", POINTAT_AXIS.index(axis))
+	cmds.setAttr(node+".blend", blend)
+
+	cmds.setAttr(cns+".worldUpType", 3)
+	cmds.connectAttr(node+".out", cns+".worldUpVector")
+
+	return node
+
 def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termination=0.0, amplitudeAxis=(1,1,1)):
 	if not cmds.pluginInfo("harmonics", q=True,  loaded=True):
 		cmds.loadPlugin("harmonics")
@@ -115,7 +132,6 @@ def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termi
 
 	return hNode
 
-
 def rotationTracker(attr, reference, tracker):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
@@ -136,6 +152,22 @@ def rotationTracker(attr, reference, tracker):
 	cmds.setAttr(node+".restZ", z)
 
 	cmds.connectattr(node+".output", attr, force=True)
+
+	return node
+
+def rotationToSlider(attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	node = cmds.createNode("RotationToSlider", name="RTS")
+
+	cmds.connectAttr(node+".output", attr)
+	cmds.setAttr(node+".rotMin", rotMin)
+	cmds.setAttr(node+".rotMax", rotMax)
+	cmds.setAttr(node+".sliderMin", slideMin)
+	cmds.setAttr(node+".sliderMax", slideMax)
+
+	return node
 
 # ----------------------------------------------------------------------------------
 # ATTACH

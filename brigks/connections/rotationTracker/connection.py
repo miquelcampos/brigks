@@ -14,7 +14,7 @@ class RotationTrackerSystemConnection(SystemConnection):
 			trackerSlot=None,
 			)
 
-	def connect(self, child):
+	def connect(self):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 

@@ -24,7 +24,8 @@ class Guide():
 							preScriptPath="",
 							preScriptValue=scriptDefaultValue,
 							postScriptPath="",
-							postScriptValue=scriptDefaultValue
+							postScriptValue=scriptDefaultValue,
+							stopAfter=None,
 							)
 
 		# If we pass a model, then we load the settings

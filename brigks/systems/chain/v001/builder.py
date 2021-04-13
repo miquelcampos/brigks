@@ -3,8 +3,7 @@ from itertools import izip
 from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds
-from brigks.utils import math as mathu
+from brigks.utils import constants, attributes, create, compounds, umath
 
 from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
@@ -23,7 +22,7 @@ class ChainSystemBuilder(SystemBuilder):
 
 		# Normal
 		if self.count("Part") > 2:
-			normal = Vector3.planeNormal(*positions[:3]) * -1 # TODO Remove *-1 when math3d is fixed
+			normal = Vector3.planeNormal(*positions[:3])
 			if normal.length() < 1E-6:
 				normal = self.directions("Part1", "z")
 			if self.negate(): 
@@ -31,6 +30,7 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			normal = self.directions("Part1", "z")
 
+		print positions, normal
 		boneTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		d = [(positions[i],positions[i+1]) for i in range(self.count("Part")-1)]
 		boneLen = [Vector3.distance(a,b) for a,b in d]
@@ -47,9 +47,9 @@ class ChainSystemBuilder(SystemBuilder):
 			
 			# Up Vector
 			if self.count("Part") > 2:
-				translation = mathu.upVector(positions[0], positions[2], normal, ratio=1, negate=self.negate())
+				translation = umath.upVector(positions[0], positions[2], normal, ratio=1, negate=self.negate())
 			else:
-				translation = mathu.upVector(positions[0], positions[1], normal, ratio=1, negate=self.negate())
+				translation = umath.upVector(positions[0], positions[1], normal, ratio=1, negate=self.negate())
 			upvTfm = Transformation.fromParts(translation=translation)
 			
 		if self.settings("dynamic"):
@@ -73,8 +73,6 @@ class ChainSystemBuilder(SystemBuilder):
 				
 				fkBfr = self.createBuffer(parent, "Fk{}".format(i), tfm=btfm)
 				fkCtl = self.createController(fkBfr, "Fk{}".format(i), tfm, "sphere", so=[0,1,1], color=self.settings("colorFk"))
-										  
-				# self.setInversedParameters(fkCtl, middle=["posz", "rotx", "roty"])
 				attributes.setRotOrder(fkCtl, self.settings("defaultRotationOrder"))
 
 				parent = fkCtl
@@ -96,19 +94,16 @@ class ChainSystemBuilder(SystemBuilder):
 			self.ikBfr = self.createBuffer(self._root, "Ik", tfm=ikTfm)
 			self.ikCtl = self.createController(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.settings("colorIk"))
 			attributes.setKeyables(self.ikCtl, constants.tr_attrs)
-			# self.setInversedParameters(self.ikCtl, middle=["posz", "rotx", "roty"])
 
 			# UpVector Controller
-			self.upvBfr = self.createBuffer(self._root, "upv", upvTfm)
+			self.upvBfr = self.createBuffer(self._root, "UpV", upvTfm)
 			self.upvCtl = self.createController(self.upvBfr, "upv", upvTfm, "diamond", color=self.settings("colorIk"))
 			attributes.setKeyables(self.upvCtl, constants.t_attrs)
-			# self.setInversedParameters(self.upvCtl, middle=["posz"])
 
 			# Ik Chain
 			self.ikBones, self.effector, self.handle = create.chain(self.getObjectName("Rig", "Ik"), self._root, positions, normal, negate=self.negate())
 			
 			# self.upvCrv = self.addCnsCurve([self.ikChn.root(), self.upvCtl, self.ikChn.effector()], "UpvCrv")
-
 
 		# Bones -------------------------------
 		if self.isFkIk:# or (self.isFk and self.settings("dynamic")):

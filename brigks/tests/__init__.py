@@ -35,7 +35,7 @@ def createSimpleGuideAndBuild(showWindow=False):
 		basicMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
 
 		t = Transformation.fromParts(translation=Vector3([x,i,2]))
-		chainMatrices["Bone%s"%(i+1)] = t.asMatrix().flattened()
+		chainMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
@@ -45,7 +45,7 @@ def createSimpleGuideAndBuild(showWindow=False):
 
 	# System Settings
 	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
-	chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematics="FK/IK", strap=True)
+	chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
 
 	# Add Pre/Pest Script to System
 	# basic.setSettings(preScriptValue="print 'This is a Pre Script for the system {k}'.format(k=this_guide.key())")
@@ -113,6 +113,85 @@ def deleteGuides(deleteGuide=False, showWindow=False):
 
 	if showWindow:
 		showWindow()
+
+
+
+
+def createXGuideAndBuild(showWindow=False):
+	# Building Matrix for guide positions
+	basicMatrices = {}
+	chainMatrices = {}
+	for i in range(4):
+		x = 3 if i == 2 else i
+		t = Transformation.fromParts(translation=Vector3([x,i,0]))
+		basicMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
+
+		t = Transformation.fromParts(translation=Vector3([x,i,2]))
+		chainMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
+
+	# Create Guide, add a layer and a couple Systems
+	g = Guide()
+	layer = g.addLayer("MyFirstLayer")
+	g.setSettings(stopAfter="Create Objects")
+
+	#basic = layer.addSystem("basic", "L", "Basic", basicMatrices)
+	chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
+
+	# System Settings
+	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
+	chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
+
+	# Save edit
+	g.commit()
+
+	# Build all rig
+	g.build()
+
+	if showWindow:
+		showWindow()
+
+	return g
+
+
+
+def createStretchSliderGuideAndBuild(showWindow=False):
+	# Building Matrix for guide positions
+	sliderMatrices = dict(
+		Rail1=Transformation.fromParts(translation=Vector3([0,0,0])),
+		Pos1=Transformation.fromParts(translation=Vector3([1,0,0])),
+		Neg1=Transformation.fromParts(translation=Vector3([-1,0,0]))
+		)
+	stretchMatrices = dict(
+		Root=Transformation.fromParts(translation=Vector3([0,3,0])),
+		End=Transformation.fromParts(translation=Vector3([2,3,0]))
+		)
+
+	print sliderMatrices
+	print stretchMatrices
+
+	# Create Guide, add a layer and a couple Systems
+	g = Guide()
+	layer = g.addLayer("MyFirstLayer")
+	slider = layer.addSystem("slider", "L", "Basic", sliderMatrices)
+	stretch = layer.addSystem("stretch", "L", "Chain", stretchMatrices)
+
+	print slider._settings
+
+	# System Settings
+	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
+	stretch.setSettings(squash=True)
+
+
+	# Save edit
+	g.commit()
+
+	# Build all rig
+	g.build()
+
+	if showWindow:
+		showWindow()
+
+	return g
 
 
 @context.command()

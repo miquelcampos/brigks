@@ -1,8 +1,11 @@
+import math
+
 from maya import cmds
+from maya import OpenMaya as om
 import pymel.core as pm
 import pymel.core.datatypes as dt
 
-from math3d.transformation import TransformationArray
+from math3d.transformation import TransformationArray, Transformation
 from math3d.vectorN import Vector3
 from math3d.matrixN import Matrix4
 
@@ -12,21 +15,26 @@ ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "c
 	"cylinder", "diamond", "flower", "jaw", "null", "pyramid", "sphere", "spine", "square",
 	 "lookat", "bendedarrow", "rotatearrow", "gear", "lung"]
 
-def transform(parent, name, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+def transform(parent, name, matrix=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 	node = cmds.createNode("transform", name=name)
 	attr.setColor(node, color)
-	cmds.parent(node, parent)
+	node = cmds.parent(node, parent)[0]
 
 	# Transform
-	if tfm is not None:
-		cmds.xform(node, matrix=tfm.asMatrix().flattened(), worldSpace=True)
+	if matrix is not None:
+		if isinstance(matrix, Transformation):
+			matrix = matrix.asMatrix().flattened()
+		elif isinstance(matrix, Matrix4):
+			matrix = matrix.flattened()
+
+		cmds.xform(node, matrix=matrix, worldSpace=True)
 
 	return node
 
-def joint(parent, name, tfm=None, color=None):
+def joint(parent, name, tfm=None, color=None, useJointOrient=False):
 	node = cmds.createNode("joint", name=name)
 	attr.setColor(node, color)
-	cmds.parent(node, parent)
+	node = cmds.parent(node, parent)[0]
 
 	# Transform
 	if tfm is None:
@@ -36,6 +44,26 @@ def joint(parent, name, tfm=None, color=None):
 		matrix = tfm.asMatrix().flattened()
 	cmds.xform(node, matrix=matrix, worldSpace=True)
 	
+	if useJointOrient:
+		# Because Joints are fun, you actually want the orientation  
+		# to be on the JointOrientation and not the Rotation
+		# It only really matters when you use a ikhandle, but better safe than sorry
+		rot = cmds.getAttr(node+".rotate")[0]
+		ori = cmds.getAttr(node+".jointOrient")[0]
+		eRot = om.MEulerRotation(math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]), om.MEulerRotation.kXYZ)
+		eOri = om.MEulerRotation(math.radians(ori[0]), math.radians(ori[1]), math.radians(ori[2]), om.MEulerRotation.kXYZ)
+		qRot = eRot.asQuaternion()
+		qOri = eOri.asQuaternion()
+		q =  qRot * qOri
+		e = q.asEulerRotation()
+		e = (math.degrees(e.x), math.degrees(e.y), math.degrees(e.z))
+		try:
+			# The joint might be locked or connected, int that case we don't do anything.
+			cmds.setAttr(node+".rotate", 0,0,0)
+			cmds.setAttr(node+".jointOrient", *e)
+		except:
+			pass
+
 	return node
 
 def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
@@ -43,7 +71,7 @@ def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False,
 		cmds.loadPlugin("harbieLocator.mll")
 
 	shape = cmds.createNode("nurbsCurve", name=parent+"Shape", parent=parent, skipSelect=True)
-	mhc =  cmds.createNode("makeHarbieCurve", skipSelect=True)
+	mhc = cmds.createNode("makeHarbieCurve", skipSelect=True)
 	cmds.connectAttr (mhc+".outputCurve", shape+".create")
 
 	# Icon
@@ -83,8 +111,7 @@ def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1,
 	joints = []
 	jointParent = parent
 	for i, tfm in enumerate(transforms, start=1):
-		# joint = create(name+"%02d"%i, jointParent, tfm, size, color)
-		jnt = joint(jointParent, name+"%02d"%i, tfm, color)
+		jnt = joint(jointParent, name+"%02d"%i, tfm, color, useJointOrient=True)
 
 		jointParent = jnt
 		joints.append(jnt)
@@ -103,7 +130,7 @@ def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1,
 	effector = cmds.rename(effector, name+"Eff")
 	handle = cmds.rename(handle, name+"Hdl")
 	if parent:
-		cmds.parent(handle, parent, absolute=True)
+		handle = cmds.parent(handle, parent, absolute=True)[0]
 
 	cmds.delete(joints.pop(-1))
 
@@ -169,7 +196,7 @@ def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=
 
 	cmds.delete(pcrv, ncrv)
 	if parent:
-		cmds.parent(surface, parent)
+		surface = cmds.parent(surface, parent)[0]
 
 	cmds.skinCluster(centers, surface, maximumInfluences=1, toSkeletonAndTransforms=True, bindMethod=0)
 	
@@ -225,6 +252,6 @@ def curve(name, points, closed=False, degree=3, parent=None, color=None):
 		attr.setColor(curve, color)
 	
 	if parent:
-		cmds.parent(curve, parent)
+		curve = cmds.parent(curve, parent)[0]
 
 	return curve

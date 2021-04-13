@@ -23,7 +23,6 @@ class SliderSystemGuide(SystemGuide):
 		super(SliderSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Reference=["rotationTracker"],
 			Tracker=["rotationTracker"]
 			)
 

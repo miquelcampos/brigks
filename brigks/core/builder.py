@@ -176,6 +176,9 @@ class Builder():
 			
 			logging.info("{step}: Completed in {time}".format(step=step, time=dt.now() - start))
 
+			if self.guide.settings("stopAfter") == step:
+				break
+
 	def _commit(self):
 		# Update with the latest data
 		newSystemsData = {}

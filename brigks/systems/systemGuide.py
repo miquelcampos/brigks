@@ -81,6 +81,7 @@ class SystemGuide(object):
 			SystemMarker.create(name, system, parent, matrix)
 
 		system.loadMarkers(force=True)
+		system.addSettings()
 
 		return system
 
@@ -102,6 +103,9 @@ class SystemGuide(object):
 
 	def delete(self, deleteGuide=False):
 		self.guide().delete([self], deleteGuide)
+
+	def duplicate(self, symmetry):
+		pass
 
 	def dumps(self):
 		"""
