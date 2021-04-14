@@ -76,7 +76,6 @@ class SliderSystemBuilder(SystemBuilder):
 			cns = compounds.rotationToSlider(slider+".tx", rotMin=rot[0], rotMax=rot[1], 
 										slideMin=limits[0], slideMax=limits[1])
 
-			print self.outrotAttr, a, axis
 			cmds.connectAttr(self.outrotAttr+str(a), cns+".angle")
 
 	#----------------------------------------------------------------------------
@@ -84,7 +83,7 @@ class SliderSystemBuilder(SystemBuilder):
 	def createConnections(self):
 		for port, cnx in self.connections().iteritems():
 			if port == "Tracker":
-				cnx.connect()
+				cnx.connect(self.outrotAttr)
 			else:
 				child = self.getObject("Rig", port)
 				cnx.connect(child)

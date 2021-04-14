@@ -30,7 +30,6 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			normal = self.directions("Part1", "z")
 
-		print positions, normal
 		boneTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		d = [(positions[i],positions[i+1]) for i in range(self.count("Part")-1)]
 		boneLen = [Vector3.distance(a,b) for a,b in d]

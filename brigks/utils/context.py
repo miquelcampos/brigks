@@ -1,5 +1,7 @@
 import contextlib
 from functools import wraps
+import datetime
+import logging
 
 from maya import cmds
 
@@ -77,7 +79,7 @@ def command(resetSelection=True):
 					result = func(*args, **kwargs)
 
 			te = datetime.datetime.now()
-			print '%s [%s]' % (name, te-ts)
+			logging.info('{n} [{t}]'.format(n=name, t=te-ts))
 			return result 
 		return decorator
 	return wrapper

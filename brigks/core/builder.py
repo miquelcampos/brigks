@@ -47,10 +47,12 @@ class Builder():
 		self._systems.update(toCreateAttr)
 
 		logging.info("INIT SYSTEMS {time}".format(time=dt.now() - start))
+		start = dt.now()
 
 		# Pre Script
 		self._executeScript(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"))
 		logging.info("PRE SCRIPT {time}".format(time=dt.now() - start))
+		start = dt.now()
 
 		# Getting all the building steps and then build
 		if self._systems:
@@ -98,20 +100,20 @@ class Builder():
 			if settings["split"]:
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
-				systemGuide.loadMarkers()
+				systemGuide.loadMarkers(force=True)
 				leftSystem, rightSystem = systemGuide.splitSymmetry()
 				builders[leftSystem.key()] = leftSystem.builder(self)
 				builders[rightSystem.key()] = rightSystem.builder(self)
 			else:
 				systemGuide = self.guide.findSystem(key)
-				systemGuide.loadMarkers()
+				systemGuide.loadMarkers(force=True)
 				builders[key] = systemGuide.builder(self)
 		return builders
 
 	def _initSystemsToBuild(self, systemGuides):
 		builders = {}
 		for systemGuide in systemGuides:
-			systemGuide.loadMarkers()
+			systemGuide.loadMarkers(force=True)
 
 			# If marker is X, we create a Left and Right builder
 			if systemGuide.settings()["location"] == "X":
@@ -135,13 +137,13 @@ class Builder():
 			if settings["split"]:
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
-				systemGuide.loadMarkers()
+				systemGuide.loadMarkers(force=True)
 				leftSystem, rightSystem = systemGuide.splitSymmetry()
 				toConnect[leftSystem.key()] = leftSystem.builder(self)
 				toConnect[rightSystem.key()] = rightSystem.builder(self)
 			else:
 				systemGuide = self.guide.findSystem(key)
-				systemGuide.loadMarkers()
+				systemGuide.loadMarkers(force=True)
 
 				# Check if any of those systems are connected to something we're rebuilding
 				for cnx in systemGuide.connections().values():
@@ -171,7 +173,7 @@ class Builder():
 				builders = toBuild.values()
 
 			for builder in builders:
-				logging.debug("{step}: {key}".format(key=builder.key(), step=step))
+				logging.debug("{step}: {key} ({type})".format(key=builder.key(), step=step, type=builder.type()))
 				builder.steps[step]()
 			
 			logging.info("{step}: Completed in {time}".format(step=step, time=dt.now() - start))

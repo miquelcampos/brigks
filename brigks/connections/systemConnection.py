@@ -42,12 +42,12 @@ class SystemConnection(object):
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------
-	def getParentFromSlot(self, key, slot):
+	def getParentFromSlot(self, key, slot, useDefault=True):
 		parent = None
 		if key in self._builder.coreBuilder.systems():
 			system = self._builder.coreBuilder.systems(key)
 			parent = system.getObjectFromSlot(slot)
-		if parent is None:
+		if parent is None and useDefault:
 			parent = self._builder.coreBuilder.localCtl
 		return parent
 

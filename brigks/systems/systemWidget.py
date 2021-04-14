@@ -1,5 +1,7 @@
 import os.path
 
+import logging
+
 from Qt import QtCompat
 from Qt.QtWidgets import QWidget, QCheckBox, QComboBox, QSpinBox, QDoubleSpinBox, QLineEdit, QListWidget, QPlainTextEdit
 
@@ -77,7 +79,7 @@ class SystemWidget(QWidget):
 			elif isinstance(widget, QComboBox):
 				allItems = [widget.itemText(i) for i in range(widget.count())]
 				if value not in allItems:
-					print "Invalid value for %s - %s"%(setting, value)
+					logging.debug("Invalid value for {s} - {v}".format(s=setting, v=value))
 					continue
 				widget.setCurrentIndex(allItems.index(value))
 			elif isinstance(widget, QListWidget):

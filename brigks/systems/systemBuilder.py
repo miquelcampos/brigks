@@ -19,6 +19,7 @@ class SystemBuilder():
 		self._uiHosts = {}
 
 		self.key = self.guide.key
+		self.type = self.guide.type
 		self.transforms = self.guide.transforms
 		self.translations = self.guide.translations
 		self.directions = self.guide.directions
@@ -248,7 +249,7 @@ class SystemBuilder():
 
 	def createSetupAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
-			keyable=False, writable=False):
+			keyable=False, writable=True):
 		a = self._createAttr(name, attrType, value,
 					minValue, maxValue, keyable, writable)
 		return a

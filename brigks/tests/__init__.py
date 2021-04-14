@@ -166,9 +166,6 @@ def createStretchSliderGuideAndBuild(showWindow=False):
 		End=Transformation.fromParts(translation=Vector3([2,3,0]))
 		)
 
-	print sliderMatrices
-	print stretchMatrices
-
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
 	layer = g.addLayer("MyFirstLayer")

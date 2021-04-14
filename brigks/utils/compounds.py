@@ -138,12 +138,14 @@ def rotationTracker(attr, reference, tracker):
 
 	node = cmds.createNode("RotationTracker", name="RotTrk")
 
-	cmds.connectattr(reference+".worldMatrix[0]", node+".reference")
-	cmds.connectattr(tracker+".worldMatrix[0]", node+".tracker")
+	cmds.connectAttr(reference+".worldMatrix[0]", node+".reference")
+	cmds.connectAttr(tracker+".worldMatrix[0]", node+".tracker")
 
 	# Offset
-	m = transform.getTransform(tracker).asMatrix() * transform.getTransform(reference).asMatrixInverse()
-	er = om.MTransformationMatrix(m).eulerRotation()
+	tMatrix = Matrix4(cmds.xform(tracker, q=True, matrix=True, worldSpace=True))
+	rMatrix = Matrix4(cmds.xform(tracker, q=True, matrix=True, worldSpace=True))
+	m = tMatrix * rMatrix.inverse()
+	er = tMatrix.asTransform().rotation.asEuler()
 	x = math.degrees(er.x)
 	y = math.degrees(er.y)
 	z = math.degrees(er.z)
@@ -151,7 +153,7 @@ def rotationTracker(attr, reference, tracker):
 	cmds.setAttr(node+".restY", y)
 	cmds.setAttr(node+".restZ", z)
 
-	cmds.connectattr(node+".output", attr, force=True)
+	cmds.connectAttr(node+".output", attr, force=True)
 
 	return node
 

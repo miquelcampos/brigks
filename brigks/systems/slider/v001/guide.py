@@ -34,9 +34,9 @@ class SliderSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(SliderSystemGuide, self).connectionSlots()
 
-		usage = "Ctl" if self._settings("addControllers") else "Rig"
+		usage = "Ctl" if self.settings("addControllers") else "Rig"
 		slots = dict()
-		for i in xrange(1, self.count("Slider")+1):
+		for i in xrange(1, self.count("Rail")+1):
 			slots["Slider{}".format(i)] = (usage, "Slider{}".format(i))
 
 		return slots

@@ -14,14 +14,17 @@ class RotationTrackerSystemConnection(SystemConnection):
 			trackerSlot=None,
 			)
 
-	def connect(self):
+	def connect(self, attr):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 
-		reference = system.getParentFromSlot(self._settings["referenceKey"], self._settings["referenceSlot"])
-		tracker = system.getParentFromSlot(self._settings["trackerKey"], self._settings["trackerSlot"])
+		reference = self.getParentFromSlot(self._settings["referenceKey"], self._settings["referenceSlot"], useDefault=False)
+		tracker = self.getParentFromSlot(self._settings["trackerKey"], self._settings["trackerSlot"], useDefault=False)
 
-		cns = compounds.rotationTracker(outrotAttr, reference, tracker)
+		if not reference or not tracker:
+			return
+
+		cns = compounds.rotationTracker(attr, reference, tracker)
 
 	def getTargetSystems(self):
 		keys = []
