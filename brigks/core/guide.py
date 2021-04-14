@@ -26,6 +26,7 @@ class Guide():
 							postScriptPath="",
 							postScriptValue=scriptDefaultValue,
 							stopAfter=None,
+							groups=dict(),
 							)
 
 		# If we pass a model, then we load the settings
@@ -122,6 +123,35 @@ class Guide():
 			systems = layer.systems().values()
 			systemGuides.extend(systems)
 		return systemGuides
+
+	# ----------------------------------------------------------------------------------
+	# GROUPS
+	# ----------------------------------------------------------------------------------
+	def groups(self, key=None):
+		return self._settings["groups"] if key is None else self._settings["groups"][key]
+
+	def addGroup(self, name, value=[]):
+		self.groups()[name] = value
+
+	def removeGroup(self, name):
+		if name not in self.groups():
+			msg = "No such group: {n}"
+			raise ValueError(msg.format(n=name))
+		return self.groups().pop(name)
+
+	def renameGroup(self, name, newName):
+		self.addGroup(newName, self.removeGroup(name))
+
+	def addMembers(self, name, members):
+		members += self.groups(name)
+		members = set(members)
+		self.groups()[name] = list(members)
+
+	def removeMembers(self, name, members):
+		for member in members:
+			if member in self.groups(name):
+				index = self.groups(name).index(member)
+				self.groups(name).pop(index)
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT

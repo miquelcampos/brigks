@@ -11,6 +11,8 @@ class SystemBuilder():
 
 	def __init__(self, coreBuilder, guide):
 		self.coreBuilder = coreBuilder
+		self.nodes = self.coreBuilder.nodes
+		self.model = self.coreBuilder.model
 		self.guide = guide
 		self.settings = self.guide.settings
 		self.setSettings = self.guide.setSettings
@@ -104,14 +106,14 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	def deleteObjects(self):
 		search = self.getObject("*", "*")
-		parent = cmds.ls(self.coreBuilder.localCtl, long=True)[0]
+		parent = cmds.ls(self.nodes("local"), long=True)[0]
 		toDelete = [x for x in cmds.ls(search, type="transform", long=True) if x.startswith(parent)]
 		if toDelete:
 			# Unparent all the children
 			children = cmds.listRelatives(toDelete, children=True, type="transform", path=True)
 			children = [x for x in cmds.ls(children, long=True) if x not in toDelete]
 			if children:
-				cmds.parent(children, self.coreBuilder.localCtl)
+				cmds.parent(children, self.nodes("local"))
 
 			# Delete objects
 			cmds.delete(toDelete)
@@ -121,14 +123,14 @@ class SystemBuilder():
 
 	def deleteJoints(self):
 		search = self.getObject("Jnt", "*")
-		parent = cmds.ls(self.coreBuilder.localCtl, long=True)[0]
+		parent = cmds.ls(self.nodes("local"), long=True)[0]
 		toDelete = [x for x in cmds.ls(search, type="joint", long=True) if x.startswith(parent)]
 		if toDelete:
 			# Unparent all the children
 			children = cmds.listRelatives(toDelete, children=True, type="transform", path=True)
 			children = [x for x in cmds.ls(children, long=True) if x not in toDelete]
 			if children:
-				cmds.parent(children, self.coreBuilder.localCtl)
+				cmds.parent(children, self.nodes("local"))
 
 			# Delete objects
 			cmds.delete(toDelete)
@@ -160,7 +162,7 @@ class SystemBuilder():
 
 		args = dict(
 			cmds=cmds,
-			this_model=self.coreBuilder.model(),
+			this_model=self.model(),
 			this_guide=self.guide
 			)
 		exec(value, args, args)
@@ -174,7 +176,7 @@ class SystemBuilder():
 	#  HELPERS to CREATE OBJECTS / ATTRIBUTES
 	# ----------------------------------------------------------------------------------
 	def createTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
-		parent = parent if parent is not None else self.coreBuilder.localCtl
+		parent = parent if parent is not None else self.nodes("local")
 		name = self.getObjectName(usage, part)
 		node = create.transform(parent, name, tfm, color=color)
 		if icon:
@@ -201,7 +203,7 @@ class SystemBuilder():
 	def createJoint(self, parent, part):
 		usage = naming.USAGES["Joint"]
 		color = [1,0,0]
-		parent = parent if parent is not None else self.coreBuilder.localCtl
+		parent = parent if parent is not None else self.nodes("local")
 		name = self.getObjectName(usage, part)
 		return create.joint(parent, name, tfm=None, color=color)
 
@@ -222,9 +224,9 @@ class SystemBuilder():
 		compounds.surfaceMultiAttach([joints], surface, attach=0, evenly=True)
 
 		for jnt in joints:
-			cmds.connectAttr(self.coreBuilder.localCtl+".sx" ,jnt+".sx")
-			cmds.connectAttr(self.coreBuilder.localCtl+".sx" ,jnt+".sy")
-			cmds.connectAttr(self.coreBuilder.localCtl+".sx" ,jnt+".sz")
+			cmds.connectAttr(self.nodes("local")+".sx" ,jnt+".sx")
+			cmds.connectAttr(self.nodes("local")+".sx" ,jnt+".sy")
+			cmds.connectAttr(self.nodes("local")+".sx" ,jnt+".sz")
 
 		return joints
 
@@ -233,7 +235,7 @@ class SystemBuilder():
 
 		# For now we only support one UIHost, but we could 
 		# pass an argument for which host to crete the attr to
-		host = self._uiHosts.get("UI", self.coreBuilder.localCtl)
+		host = self._uiHosts.get("UI", self.nodes("local"))
 
 		longName = self.getObjectName("Rig", displayName)
 		a = attributes.create(host, longName, attrType, value, minValue, maxValue,

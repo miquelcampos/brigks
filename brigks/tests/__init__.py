@@ -172,8 +172,6 @@ def createStretchSliderGuideAndBuild(showWindow=False):
 	slider = layer.addSystem("slider", "L", "Basic", sliderMatrices)
 	stretch = layer.addSystem("stretch", "L", "Chain", stretchMatrices)
 
-	print slider._settings
-
 	# System Settings
 	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	stretch.setSettings(squash=True)

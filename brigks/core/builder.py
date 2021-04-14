@@ -2,11 +2,14 @@ import json
 import os.path
 import logging
 from datetime import datetime as dt
+import xml.etree.cElementTree as etree
 
 from maya import cmds
 
 from brigks.core import naming
 from brigks.core.config import DATA_ATTRIBUTE
+
+HIERARCHY_XML_PATH = os.path.join(os.path.dirname(__file__),"hierarchy.xml")
 
 class Builder():
 
@@ -15,12 +18,16 @@ class Builder():
 		self._model = None
 		self._systems = {}
 		self._settings = dict(systems={})
+		self._nodes = {}
 
 	def settings(self, key=None):
 		return self._settings if key is None else self._settings[key]
 
 	def systems(self, key=None):
 		return self._systems if key is None else self._systems[key]
+
+	def nodes(self, key=None):
+		return self._nodes if key is None else self._nodes[key]
 
 	def builtSystems(self, key=None):	
 		return self._settings["systems"] if key is None else self._settings["systems"][key]
@@ -90,8 +97,26 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	def _initCore(self, create=True):
 		self._model = self._createModel(create)
-		self.globalCtl = self._createController(self._model, part="Global", create=create)
-		self.localCtl = self._createController(self.globalCtl, part="Local", create=create)
+		# self.globalCtl = self._createController(self._model, part="Global", create=create)
+		# self.localCtl = self._createController(self.globalCtl, part="Local", create=create)
+
+		xmlHierarchy = etree.parse(HIERARCHY_XML_PATH).getroot()
+		for xmlNode in xmlHierarchy:
+			self._buildFromXml(xmlNode, parent=self._model, create=create)
+
+	def _buildFromXml(self, xmlNode, parent, create):
+		# Parse the XML tree and create the hierachy of nodes
+		key = xmlNode.get("key")
+		part = xmlNode.get("part")
+		if xmlNode.tag == "organizer":
+			node = self._createOrganizer(parent, part, create)
+		elif xmlNode.tag == "controller":
+			node = self._createController(parent, part, create)
+		
+		self._nodes[key] = node
+
+		for xmlChild in xmlNode:
+			self._buildFromXml(xmlChild, node, create)
 
 	def _initSystems(self):
 		builders = {}
@@ -233,6 +258,23 @@ class Builder():
 		if not currentParent or currentParent[0] != parent:
 			cmds.parent(controller, parent)
 		return controller
+
+	def _createOrganizer(self, parent, part, create):
+		name = naming.getObjectName(naming.USAGES["Organizer"], "M", "Root", part)
+
+		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
+		if exisiting:
+			organizer = cmds.ls(exisiting)[0]
+		elif not create:
+			return
+		else:
+			organizer = cmds.createNode("transform", name=name)
+	
+		currentParent = cmds.listRelatives(organizer, parent=True, path=True)
+		if not currentParent or currentParent[0] != parent:
+			cmds.parent(organizer, parent)
+		return organizer
+		
 
 	# ----------------------------------------------------------------------------------
 	# 

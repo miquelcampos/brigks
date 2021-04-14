@@ -48,7 +48,7 @@ class SystemConnection(object):
 			system = self._builder.coreBuilder.systems(key)
 			parent = system.getObjectFromSlot(slot)
 		if parent is None and useDefault:
-			parent = self._builder.coreBuilder.localCtl
+			parent = self._builder.nodes("local")
 		return parent
 
 	def getParentFromMesh(self, mesh, useClosest, useOrientation, componentType, componentIndex, key, slot, position):
@@ -83,7 +83,7 @@ class SystemConnection(object):
 		return attach
 
 	def getParentFromName(self, name):
-		model = self._builder.coreBuilder.model()
+		model = self._builder.model()
 		for name in [cmds.ls(name, long=True)]:
 			if name.startswith(model):
 				return name

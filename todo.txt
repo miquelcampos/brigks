@@ -11,6 +11,8 @@
 - Connection UI could be nicer
 - Reconnect attr when rebuilding uiHosts
 - Builder: Init Systems could be more efficient
+- Groups
+- XML Hierarchy
 
 NEW FEATURE: 
 Multiple UIHOSTs?

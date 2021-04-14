@@ -4,6 +4,7 @@
 # CONSTANTS
 # ----------------------------------------------------------------------------------
 USAGES = dict(
+	Organizer="Org",
 	Controller="Ctl",
 	Guide="Gde",
 	Buffer="Bfr",
