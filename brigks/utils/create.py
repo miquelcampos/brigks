@@ -1,4 +1,5 @@
 import math
+from itertools import izip
 
 from maya import cmds
 from maya import OpenMaya as om
@@ -9,7 +10,7 @@ from math3d.transformation import TransformationArray, Transformation
 from math3d.vectorN import Vector3
 from math3d.matrixN import Matrix4
 
-from brigks.utils import attr, compounds
+from brigks.utils import attributes, compounds
 
 ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "cubewithpeak",
 	"cylinder", "diamond", "flower", "jaw", "null", "pyramid", "sphere", "spine", "square",
@@ -17,7 +18,7 @@ ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "c
 
 def transform(parent, name, matrix=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 	node = cmds.createNode("transform", name=name)
-	attr.setColor(node, color)
+	attributes.setColor(node, color)
 	node = cmds.parent(node, parent)[0]
 
 	# Transform
@@ -33,7 +34,7 @@ def transform(parent, name, matrix=None, icon=None, size=1, po=None, ro=None, so
 
 def joint(parent, name, tfm=None, color=None, useJointOrient=False):
 	node = cmds.createNode("joint", name=name)
-	attr.setColor(node, color)
+	attributes.setColor(node, color)
 	node = cmds.parent(node, parent)[0]
 
 	# Transform
@@ -119,9 +120,9 @@ def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1,
 	handle, effector = cmds.ikHandle(startJoint=joints[0], endEffector=joints[-1])
 
 	if negate:
-		upv = Vector3(0,-1,0) * transforms[0]
-		tfm = transforms[0].copy(rotation=Euler(0,0,0))
-		upv = upv * tfm.inverted()
+		upv = Vector3([0,-1,0]) * transforms[0].asMatrix()
+		tfm = Transformation.fromParts(translation=transforms[0].translation)
+		upv = upv * tfm.asMatrix().inverse()
 
 		cmds.setAttr(handle+".poleVectorX", upv.x)
 		cmds.setAttr(handle+".poleVectorY", upv.y)
@@ -216,7 +217,7 @@ def curve(name, points, closed=False, degree=3, parent=None, color=None):
 		curve = cmds.curve(n=name, d=degree, p=points)
 
 	if color:
-		attr.setColor(curve, color)
+		attributes.setColor(curve, color)
 	
 	if parent:
 		curve = cmds.parent(curve, parent)[0]
@@ -284,6 +285,19 @@ def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=
 	if parent:
 		surface = cmds.parent(surface, parent)[0]
 
-	cmds.skinCluster(centers, surface, maximumInfluences=1, toSkeletonAndTransforms=True, bindMethod=0)
-	
+	# cmds is not create to bind to transform, so we bind to temp joints
+	tmpJnts = []
+	for center in centers:	
+		tmpJnt = joint(center, center+"_TEMPJNT")
+		tmpJnts.append(tmpJnt)
+	skinCluster = cmds.skinCluster(tmpJnts, surface, maximumInfluences=1, toSelectedBones=True, bindMethod=0)[0]
+	for center, tmpJnt in izip(centers, tmpJnts):
+		attributes.create(center, "lockInfluenceWeights", 'bool', value=False)
+		cnx = cmds.listConnections(tmpJnt, type="skinCluster", plugs=True, connections=True)
+		cnx = [(cnx[i*2].split(".")[-1], cnx[i*2+1].split(".")[-1]) for i in range(len(cnx)/2)]
+		for src, dst in cnx:
+			cmds.connectAttr(center+"."+src, skinCluster+"."+dst, force=True)
+	cmds.delete(tmpJnts)
+
 	return surface
+

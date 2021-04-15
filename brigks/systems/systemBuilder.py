@@ -72,7 +72,7 @@ class SystemBuilder():
 	def stepObjects(self):
 		self.deleteObjects()
 		self.createObjects()
-		if self.settings("addJoints"):
+		if self.settings("createJoints"):
 			self.createJoints()
 
 	def stepOperators(self):
@@ -185,7 +185,7 @@ class SystemBuilder():
 
 	def createController(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		usage = naming.USAGES["Controller"]
-		color = [0,1,0]
+		color = [0,0,1]
 		return self.createTransform(parent, part, usage, tfm, icon, size, po, ro, so, color)
 
 	def createBuffer(self, parent, part, tfm=None):

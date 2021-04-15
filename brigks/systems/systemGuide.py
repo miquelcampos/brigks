@@ -45,7 +45,7 @@ class SystemGuide(object):
 					inheritColors=True,
 					colorIk=[1,0,0],
 					colorFk=[0,0,1],
-					addJoints=True)
+					createJoints=True)
 		self._markers = None
 		self._multiMarkers = dict() 
 		self._connections = {}
@@ -173,11 +173,18 @@ class SystemGuide(object):
 			location = "R" if location == "L" else "L"
 
 		name = self.guide().findNextSystemName(name, location)
-		newSystem = self.create(layer, location, name, matrices)
+		dupSystem = self.create(layer, location, name, matrices)
+		settings = copy.deepcopy(self.settings())
+		settings.pop("name")
+		settings.pop("location")
+		dupSystem.setSettings(**settings)
 
-		self.layer().appendSystem(newSystem)
+		self.layer().appendSystem(dupSystem)
 
-		return newSystem
+		print self.layer().systems()
+		print self.guide()._getAllSystems()
+
+		return dupSystem
 
 	def mirror(self):
 		self.loadMarkers(force=True)
@@ -196,7 +203,7 @@ class SystemGuide(object):
 			if part in matrices:
 				marker.setTransform(matrices[part])
 
-		mirrorGuide.setSettings(self.setSettings())
+		mirrorGuide.setSettings(**self.settings())
 		mirrorGuide.setSettings(location=location)
 
 		return mirrorGuide

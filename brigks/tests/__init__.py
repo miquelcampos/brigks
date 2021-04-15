@@ -123,37 +123,42 @@ def createGuideDuplicateAndBuild(showWindow=False):
 	chainMatrices = {}
 
 	basicMatrices = dict(
-		Part1=Transformation.fromParts(translation=Vector3([1,0,0]), rotation=Euler([0,25,25], degrees=True).asQuaternion()),
-		Part2=Transformation.fromParts(translation=Vector3([1,1,0]), rotation=Euler([0,25,25], degrees=True).asQuaternion()),
-		Part3=Transformation.fromParts(translation=Vector3([2,1,0]), rotation=Euler([0,25,25], degrees=True).asQuaternion())
+		Part1=Transformation.fromParts(translation=Vector3([1,0,-1]), rotation=Euler([0,25,25], degrees=True).asQuaternion()),
+		Part2=Transformation.fromParts(translation=Vector3([1,1,-1]), rotation=Euler([0,25,25], degrees=True).asQuaternion()),
+		Part3=Transformation.fromParts(translation=Vector3([2,1,-1]), rotation=Euler([0,25,25], degrees=True).asQuaternion())
 		)
 	chainMatrices = dict(
-		Part1=Transformation.fromParts(translation=Vector3([1,0,3])),
-		Part2=Transformation.fromParts(translation=Vector3([1,1,3])),
-		Part3=Transformation.fromParts(translation=Vector3([2,1,3])),
-		Part4=Transformation.fromParts(translation=Vector3([2,2,3]))
+		Part1=Transformation.fromParts(translation=Vector3([1,0,4])),
+		Part2=Transformation.fromParts(translation=Vector3([1,1,4])),
+		Part3=Transformation.fromParts(translation=Vector3([2,1,4])),
+		Part4=Transformation.fromParts(translation=Vector3([2,2,4]))
 		)
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
+	g.setSettings(hideRig=False)
+	# g.setSettings(stopAfter="Create Objects")
+
 	layer = g.addLayer("MyFirstLayer")
-	g.setSettings(stopAfter="Create Objects")
 
 	basicL = layer.addSystem("basic", "L", "Basic", basicMatrices)
+	basicL.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	#basic1 = basicL.duplicate()
 	basicR = basicL.duplicate(mirror=True)
-	chainL = layer.addSystem("chain", "L", "Chain", chainMatrices)
-	chainR = chainL.duplicate(mirror=True)
 
-	# System Settings
-	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
-	#chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
+
+	chainL = layer.addSystem("chain", "L", "Chain", chainMatrices)
+	chainL.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
+	chainR = chainL.duplicate(mirror=True)
+	print chainL.settings()
+	print chainR.settings()
+
 
 	# Save edit
 	g.commit()
 
 	# Build all rig
-	#g.build()
+	g.build()
 
 	if showWindow:
 		showWindow()
