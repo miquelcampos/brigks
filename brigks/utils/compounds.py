@@ -1,4 +1,4 @@
-from itertools import izip
+from itertools import izip, product
 import math
 
 from maya import cmds
@@ -174,6 +174,25 @@ def rotationToSlider(attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
 # ----------------------------------------------------------------------------------
 # ATTACH
 # ----------------------------------------------------------------------------------
+def curvePointCenters(curve, center, index):
+	# If that fails it might be that you don't have the matrixNodes.mll plungin installed
+	dmNode = cmds.createNode("decomposeMatrix", name="%sDcpMat"%index)
+
+	shape = cmds.listRelatives(curve, shapes=True)[0]
+
+	cmds.setAttr(curve+".inheritsTransform", False)
+
+	cmds.connectAttr(center+".worldMatrix[0]", dmNode+".inputMatrix")
+	cmds.connectAttr(dmNode+".outputTranslate", shape+".controlPoints[%s]"%index)
+
+	for t, a in product(["translate", "rotate", "scale"], "XYZ"):
+		attrName = t+a
+		value = 1 if t == "scale" else 0
+
+		cmds.setAttr(curve+"."+attrName, lock=False)
+		cmds.setAttr(curve+"."+attrName, value)
+		cmds.setAttr(curve+"."+attrName, lock=True)
+
 def surfaceAttach(slave, surface, u=None, v=None):
 	if u is None or v is None:
 		u, v = self._getClosestUV(surface, position, globalSpace=True)

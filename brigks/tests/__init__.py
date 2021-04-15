@@ -11,6 +11,7 @@ from brigks.gui import showWindow
 
 from math3d.transformation import Transformation
 from math3d.vectorN import Vector3
+from math3d.euler import Euler
 
 
 # TODOS
@@ -120,23 +121,29 @@ def createGuideDuplicateAndBuild(showWindow=False):
 	# Building Matrix for guide positions
 	basicMatrices = {}
 	chainMatrices = {}
-	for i in range(4):
-		x = 3 if i == 2 else i
-		t = Transformation.fromParts(translation=Vector3([x,i,0]))
-		basicMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
 
-		t = Transformation.fromParts(translation=Vector3([x,i,2]))
-		chainMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
+	basicMatrices = dict(
+		Part1=Transformation.fromParts(translation=Vector3([1,0,0]), rotation=Euler([0,25,25], degrees=True).asQuaternion()),
+		Part2=Transformation.fromParts(translation=Vector3([1,1,0]), rotation=Euler([0,25,25], degrees=True).asQuaternion()),
+		Part3=Transformation.fromParts(translation=Vector3([2,1,0]), rotation=Euler([0,25,25], degrees=True).asQuaternion())
+		)
+	chainMatrices = dict(
+		Part1=Transformation.fromParts(translation=Vector3([1,0,3])),
+		Part2=Transformation.fromParts(translation=Vector3([1,1,3])),
+		Part3=Transformation.fromParts(translation=Vector3([2,1,3])),
+		Part4=Transformation.fromParts(translation=Vector3([2,2,3]))
+		)
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
 	layer = g.addLayer("MyFirstLayer")
 	g.setSettings(stopAfter="Create Objects")
 
-	basic = layer.addSystem("basic", "L", "Basic", basicMatrices)
-	basic1 = basic.duplicate()
-	basicR = basic.duplicate(mirror=True)
-	#chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
+	basicL = layer.addSystem("basic", "L", "Basic", basicMatrices)
+	#basic1 = basicL.duplicate()
+	basicR = basicL.duplicate(mirror=True)
+	chainL = layer.addSystem("chain", "L", "Chain", chainMatrices)
+	chainR = chainL.duplicate(mirror=True)
 
 	# System Settings
 	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)

@@ -8,6 +8,7 @@ from math3d import TransformationArray, Vector3Array
 
 from brigks.connections import getSystemConnectionClass
 from brigks.core import naming
+from brigks.utils import create
 from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
 
@@ -71,6 +72,7 @@ class SystemGuide(object):
 
 		# Create Markers
 		parent = system.model()
+		markers = []
 		for part, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
 			if matrix is None:
 				position = cls.defaultPositions[part]
@@ -78,7 +80,11 @@ class SystemGuide(object):
 				matrix = transform.asMatrix().tolist()
 				matrix = [j for sub in matrix for j in sub]
 			name = system.getMarkerName(part)
-			SystemMarker.create(name, system, parent, matrix)
+			marker = SystemMarker.create(name, system, parent, matrix)
+			parent = marker
+			markers.append(marker.name())
+		curve = create.cnsCurve(system.getMarkerName("DispCrv"), markers, degree=1)
+		cmds.setAttr(curve+".template", True)
 
 		system.loadMarkers(force=True)
 		system.addSettings()

@@ -7,12 +7,10 @@
 - System X Symmetry
 - Check if Basic and Chain are building properly on Neg side
 - Action Menu
-- Build Stop After
 - Connection UI could be nicer
 - Reconnect attr when rebuilding uiHosts
 - Builder: Init Systems could be more efficient
-- Groups
-- XML Hierarchy
+
 
 NEW FEATURE: 
 Multiple UIHOSTs?
@@ -30,6 +28,13 @@ Recreate connections
 
 
 DONE
-- UIHOST, delete Attributes, reconnect 
+- System rename
+- System Compatibility
+- Pre/Post Script
+- Build Stop After
+- Change system layer
+- UIHOST, delete Attributes 
 - Rebuild
 - Get the full harbie biped to build without error
+- Groups
+- XML Hierarchy
