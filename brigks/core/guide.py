@@ -26,8 +26,10 @@ class Guide():
 							preScriptValue=scriptDefaultValue,
 							postScriptPath="",
 							postScriptValue=scriptDefaultValue,
-							stopAfter=None,
 							groups=dict(),
+							stopAfter=None,
+							hideRig=True,
+							hideJoints=True
 							)
 
 		# If we pass a model, then we load the settings

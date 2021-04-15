@@ -68,6 +68,15 @@ class Builder():
 		# Saving the keys of the systems that have been built
 		self._commit()
 
+		hide = []
+		if self.guide.settings("hideRig"):
+			hide += [x for x in cmds.ls("Rig_*", type="transform", long=True) if x.startswith("|"+self._model)]
+			hide += [x for x in cmds.ls("Rig_*", type="transform", long=True) if x.startswith("|"+self._model)]
+		if self.guide.settings("hideJoints"):
+			hide += [x for x in cmds.ls("Jnt_*", type="transform", long=True) if x.startswith("|"+self._model)]
+		for node in hide:
+			cmds.setAttr(node+".lodVisibility", False)
+
 		# Post Script
 		self._executeScript(self.guide.settings("postScriptPath"), self.guide.settings("postScriptValue"))
 		logging.info("POST SCRIPT {time}".format(time=dt.now() - start))
