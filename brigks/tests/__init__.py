@@ -141,17 +141,20 @@ def createGuideDuplicateAndBuild(showWindow=False):
 
 	layer = g.addLayer("MyFirstLayer")
 
-	basicL = layer.addSystem("basic", "L", "Basic", basicMatrices)
+	basicL = layer.addSystem("basic", "X", "Basic", basicMatrices)
 	basicL.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
-	#basic1 = basicL.duplicate()
-	basicR = basicL.duplicate(mirror=True)
 
-
-	chainL = layer.addSystem("chain", "L", "Chain", chainMatrices)
+	chainL = layer.addSystem("chain", "X", "Chain", chainMatrices)
 	chainL.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
+
+	# basicR = basicL.duplicate(mirror=True)
+	# chainR = chainL.duplicate(mirror=True)
+
+	# This is how you split a X guide 
+	basicL.rename(location="L", name=basicL.settings("name"))
+	basicR = basicL.duplicate(mirror=True)
+	chainL.rename(location="L", name=chainL.settings("name"))
 	chainR = chainL.duplicate(mirror=True)
-	print chainL.settings()
-	print chainR.settings()
 
 
 	# Save edit
@@ -165,40 +168,6 @@ def createGuideDuplicateAndBuild(showWindow=False):
 
 	return g
 
-def createXGuideAndBuild(showWindow=False):
-	# Building Matrix for guide positions
-	basicMatrices = {}
-	chainMatrices = {}
-	for i in range(4):
-		x = 3 if i == 2 else i
-		t = Transformation.fromParts(translation=Vector3([x,i,0]))
-		basicMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
-
-		t = Transformation.fromParts(translation=Vector3([x,i,2]))
-		chainMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
-
-	# Create Guide, add a layer and a couple Systems
-	g = Guide()
-	layer = g.addLayer("MyFirstLayer")
-	g.setSettings(stopAfter="Create Objects")
-
-	#basic = layer.addSystem("basic", "L", "Basic", basicMatrices)
-	#chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
-
-	# System Settings
-	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
-	#chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
-
-	# Save edit
-	g.commit()
-
-	# Build all rig
-	g.build()
-
-	if showWindow:
-		showWindow()
-
-	return g
 
 
 

@@ -181,9 +181,6 @@ class SystemGuide(object):
 
 		self.layer().appendSystem(dupSystem)
 
-		print self.layer().systems()
-		print self.guide()._getAllSystems()
-
 		return dupSystem
 
 	def mirror(self):
@@ -208,27 +205,25 @@ class SystemGuide(object):
 
 		return mirrorGuide
 
-	def splitSymmetry(self):
+	def split(self):
 		# This is the Method that create two symmetrical system out of one X system
 		if self._settings["location"] != "X":
-			raise RuntimeError("Can't splitSymmetry non-X System") 
+			raise RuntimeError("Can't split non-X System") 
 
 		leftSystem = copy.deepcopy(self)
 		rightSystem = copy.deepcopy(self)
 
-		leftSystem.settings["location"] = "L"
-		leftSystem.settings["split"] = True
-		rightSystem.settings["location"] = "R"
-		rightSystem.settings["split"] = True
+		leftSystem.setSettings(location="L", split=True)
+		rightSystem.setSettings(location="R", split=True)
 
 		# Make sure connections are pointing to the left and right systems
-		for connection in leftSystem.connections.values():
-			connection.splitSymmetry("L")
-		for connection in rightSystem.connections.values():
-			connection.splitSymmetry("R")
+		for connection in leftSystem.connections().values():
+			connection.split("L")
+		for connection in rightSystem.connections().values():
+			connection.split("R")
 
-		for part, marker in rightSystem.markers.iteritems():
-			rightSystem.markers[part].setTransform(marker.transformWithScale().mirrored())
+		for part, marker in rightSystem.markers().iteritems():
+			rightSystem.markers()[part].setMirrored(True)
 
 		return leftSystem, rightSystem
 

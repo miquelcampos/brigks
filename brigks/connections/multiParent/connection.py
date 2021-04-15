@@ -63,7 +63,7 @@ class MultiParentSystemConnection(SystemConnection):
 				keys.append(definition["key"])
 		return keys
 
-	def splitSymmetry(self, location):
+	def split(self, location):
 		definitions = []
 		for definition in self._settings["definitions"]:
 			if "key" in definition["key"]:

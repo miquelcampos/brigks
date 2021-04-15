@@ -39,7 +39,7 @@ class MeshAttachSystemConnection(SystemConnection):
 			return [self._settings["key"]]
 		return []
 
-	def splitSymmetry(self, location):
+	def split(self, location):
 		key = self._settings["key"]
 
 		otherName, otherLocation = key.split("_")

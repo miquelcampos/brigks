@@ -36,7 +36,7 @@ class SystemConnection(object):
 	def getTargetSystems(self):
 		return []
 
-	def splitSymmetry(self, location):
+	def split(self, location):
 		pass
 
 	# ----------------------------------------------------------------------------------

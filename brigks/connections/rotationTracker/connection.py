@@ -34,7 +34,7 @@ class RotationTrackerSystemConnection(SystemConnection):
 			return keys.append(self._settings["trackerKey"])
 		return keys
 
-	def splitSymmetry(self, location):
+	def split(self, location):
 		referenceKey = self._settings["referenceKey"]
 		otherName, otherLocation = referenceKey.split("_")
 		if otherLocation == "X":

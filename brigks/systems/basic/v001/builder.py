@@ -1,4 +1,8 @@
+from itertools import izip
+
 from maya import cmds
+
+from math3d.transformation import Transformation
 
 from brigks.utils import constants, attributes, compounds
 from brigks.systems.systemBuilder import SystemBuilder
@@ -16,6 +20,12 @@ class BasicSystemBuilder(SystemBuilder):
 		self.jntparent = []
 		self.splitParent = []
 		for i, tfm in enumerate(self.transforms("Part"), start=1):
+		# for i, (t, dy, dz) in enumerate(izip(self.translations("Part"), 
+		# 								self.directions("Part", "y"),self.directions("Part", "z"))
+		# 											  , start=1):
+
+		# 	tfm = Transformation.lookAt(t, dy, dz, axis, negativeSide=self.negate())
+
 			part = "Part{}".format(i)
 			bfr = self.createBuffer(None, part, tfm=tfm)
 			self.bfr.append(bfr)

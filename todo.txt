@@ -5,7 +5,7 @@
 
 
 - System X Symmetry
-- Check if Basic and Chain are building properly on Neg side
+- Check if Basic is building properly on Neg side
 - Action Menu
 - Connection UI could be nicer
 - Reconnect attr when rebuilding uiHosts
@@ -38,3 +38,4 @@ DONE
 - Get the full harbie biped to build without error
 - Groups
 - XML Hierarchy
+- Chain is building properly on both sides

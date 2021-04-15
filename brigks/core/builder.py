@@ -135,7 +135,7 @@ class Builder():
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
 				systemGuide.loadMarkers(force=True)
-				leftSystem, rightSystem = systemGuide.splitSymmetry()
+				leftSystem, rightSystem = systemGuide.split()
 				builders[leftSystem.key()] = leftSystem.builder(self)
 				builders[rightSystem.key()] = rightSystem.builder(self)
 			else:
@@ -151,7 +151,7 @@ class Builder():
 
 			# If marker is X, we create a Left and Right builder
 			if systemGuide.settings()["location"] == "X":
-				leftSystem, rightSystem = systemGuide.splitSymmetry()
+				leftSystem, rightSystem = systemGuide.split()
 				builders[leftSystem.key()] = leftSystem.builder(self)
 				builders[rightSystem.key()] = rightSystem.builder(self)
 			else:
@@ -172,7 +172,7 @@ class Builder():
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
 				systemGuide.loadMarkers(force=True)
-				leftSystem, rightSystem = systemGuide.splitSymmetry()
+				leftSystem, rightSystem = systemGuide.split()
 				toConnect[leftSystem.key()] = leftSystem.builder(self)
 				toConnect[rightSystem.key()] = rightSystem.builder(self)
 			else:
