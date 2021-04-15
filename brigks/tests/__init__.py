@@ -116,6 +116,42 @@ def deleteGuides(deleteGuide=False, showWindow=False):
 
 
 
+def createGuideDuplicateAndBuild(showWindow=False):
+	# Building Matrix for guide positions
+	basicMatrices = {}
+	chainMatrices = {}
+	for i in range(4):
+		x = 3 if i == 2 else i
+		t = Transformation.fromParts(translation=Vector3([x,i,0]))
+		basicMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
+
+		t = Transformation.fromParts(translation=Vector3([x,i,2]))
+		chainMatrices["Part%s"%(i+1)] = t.asMatrix().flattened()
+
+	# Create Guide, add a layer and a couple Systems
+	g = Guide()
+	layer = g.addLayer("MyFirstLayer")
+	g.setSettings(stopAfter="Create Objects")
+
+	basic = layer.addSystem("basic", "L", "Basic", basicMatrices)
+	basic1 = basic.duplicate()
+	basicR = basic.duplicate(mirror=True)
+	#chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
+
+	# System Settings
+	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
+	#chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
+
+	# Save edit
+	g.commit()
+
+	# Build all rig
+	#g.build()
+
+	if showWindow:
+		showWindow()
+
+	return g
 
 def createXGuideAndBuild(showWindow=False):
 	# Building Matrix for guide positions
@@ -135,11 +171,11 @@ def createXGuideAndBuild(showWindow=False):
 	g.setSettings(stopAfter="Create Objects")
 
 	#basic = layer.addSystem("basic", "L", "Basic", basicMatrices)
-	chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
+	#chain = layer.addSystem("chain", "L", "Chain", chainMatrices)
 
 	# System Settings
 	#basic.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
-	chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
+	#chain.setSettings(dynamic=True, dynamicAnimatable=True, kinematic="FK/IK", strap=True)
 
 	# Save edit
 	g.commit()

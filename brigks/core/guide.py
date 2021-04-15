@@ -4,8 +4,9 @@ import xml.etree.cElementTree as etree
 import getpass
 import datetime
 
-from layer import Layer
-from builder import Builder
+from brigks.core.layer import Layer
+from brigks.core.builder import Builder
+from brigks.core import naming
 from brigks.core.config import DATA_ATTRIBUTE
 from brigks.utils.xmldom import indent
 
@@ -116,6 +117,16 @@ class Guide():
 			system = layer.findSystem(key)
 			if system:
 				return system
+
+	def findNextSystemName(self, name, location):
+		inputName = name
+		i = 1
+		key = naming.getSystemKey(location, name)
+		while self.findSystem(key) is not None:
+			name = inputName + str(i)
+			key = naming.getSystemKey(location, name)
+			i += 1
+		return name
 
 	def _getAllSystems(self):	
 		systemGuides = []

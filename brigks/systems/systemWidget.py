@@ -107,4 +107,4 @@ class SystemWidget(QWidget):
 				settings[setting] = str(widget.toPlainText())
 
 		self._system.setSettings(**settings)
-		self._system.coreGuide.commit()
+		self._system.guide().commit()

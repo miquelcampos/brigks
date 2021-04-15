@@ -98,14 +98,6 @@ class SystemGuide(object):
 
 		return system
 
-	def build(self):
-		self.guide().build([self])
-
-	def delete(self, deleteGuide=False):
-		self.guide().delete([self], deleteGuide)
-
-	def duplicate(self, symmetry):
-		pass
 
 	def dumps(self):
 		"""
@@ -153,12 +145,60 @@ class SystemGuide(object):
 		self._layer = layer
 
 	# ----------------------------------------------------------------------------------
-	# 
+	# BUILD / DELETE / DUPLICATE
 	# ----------------------------------------------------------------------------------
+	def build(self):
+		self.guide().build([self])
+
+	def delete(self, deleteGuide=False):
+		self.guide().delete([self], deleteGuide)
+
+	def duplicate(self, mirror=False):
+		self.loadMarkers(force=True)
+		matrices = {part:marker.transformWithScale() for part, marker in self.markers().iteritems()}
+		location = self._settings["location"]
+		name = self._settings["name"]
+		layer = self.layer()
+		if mirror:
+			if location not in "LR":
+				raise RuntimeError("Can't Mirror Central Guide")
+
+			matrices = {part:marker.transformWithScale().mirrored() for part, marker in self.markers().iteritems()}
+			location = "R" if location == "L" else "L"
+
+		name = self.guide().findNextSystemName(name, location)
+		newSystem = self.create(layer, location, name, matrices)
+
+		self.layer().appendSystem(newSystem)
+
+		return newSystem
+
+	def mirror(self):
+		self.loadMarkers(force=True)
+		location = self._settings["location"]
+		location = "R" if location == "L" else "L"
+		name = self._settings["name"]
+
+		mirrorGuide = self.guide().findSystem(naming.getSystemKey(location, name))
+		if not mirrorGuide:
+			return
+
+		mirrorGuide.loadMarkers(force=True)
+		matrices = {part:marker.transformWithScale().mirrored() for part, marker in self.markers().iteritems()}
+
+		for part, marker in mirrorGuide.markers().iteritems():
+			if part in matrices:
+				marker.setTransform(matrices[part])
+
+		mirrorGuide.setSettings(self.setSettings())
+		mirrorGuide.setSettings(location=location)
+
+		return mirrorGuide
+
 	def splitSymmetry(self):
 		# This is the Method that create two symmetrical system out of one X system
 		if self._settings["location"] != "X":
-			RuntimeError("Can't splitSymmetry non-X System") 
+			raise RuntimeError("Can't splitSymmetry non-X System") 
 
 		leftSystem = copy.deepcopy(self)
 		rightSystem = copy.deepcopy(self)
@@ -175,7 +215,7 @@ class SystemGuide(object):
 			connection.splitSymmetry("R")
 
 		for part, marker in rightSystem.markers.iteritems():
-			rightSystem.markers[part][0] *= -1
+			rightSystem.markers[part].setTransform(marker.transformWithScale().mirrored())
 
 		return leftSystem, rightSystem
 

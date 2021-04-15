@@ -142,19 +142,15 @@ class Layer():
 		"""
 
 		# Making sure the key of the system is unique to the guide
-		inputName = name
-		i = 1
-		key = naming.getSystemKey(location, name)
-		while self.guide().findSystem(key) is not None:
-			name = inputName + str(i)
-			key = naming.getSystemKey(location, name)
-			i += 1
-
+		name = self.guide().findNextSystemName(name, location)
 		SystemClass = getSystemGuideClass(systemType, version)
 		system = SystemClass.create(self, location, name, matrices)
 		self._systems.append(system)
 
 		return system
+
+	def appendSystem(self, system):
+		self._systems.append(system)
 
 	def popSystem(self, system):
 		index = self._systems.index(system)

@@ -46,8 +46,11 @@ class SystemMarker(object):
 	def __init__(self, marker, system):
 		self._marker = marker
 		self._system = system
+		self._matrix = None
+		self._transformWithScale = None
 		self._transform = None
 		self._translation = None
+		self._scale = None
 
 	def name(self):
 		return self._marker
@@ -63,10 +66,25 @@ class SystemMarker(object):
 	def rename(self, newName):
 		self._marker = cmds.rename(self._marker, newName)
 
+	def setTransform(self, transform):
+		matrix = transform.asMatrix().flattened()
+		cmds.xform(self._marker, matrix=matrix, worldSpace=True)
+
+	def matrix(self):
+		if self._matrix is None:
+			self.transform()
+		return self._matrix
+
+	def transformWithScale(self):
+		if self._transformWithScale is None:
+			self.transform()
+		return self._transformWithScale
+
 	def transform(self):
 		if self._transform is None:
-			matrix = cmds.xform(self._marker, q=True, matrix=True, worldSpace=True)
-			self._transform = Matrix4(matrix).asTransform()
+			self._matrix = cmds.xform(self._marker, q=True, matrix=True, worldSpace=True)
+			self._transformWithScale = Matrix4(self._matrix).asTransform()
+			self._transform = Matrix4(self._matrix).asTransform()
 			self._translation = self._transform.translation
 			self._scale = self._transform.scale
 			self._transform.scale = Vector3([1,1,1])
