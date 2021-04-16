@@ -86,7 +86,7 @@ class ArmSystemBuilder(SystemBuilder):
 		if self.settings("gimbalControllers"):
 			fkBfr = self.createBuffer(self.fkRef, "FkOff", tfm=bfrTfm[0])
 			self.fkOffCtl = self.createController(fkBfr, "FkOff", bfrTfm[0], "cube", size=.9, so=[0,1,1], color=self.colorFk())
-			self.addToSubControllers(self.fkOffCtl)
+			# self.addToSubControllers(self.fkOffCtl)
 			fkParent = self.fkOffCtl
 			boneParent = self.fkOffCtl
 		else:
@@ -217,8 +217,7 @@ class ArmSystemBuilder(SystemBuilder):
 		cmds.connectAttr(node+".outputTranslate", self.ctrBfr+".translate")
 		cns = compounds.blendMatrix(self.ctrBfr, self.bones[:2], maintainOffset=False, translate=False, rotate=True, scale=False)
 		cmds.setAttr(cns+".target[1].weight", .5)
-		for s in 'XYZ':
-			cmds.connectAttr(self.nodes("local")+".sx", self.ctrBfr+".scale{}".format(s))
+		cmds.connectAttr(self.nodes("local")+".scale", self.ctrBfr+".scale")
 		
 		# Fk Ik Solver
 		iks = [self.rootCtl, self.ikRef, self.upvCtl]

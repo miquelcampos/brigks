@@ -198,6 +198,12 @@ def createStretchSliderGuideAndBuild(showWindow=False):
 		Eff=Transformation.fromParts(translation=Vector3([6,0,-5])),
 		Prop=Transformation.fromParts(translation=Vector3([6,-1,-5])),
 		)
+	legMatrices = dict(
+		Root=Transformation.fromParts(translation=Vector3([3,8,0])),
+		Knee=Transformation.fromParts(translation=Vector3([3,4,1])),
+		Ankle=Transformation.fromParts(translation=Vector3([3,1,0])),
+		Eff=Transformation.fromParts(translation=Vector3([3,1,1])),
+		)
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
@@ -205,15 +211,16 @@ def createStretchSliderGuideAndBuild(showWindow=False):
 	g.setSettings(hideJoints=False)
 
 	layer = g.addLayer("MyFirstLayer")
-	slider = layer.addSystem("slider", "L", "Basic", sliderMatrices)
-	stretch = layer.addSystem("stretch", "L", "Chain", stretchMatrices)
-	twist = layer.addSystem("twist", "L", "Twist", twistMatrices)
-	spine = layer.addSystem("spine", "M", "Spine", spineMatrices)
-	arm = layer.addSystem("arm", "M", "Arm", armMatrices)
+	# slider = layer.addSystem("slider", "L", "Basic", sliderMatrices)
+	# stretch = layer.addSystem("stretch", "L", "Chain", stretchMatrices)
+	# twist = layer.addSystem("twist", "L", "Twist", twistMatrices)
+	# spine = layer.addSystem("spine", "M", "Spine", spineMatrices)
+	# arm = layer.addSystem("arm", "M", "Arm", armMatrices)
+	leg = layer.addSystem("leg", "M", "Leg", legMatrices)
 
 	# System Settings
 	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
-	stretch.setSettings(squash=True)
+	# stretch.setSettings(squash=True)
 
 
 	# Save edit

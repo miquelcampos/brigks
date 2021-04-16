@@ -8,10 +8,14 @@ class LegSystemGuide(SystemGuide):
 	markerMinMax = {}
 
 	def addSettings(self):
-		self._settings["blend"] = "FK" # FK, IK
+		self._settings["blend"] = "IK" # FK, IK
+
+		self._settings["lockKneeRotation"] = False
 
 		self._settings["stretchDefault"] = 1.5
 		self._settings["reverseDefault"] = 0.0
+
+		self._settings["ankleUpVector"] = "World Y" # World Y, Guide Z
 
 	def connectionPorts(self):
 		super(LegSystemGuide, self).connectionPorts()
