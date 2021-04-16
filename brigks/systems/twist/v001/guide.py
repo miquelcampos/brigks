@@ -10,6 +10,9 @@ class TwistSystemGuide(SystemGuide):
 		)
 
 	def addSettings(self):
+		# ("spinePointAt", "blendedAxis")
+		self._settings["twistMethod"] = "spinePointAt"
+
 		self._settings["axis"] = "X" # (X, Y)
 		
 		self._settings["startDeformer"] = False

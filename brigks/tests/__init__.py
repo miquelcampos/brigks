@@ -182,12 +182,21 @@ def createStretchSliderGuideAndBuild(showWindow=False):
 		Root=Transformation.fromParts(translation=Vector3([0,3,0])),
 		End=Transformation.fromParts(translation=Vector3([2,3,0]))
 		)
+	twistMatrices = dict(
+		Part1=Transformation.fromParts(translation=Vector3([4,0,0])),
+		Part2=Transformation.fromParts(translation=Vector3([4,2,0])), 
+		Part3=Transformation.fromParts(translation=Vector3([4,4,0])),
+		)
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
+	g.setSettings(hideRig=False)
+	g.setSettings(hideJoints=False)
+
 	layer = g.addLayer("MyFirstLayer")
 	slider = layer.addSystem("slider", "L", "Basic", sliderMatrices)
 	stretch = layer.addSystem("stretch", "L", "Chain", stretchMatrices)
+	twist = layer.addSystem("twist", "L", "Twist", twistMatrices)
 
 	# System Settings
 	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)

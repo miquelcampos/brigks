@@ -2,10 +2,13 @@ from itertools import izip, product
 import math
 
 from maya import cmds
+from maya import OpenMaya as om
 
 from math3d.matrixN import Matrix4
 
+POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
 COMPARE_OPS = ["==", "!=", ">", ">=", "<", "<="]
+
 def compare(first, second, operation):
 	if operation not in COMPARE_OPS:
 		raise ValueError("Given operation must be in %s"%COMPARE_OPS)
@@ -95,10 +98,10 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None):
 
 	return cns
 
-POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
 def pointAtBlendedAxis(cns, masterA, masterB, blend=.5, axis="Z"):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
+
 	node = cmds.createNode("PointAtBlendedAxis", name="PtAtBlended")
 	cmds.connectAttr(masterA+".worldMatrix[0]", node+".mA")
 	cmds.connectAttr(masterB+".worldMatrix[0]", node+".mB")
@@ -111,9 +114,31 @@ def pointAtBlendedAxis(cns, masterA, masterB, blend=.5, axis="Z"):
 
 	return node
 
+def spinePointAt(cnsNode, masterA, masterB, blend=.5, axis="-Z", solver=0):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	spaNode = cmds.createNode("SpinePointAt", name="SPA")
+
+	cmds.setAttr(spaNode+".blend", blend)
+	cmds.setAttr(spaNode+".axis", POINTAT_AXIS.index(axis))
+	# Solver 0:SpinepointAt. 1:Slerp
+	cmds.setAttr(spaNode+".alg", solver)
+
+	cmds.connectAttr(masterA+".worldMatrix[0]", spaNode+".tfmA")
+	cmds.connectAttr(masterB+".worldMatrix[0]", spaNode+".tfmB")
+
+	# Outputs
+	cmds.setAttr(cnsNode+".worldUpType", 3)
+
+	cmds.connectAttr(spaNode+".pointAt", cnsNode+".worldUpVector")
+
+	return spaNode
+
 def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termination=0.0, amplitudeAxis=(1,1,1)):
 	if not cmds.pluginInfo("harmonics", q=True,  loaded=True):
 		cmds.loadPlugin("harmonics")
+
 	hNode = cmds.createNode("harmonics", name=name)
 
 	cmds.connectAttr(hNode+".output", slave+".translate")
@@ -170,6 +195,60 @@ def rotationToSlider(attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
 	cmds.setAttr(node+".sliderMax", slideMax)
 
 	return node
+
+def curveConstraints(slave, curve, axis="xy", parametric=True, u=.5, percentageToU=False):
+	'''
+	Args:
+		slave():
+		curve():
+		axis(str): 'xy', '-xy'...
+		parametric(bool): True to use parametric attachment (Faster)
+		u(float): Normalized U [0.0:1.0]
+		percentageToU: True to convert percentage value to U (ignored if parametric is False)
+	'''
+	shape = cmds.listRelatives(curve, shapes=True)[0]
+
+	mpNode = cmds.createNode("motionPath", name="Path")
+	cmds.connectAttr(shape+".worldSpace[0]", mpNode+".geometryPath")
+
+	# Maya doesn't compute the orientation properly at 1.0
+	# So we need to make it very close to 1 but not 1
+	u = min(0.999, u)
+
+	if parametric:
+		if percentageToU:
+			curveMFn = _getMFnNurbsCurve(curve)
+			length = cmds.arclen(curve)
+			u = curveMFn.findParamFromLength(length*u)
+		else:
+			spans = cmds.getAttr(curve+".spans")
+			u *= spans
+
+	inverseFront = axis[0] == "-"
+	inverseUp = axis[-2] == "-"
+	axis = axis.replace("-", "")
+	cmds.setAttr(mpNode+".inverseFront", inverseFront)
+	cmds.setAttr(mpNode+".frontAxis", "xyz".index(axis[0].lower()))
+	cmds.setAttr(mpNode+".inverseUp", inverseUp)
+	cmds.setAttr(mpNode+".upAxis", "xyz".index(axis[1].lower()))
+	cmds.setAttr(mpNode+".fractionMode", not parametric)
+	cmds.setAttr(mpNode+".uValue", u)
+	cmds.setAttr(mpNode+".follow", True)
+
+	pmmNode = cmds.createNode("pointMatrixMult", name="PathPtMatMul")
+	cmds.connectAttr(slave+".parentInverseMatrix[0]", pmmNode+".inMatrix")
+	cmds.connectAttr(mpNode+".allCoordinates", pmmNode+".inPoint")
+	cmds.connectAttr(pmmNode+".output", slave+".translate")
+
+	mmNode = cmds.createNode("multMatrix", name="PathMulMat")
+	cmds.connectAttr(mpNode+".orientMatrix", mmNode+".matrixIn[0]")
+	cmds.connectAttr(slave+".parentInverseMatrix[0]", mmNode+".matrixIn[1]")
+
+	dmNode = cmds.createNode("decomposeMatrix", name="PathDcpMat")
+	cmds.connectAttr(mmNode+".matrixSum", dmNode+".inputMatrix")
+	cmds.connectAttr(dmNode+".outputRotate", slave+".rotate")
+
+	return mpNode
 
 # ----------------------------------------------------------------------------------
 # ATTACH
@@ -425,8 +504,14 @@ def _getMFnNurbsSurface(path):
 	selectionList = om.MSelectionList()
 	selectionList.add(str(path))
 	selectionList.getDependNode(0,mobj)
-
-
 	selectionList.getDagPath(0, dagPath)
-
 	return om.MFnNurbsSurface(dagPath)
+
+def _getMFnNurbsCurve(path):
+	mobj = om.MObject()
+	dagPath = om.MDagPath()
+	selectionList = om.MSelectionList()
+	selectionList.add(str(path))
+	selectionList.getDependNode(0,mobj)
+	selectionList.getDagPath(0, dagPath)
+	return om.MFnNurbsCurve(dagPath)

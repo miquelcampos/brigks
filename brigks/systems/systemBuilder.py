@@ -56,6 +56,12 @@ class SystemBuilder():
 	def factor(self):
 		return -1 if self.negate() else 1
 
+	def colorIk(self):
+		return [0,0,1]
+
+	def colorFk(self):
+		return [0,0,1]
+
 	def connections(self, key=None, includeUIHosts=False):
 		if includeUIHosts:
 			connections = self._connections

@@ -140,37 +140,6 @@ def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1,
 # ----------------------------------------------------------------------------------
 #  NURBS
 # ----------------------------------------------------------------------------------
-def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
-	'''Creates a Transform node with a NurbsCurve Shape with each point constrained to a given center. 
-
-	Args:
-		name(str): Name of the newly created Node
-		centers(list of object): 
-		closed(bool): Close the curve
-		degree(1 or 3): degree of the curve
-		color(int|list of float): color as index or rbg
-
-	Returns:
-		curve(str)
-	'''
-	if len(centers) < 2:
-		raise ValueError("You need at least 2 centers")
-	elif len(centers) == 2:
-		degree = 1
-	elif len(centers) == 3 and degree == 3:
-		centers.append(centers[-1])
-
-	if degree not in [1,3]:
-		raise ValueError("Give degree must be 1 or 3")
-
-	points = [cmds.xform(center, q=1, worldSpace=True, translation=True) for center in centers]
-	srv = curve(name, points, closed, degree, centers[0], color)
-
-	for i, center in enumerate(centers):
-		compounds.curvePointCenters(srv, center, i)
-
-	return srv
-
 def curve(name, points, closed=False, degree=3, parent=None, color=None):
 	'''
 		Creates a Transform node with a NurbsCurve Shape. 
@@ -224,7 +193,36 @@ def curve(name, points, closed=False, degree=3, parent=None, color=None):
 
 	return curve
 
+def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
+	'''Creates a Transform node with a NurbsCurve Shape with each point constrained to a given center. 
 
+	Args:
+		name(str): Name of the newly created Node
+		centers(list of object): 
+		closed(bool): Close the curve
+		degree(1 or 3): degree of the curve
+		color(int|list of float): color as index or rbg
+
+	Returns:
+		curve(str)
+	'''
+	if len(centers) < 2:
+		raise ValueError("You need at least 2 centers")
+	elif len(centers) == 2:
+		degree = 1
+	elif len(centers) == 3 and degree == 3:
+		centers.append(centers[-1])
+
+	if degree not in [1,3]:
+		raise ValueError("Give degree must be 1 or 3")
+
+	points = [cmds.xform(center, q=1, worldSpace=True, translation=True) for center in centers]
+	srv = curve(name, points, closed, degree, centers[0], color)
+
+	for i, center in enumerate(centers):
+		compounds.curvePointCenters(srv, center, i)
+
+	return srv
 
 def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=3, width=1.0, 
 																axis="z", tangent=.5, color=None):
