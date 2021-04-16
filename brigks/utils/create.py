@@ -193,6 +193,48 @@ def curve(name, points, closed=False, degree=3, parent=None, color=None):
 
 	return curve
 
+def bezier(name, parent=None, points=None, matrix=None, color=None):
+	'''
+		Creates a Transform node with a NurbsCurve Bezier Shape. 
+		This method uses cmds for convenience but return an MFnNurbsCurve.
+
+		Args:
+			name(str): Name of the newly created Node
+			parent(MObject): parent of the node. None if no parent. Automatically casted when possible. 
+			matrix(): Transform or position of the node
+			points(list of MVector): Control points positions
+			color(int|list of float): color as index or rbg
+
+		Returns:
+			MFnNurbsCurve
+	'''
+	if len(points) < 4:
+		raise ValueError("Need at least 4 points")
+
+	pointCount = (len(points)+2)/3
+	knots = []
+	for i in xrange(pointCount):
+		knots += [i,i,i]
+
+
+	path = cmds.curve(name=name, bezier=True, degree=3, point=points, knot=knots)
+
+	if color:
+		attributes.setColor(curve, color)
+	
+	if parent:
+		curve = cmds.parent(curve, parent)[0]
+
+	if transform:
+		if isinstance(matrix, Transformation):
+			matrix = matrix.asMatrix().flattened()
+		elif isinstance(matrix, Matrix4):
+			matrix = matrix.flattened()
+			
+		cmds.xform(curve, matrix=matrix, worldSpace=True)
+
+	return mfn
+
 def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
 	'''Creates a Transform node with a NurbsCurve Shape with each point constrained to a given center. 
 

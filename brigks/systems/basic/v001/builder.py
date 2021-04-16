@@ -19,12 +19,12 @@ class BasicSystemBuilder(SystemBuilder):
 
 		self.jntparent = []
 		self.splitParent = []
-		for i, tfm in enumerate(self.transforms("Part"), start=1):
-		# for i, (t, dy, dz) in enumerate(izip(self.translations("Part"), 
-		# 								self.directions("Part", "y"),self.directions("Part", "z"))
-		# 											  , start=1):
+		# for i, tfm in enumerate(self.transforms("Part"), start=1):
+		for i, (t, dy, dz) in enumerate(izip(self.translations("Part"), 
+										self.directions("Part", "y"),self.directions("Part", "z"))
+													  , start=1):
 
-		# 	tfm = Transformation.lookAt(t, dy, dz, axis, negativeSide=self.negate())
+			tfm = Transformation.lookAt(t, dy, dz, axis, negativeSide=self.negate())
 
 			part = "Part{}".format(i)
 			bfr = self.createBuffer(None, part, tfm=tfm)

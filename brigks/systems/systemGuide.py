@@ -83,8 +83,9 @@ class SystemGuide(object):
 			marker = SystemMarker.create(name, system, parent, matrix)
 			parent = marker
 			markers.append(marker.name())
-		curve = create.cnsCurve(system.getMarkerName("DispCrv"), markers, degree=1)
-		cmds.setAttr(curve+".template", True)
+		if len(markers) > 1:
+			curve = create.cnsCurve(system.getMarkerName("DispCrv"), markers, degree=1)
+			cmds.setAttr(curve+".template", True)
 
 		system.loadMarkers(force=True)
 		system.addSettings()
