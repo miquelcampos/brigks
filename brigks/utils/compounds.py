@@ -6,6 +6,8 @@ from maya import OpenMaya as om
 
 from math3d.matrixN import Matrix4
 
+from brigks.utils import attributes
+
 POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
 COMPARE_OPS = ["==", "!=", ">", ">=", "<", "<="]
 
@@ -76,16 +78,58 @@ def blendMatrix(slave, masters, maintainOffset=False, translate=True, rotate=Tru
 
 	return bmNode
 
-def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None):
+# def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None):
+# 	# TODO Replace with aimMatrix
+# 	cns = cmds.aimConstraint(master, slave, worldUpType="objectrotation", maintainOffset=False, name=name, skip="none")[0]
+
+# 	# UpVector
+# 	cmds.setAttr(cns+".worldUpVectorX", upVector[0])
+# 	cmds.setAttr(cns+".worldUpVectorY", upVector[1])
+# 	cmds.setAttr(cns+".worldUpVectorZ", upVector[2])
+
+# 	cmds.connectAttr(upMaster+".worldMatrix[0]", cns+".worldUpMatrix")
+
+# 	# Direction Axis
+# 	aimAttr = ["aimVectorX", "aimVectorY", "aimVectorZ", "upVectorX", "upVectorY", "upVectorZ"]
+# 	a = axis.replace("-", "")
+# 	out = [0]*6
+# 	out["xyz".index(a[0])] = -1 if axis[0] == "-" else 1
+# 	out["xyz".index(a[1])+3] = -1 if axis[-2] == "-" else 1
+# 	for name, value in izip(aimAttr, out):
+# 		cmds.setAttr(cns+"."+name, value)
+
+# 	return cns
+
+def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, maintainOffset=False):
 	# TODO Replace with aimMatrix
-	cns = cmds.aimConstraint(master, slave, worldUpType="objectrotation", maintainOffset=False, name=name, skip="none")[0]
+
+	# No master, we point to a vector
+	if upMaster is None:
+		upType = "vector"
+		upVector = upVector if upVector else (0,1,0)
+	# Master defined, but no axis, we point to the object position
+	elif upVector is None:
+		upType = "object"
+	# Master and Axis defined, we point to the orientation of the object
+	else:
+		upType = "objectrotation"
+		upVector = upVector
+
+	skip = [s for s in "xyz" if cmds.getAttr(slave+".r"+s, lock=True)] or "none"
+	cns = cmds.aimConstraint(master, slave, worldUpType=upType, maintainOffset=maintainOffset, name=name, skip=skip)[0]
 
 	# UpVector
-	cmds.setAttr(cns+".worldUpVectorX", upVector[0])
-	cmds.setAttr(cns+".worldUpVectorY", upVector[1])
-	cmds.setAttr(cns+".worldUpVectorZ", upVector[2])
+	if upVector is None:
+		dmNode = cmds.createNode("decomposeMatrix", name="dcpMat")
+		cmds.connectAttr(upMaster+".worldMatrix[0]", dmNode+".inputMatrix")
+		cmds.connectAttr(dmNode+".outputTranslate", cns+".worldUpVector")
+	else:
+		cmds.setAttr(cns+".worldUpVectorX", upVector[0])
+		cmds.setAttr(cns+".worldUpVectorY", upVector[1])
+		cmds.setAttr(cns+".worldUpVectorZ", upVector[2])
 
-	cmds.connectAttr(upMaster+".worldMatrix[0]", cns+".worldUpMatrix")
+	if upMaster is not None:
+		cmds.connectAttr(upMaster+".worldMatrix[0]", cns+".worldUpMatrix")
 
 	# Direction Axis
 	aimAttr = ["aimVectorX", "aimVectorY", "aimVectorZ", "upVectorX", "upVectorY", "upVectorZ"]
@@ -97,6 +141,18 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None):
 		cmds.setAttr(cns+"."+name, value)
 
 	return cns
+
+def pointAtDoubleAxis(cns, masterA, masterB, axis="z"):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	node = cmds.createNode("PointAtDoubleAxis", name="PtAtDouble")
+	cmds.connectAttr(masterA+".worldMatrix[0]", node+".ref")
+	cmds.connectAttr(masterB+".worldMatrix[0]", node+".trk")
+	cmds.setAttr(node+".axis", "zy".index(axis))
+
+	cmds.setAttr(cns+".worldUpType", 3)
+	cmds.connectAttr(node+".out", cns+".worldUpVector")
 
 def pointAtBlendedAxis(cns, masterA, masterB, blend=.5, axis="Z"):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
@@ -249,6 +305,39 @@ def curveConstraints(slave, curve, axis="xy", parametric=True, u=.5, percentageT
 	cmds.connectAttr(dmNode+".outputRotate", slave+".rotate")
 
 	return mpNode
+
+def fkik2Bones(iks, fks, bones, lenA, lenB, neg):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	fkikNode = cmds.createNode("FkIk2Bones", name="FKIK")
+
+	for ctl, attr in izip(iks, ["Root", "effector", "upVector"]):
+		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
+
+	for ctl, attr in izip(fks, ["FkA", "FkB", "FkC"]):
+		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
+
+	cmds.setAttr(fkikNode+".lengthA", lenA)
+	cmds.setAttr(fkikNode+".lengthB", lenB)
+	cmds.setAttr(fkikNode+".negate", neg)
+
+
+	for bone, s in izip(bones, "ABC"):
+		attributes.inheritsTransform(bone, False)
+		cmds.setAttr(bone+".shearXY", 0)
+		cmds.setAttr(bone+".shearXZ", 0)
+		cmds.setAttr(bone+".shearYZ", 0)
+
+		dmNode = cmds.createNode("decomposeMatrix", name="FKIKDM{}".format(s))
+
+		cmds.connectAttr(fkikNode+".bone{}Tfm".format(s), dmNode+".inputMatrix")
+
+		cmds.connectAttr(dmNode+".outputTranslate", bone+".translate")
+		cmds.connectAttr(dmNode+".outputRotate", bone+".rotate")
+		cmds.connectAttr(dmNode+".outputScale", bone+".scale")
+
+	return fkikNode
 
 # ----------------------------------------------------------------------------------
 # ATTACH

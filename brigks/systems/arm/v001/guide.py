@@ -10,6 +10,9 @@ class ArmSystemGuide(SystemGuide):
 	def addSettings(self):
 		self._settings["blend"] = "FK" # FK, IK
 
+		self._settings["lockElbowRotation"] = False
+		self._settings["gimbalControllers"] = False
+
 		self._settings["stretchDefault"] = 1.5
 		self._settings["reverseDefault"] = 0.0
 

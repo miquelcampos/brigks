@@ -100,7 +100,6 @@ def setKeyables(node, attrs=None, lock=True):
 		if not keyable:
 			cmds.setAttr(node+"."+attrName, channelBox=keyable)
 
-
 def setRotOrder(node, rotOrder):
 	orders = ["xyz", "yzx", "zxy", "xzy", "yxz", "zyx"]
 	#TODO Parent/Unparent children? 
@@ -108,6 +107,11 @@ def setRotOrder(node, rotOrder):
 	cmds.setAttr(node+".rotateOrder", orders.index(rotOrder.lower()))
 	cmds.xform(node, matrix=matrix, worldSpace=True)
 
+def inheritsTransform(obj, b):
+	matrix = cmds.xform(obj, q=True, matrix=True, worldSpace=True)
+	cmds.setAttr(obj+".inheritsTransform", b)
+	cmds.xform(obj, matrix=matrix, worldSpace=True)
+	
 def setColor(node, color):
 	''' Set the color of given node
 
