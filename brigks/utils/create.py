@@ -217,23 +217,23 @@ def bezier(name, parent=None, points=None, matrix=None, color=None):
 		knots += [i,i,i]
 
 
-	path = cmds.curve(name=name, bezier=True, degree=3, point=points, knot=knots)
+	crv = cmds.curve(name=name, bezier=True, degree=3, point=points, knot=knots)
 
 	if color:
-		attributes.setColor(curve, color)
+		attributes.setColor(crv, color)
 	
 	if parent:
-		curve = cmds.parent(curve, parent)[0]
+		crv = cmds.parent(crv, parent)[0]
 
-	if transform:
+	if matrix:
 		if isinstance(matrix, Transformation):
 			matrix = matrix.asMatrix().flattened()
 		elif isinstance(matrix, Matrix4):
 			matrix = matrix.flattened()
-			
-		cmds.xform(curve, matrix=matrix, worldSpace=True)
 
-	return mfn
+		cmds.xform(crv, matrix=matrix, worldSpace=True)
+
+	return crv
 
 def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
 	'''Creates a Transform node with a NurbsCurve Shape with each point constrained to a given center. 
@@ -259,12 +259,12 @@ def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
 		raise ValueError("Give degree must be 1 or 3")
 
 	points = [cmds.xform(center, q=1, worldSpace=True, translation=True) for center in centers]
-	srv = curve(name, points, closed, degree, centers[0], color)
+	crv = curve(name, points, closed, degree, centers[0], color)
 
 	for i, center in enumerate(centers):
-		compounds.curvePointCenters(srv, center, i)
+		compounds.curvePointCenters(crv, center, i)
 
-	return srv
+	return crv
 
 def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=3, width=1.0, 
 																axis="z", tangent=.5, color=None):

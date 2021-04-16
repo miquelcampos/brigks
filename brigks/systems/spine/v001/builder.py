@@ -1,10 +1,15 @@
-from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from itertools import izip
+
+from maya import cmds
 
 from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
+from brigks.systems.systemBuilder import SystemBuilder
+from brigks.utils import constants, attributes, create, compounds, umath
+
 class SpineSystemBuilder(SystemBuilder):
+	ctl_count = 5
 
 	def createObjects(self):
 
@@ -22,7 +27,7 @@ class SpineSystemBuilder(SystemBuilder):
 
 		for i in range(self.ctl_count):
 			lookat = self.translations("Eff") - self.translations("Root")
-			t = transformation.lookAt(self.translations("Root"), lookat, normal, self.settings("axis").lower(), self.negate())
+			t = Transformation.lookAt(self.translations("Root"), lookat, normal, self.settings("axis").lower(), self.negate())
 			t.translation = self.translations("Root").lerp(self.translations("Eff"), i/(self.ctl_count-1.0))
 			positions.append(t.translation)
 			transforms.append(t)
@@ -118,53 +123,52 @@ class SpineSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		# Visibilities
-		fkCompare = compounds.compare("compare", self.blendAttr, 1, "<")
-		ikCompare = compounds.compare("compare", self.blendAttr, 0, ">")
+		fkCompare = compounds.compare(self.blendAttr, 1, "<")
+		ikCompare = compounds.compare(self.blendAttr, 0, ">")
 		
 		cmds.connectAttr(self.showCtrlAttr, fkCompare+".colorIfFalseR")
 		cmds.connectAttr(self.showCtrlAttr, ikCompare+".colorIfFalseR")
 
 		for ctl in self.fkCtl:
 			for shp in cmds.listRelatives(ctl, shapes=True):
-				cmds.connectAttr(fkCompare+"outputColorR", shp+".visibility")
+				cmds.connectAttr(fkCompare+".outColorR", shp+".visibility")
 
 		for ctl in self.ikCtl[1:]:
 			for shp in cmds.listRelatives(ctl, shapes=True):
-				cmds.connectAttr(ikCompare+"outputColorR", shp+".visibility")
+				cmds.connectAttr(ikCompare+".outColorR", shp+".visibility")
 
 		# Cluster Centers
-		compounds.pointCenter(self.crvA, self.ikCtl[0], 0)
-		compounds.pointCenter(self.crvA, self.aTan0, 1)
-		compounds.pointCenter(self.crvA, self.aTan1, 2)
-		compounds.pointCenter(self.crvA, self.ikCtl[4], 3)
+		compounds.curvePointCenters(self.crvA, self.ikCtl[0], 0)
+		compounds.curvePointCenters(self.crvA, self.aTan0, 1)
+		compounds.curvePointCenters(self.crvA, self.aTan1, 2)
+		compounds.curvePointCenters(self.crvA, self.ikCtl[4], 3)
 
-		compounds.pointCenter(self.crvB, self.ikCtl[0], 0)
-		compounds.pointCenter(self.crvB, self.bTan0, 1)
-		compounds.pointCenter(self.crvB, self.bTan1, 2)
-		compounds.pointCenter(self.crvB, self.bTan2, 3)
-		compounds.pointCenter(self.crvB, self.bTan3, 4)
-		compounds.pointCenter(self.crvB, self.bTan4, 5)
-		compounds.pointCenter(self.crvB, self.ikCtl[4], 6)
+		compounds.curvePointCenters(self.crvB, self.ikCtl[0], 0)
+		compounds.curvePointCenters(self.crvB, self.bTan0, 1)
+		compounds.curvePointCenters(self.crvB, self.bTan1, 2)
+		compounds.curvePointCenters(self.crvB, self.bTan2, 3)
+		compounds.curvePointCenters(self.crvB, self.bTan3, 4)
+		compounds.curvePointCenters(self.crvB, self.bTan4, 5)
+		compounds.curvePointCenters(self.crvB, self.ikCtl[4], 6)
 
 		# Hooks
 		for hookRig, fkCtl, ikCtl in izip(self.hookRig, self.fkCtl, self.ikCtl):
-			
 			if hookRig is None:
 				continue
 
-			cns = self._createCompound("PoseConstraint", hookRig, [ikCtl, fkCtl])
-			cns.connectBlend(self.blendAttr())
+			cns = compounds.blendMatrix(hookRig, [ikCtl, fkCtl])
+			cmds.connectAttr(self.blendAttr, cns+".target[1].weight")
 		
 		# Mid Ik Controller
 		axis = self.settings("axis").lower()
 		axis = axis[0] + "-"+ axis[-1]
-		cns = compounds.curveConstraint(self.ikBfr[2], self.crvA, axis=axis, parametric=True, u=.5)
+		cns = compounds.curveConstraints(self.ikBfr[2], self.crvA, axis=axis, parametric=True, u=.5)
 		compounds.spinePointAt(cns, self.ikCtl[0], self.ikCtl[4], blend=.5, solver=1) 
 
-		cns = compounds.curveConstraint(self.ikBfr[1], self.crvB, axis=axis, parametric=False, u=.25)
+		cns = compounds.curveConstraints(self.ikBfr[1], self.crvB, axis=axis, parametric=False, u=.25)
 		compounds.spinePointAt(cns, self.ikCtl[0], self.ikCtl[2], blend=.5, solver=1) 
 
-		cns = compounds.curveConstraint(self.ikBfr[3], self.crvB, axis=axis, parametric=False, u=.75)
+		cns = compounds.curveConstraints(self.ikBfr[3], self.crvB, axis=axis, parametric=False, u=.75)
 		compounds.spinePointAt(cns, self.ikCtl[2], self.ikCtl[4], blend=.5, solver=1) 
 
 	

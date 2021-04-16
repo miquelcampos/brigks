@@ -81,7 +81,7 @@ class TwistSystemBuilder(SystemBuilder):
 
 		# CURVE
 		# tangent = self.settings("tangentDistance") if self.settings("tangent") else None
-		self.crv = create.cnsCurve("curve", self._centers, closed=False, degree=3)
+		self.crv = create.cnsCurve(self.getObjectName("Rig", "Crv"), self._centers, closed=False, degree=3)
 		self.length = cmds.arclen(self.crv)
 
 		# DIVISIONS
@@ -149,7 +149,7 @@ class TwistSystemBuilder(SystemBuilder):
 		if self.settings("scaleWithCurve") or self.settings("preserveLength"):
 			scaleNode = self._createNode("multDoubleLinear", "LengthRescale")
 			cmds.setAttr(scaleNode+".input1", self.length)
-			self.connectAttr(self.scaleAttr(), (scaleNode, "input2"))
+			cmds.connectAttr(self.nodes("local")+".sx", scaleNode+".input2")
 
 			lengthRatioNode = self._createNode("multiplyDivide", "LengthRatio")
 			cmds.setAttr(lengthRatioNode+".operation", 2) # Division
@@ -216,9 +216,9 @@ class TwistSystemBuilder(SystemBuilder):
 						divNode = self._createNode("multiplyDivide", "Div")
 						cmds.setAttr(divNode+".operation", 2) # Divide
 						cmds.connectAttr(refADmNode+".outputScale", divNode+".input1")
-						cmds.connectAttr(self.sclAttr, divNode, "input2X")
-						cmds.connectAttr(self.sclAttr, divNode, "input2Y")
-						cmds.connectAttr(self.sclAttr, divNode, "input2Z")
+						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2X")
+						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2Y")
+						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2Z")
 
 						output = divNode
 					else:
@@ -228,16 +228,16 @@ class TwistSystemBuilder(SystemBuilder):
 						cmds.connectAttr(refB+".worldMatrix[0]", refBDmNode+".inputMatrix")
 
 						blendNode = self._createNode("blendColors", "Blend")
-						cmds.connectAttr(self.scaleAttrs[i], blendNode, "blender")
+						cmds.connectAttr(self.scaleAttrs[i], blendNode+".blender")
 						cmds.connectAttr(refADmNode+".outputScale", blendNode+".color1")
 						cmds.connectAttr(refBDmNode+".outputScale", blendNode+".color2")
 
 						divNode = self._createNode("multiplyDivide", "Div")
 						cmds.setAttr(divNode+".operation", 2) # Divide
 						cmds.connectAttr(blendNode+".output", divNode+".input1")
-						cmds.connectAttr(self.sclAttr, divNode, "input2X")
-						cmds.connectAttr(self.sclAttr, divNode, "input2Y")
-						cmds.connectAttr(self.sclAttr, divNode, "input2Z")
+						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2X")
+						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2Y")
+						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2Z")
 
 						output = divNode
 
