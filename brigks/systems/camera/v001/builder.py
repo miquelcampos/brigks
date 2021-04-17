@@ -1,9 +1,33 @@
-from brigks.systems.systemBuilder import SystemBuilder
+from maya import cmds
 
+from math3d.transformation import Transformation
+
+from brigks.systems.systemBuilder import SystemBuilder
 
 class CameraSystemBuilder(SystemBuilder):
 
-	def createObjects(self):
 
-		bfr = self.createBuffer(None, "Camera")
-		ctl = self.createController(None, "Camera")
+	def createObjects(self):
+		# TRANSFORMATION
+		tfm = Transformation.lookAt(self.translations("Root"), self.directions("Root", "y"), self.directions("Root", "z"), "y"+self.sign()+"z", False)
+		
+		# OBJECTS
+		bfr = self.createBuffer(None, "Camera", tfm)
+		# camera = self.addCamera(bfr, "Camera", tfm=tfm, isController=True)
+		# shape = cmds.listRelatives(camera, shapes=True)[0]
+
+		# # Match Settings from guide
+		# marker = cmds.listRelatives(self.markers("Root").name(), shapes=True)
+
+		# for name in ["focalLength", "cameraScale", "nearClipPlane", "farClipPlane", 
+		# 		"horizontalFilmAperture", "verticalFilmAperture", "lensSqueezeRatio", 
+		# 		"filmFit", "filmFitOffset", "horizontalFilmOffset", "verticalFilmOffset"]:
+
+		# 	value = cmds.getAttr(marker+"."+name)
+		# 	cmds.setAttr(shape+"."+name, value)
+
+
+	def createConnection(self):
+		bfr = self.getObject("Camera", usage="Hbfr")
+		self.connect_parenting(bfr, "Root")
+		

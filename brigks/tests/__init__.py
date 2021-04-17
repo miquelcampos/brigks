@@ -1,7 +1,8 @@
-
 import os.path
 import xml.etree.cElementTree as etree
 from datetime import datetime as dt
+import logging
+
 from Qt.QtWidgets import QDialog, QVBoxLayout
 
 from brigks import Guide
@@ -171,39 +172,8 @@ def createGuideDuplicateAndBuild(showWindow=False):
 
 
 
-def createStretchSliderGuideAndBuild(showWindow=False):
+def createGuidesAndBuild(showWindow=False):
 	# Building Matrix for guide positions
-	sliderMatrices = dict(
-		Rail1=Transformation.fromParts(translation=Vector3([0,0,0])),
-		Pos1=Transformation.fromParts(translation=Vector3([1,0,0])),
-		Neg1=Transformation.fromParts(translation=Vector3([-1,0,0]))
-		)
-	stretchMatrices = dict(
-		Root=Transformation.fromParts(translation=Vector3([0,3,0])),
-		End=Transformation.fromParts(translation=Vector3([2,3,0]))
-		)
-	twistMatrices = dict(
-		Part1=Transformation.fromParts(translation=Vector3([4,0,0])),
-		Part2=Transformation.fromParts(translation=Vector3([4,2,0])), 
-		Part3=Transformation.fromParts(translation=Vector3([4,4,0])),
-		)
-	spineMatrices = dict(
-		Root=Transformation.fromParts(translation=Vector3([0,0,0])),
-		Eff=Transformation.fromParts(translation=Vector3([0,4,0])),
-		)
-	armMatrices = dict(
-		Root=Transformation.fromParts(translation=Vector3([0,0,-5])),
-		Elbow=Transformation.fromParts(translation=Vector3([3,0,-6])),
-		Wrist=Transformation.fromParts(translation=Vector3([5,0,-5])),
-		Eff=Transformation.fromParts(translation=Vector3([6,0,-5])),
-		Prop=Transformation.fromParts(translation=Vector3([6,-1,-5])),
-		)
-	legMatrices = dict(
-		Root=Transformation.fromParts(translation=Vector3([3,8,0])),
-		Knee=Transformation.fromParts(translation=Vector3([3,4,1])),
-		Ankle=Transformation.fromParts(translation=Vector3([3,1,0])),
-		Eff=Transformation.fromParts(translation=Vector3([3,1,1])),
-		)
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
@@ -211,12 +181,26 @@ def createStretchSliderGuideAndBuild(showWindow=False):
 	g.setSettings(hideJoints=False)
 
 	layer = g.addLayer("MyFirstLayer")
-	# slider = layer.addSystem("slider", "L", "Basic", sliderMatrices)
-	# stretch = layer.addSystem("stretch", "L", "Chain", stretchMatrices)
-	# twist = layer.addSystem("twist", "L", "Twist", twistMatrices)
-	# spine = layer.addSystem("spine", "M", "Spine", spineMatrices)
-	# arm = layer.addSystem("arm", "M", "Arm", armMatrices)
-	leg = layer.addSystem("leg", "M", "Leg", legMatrices)
+	slider = layer.addSystem("slider", "L", "Basic")
+	stretch = layer.addSystem("stretch", "L", "Chain")
+	twist = layer.addSystem("twist", "L", "Twist")
+	spine = layer.addSystem("spine", "M", "Spine")
+	arm = layer.addSystem("arm", "M", "Arm")
+	leg = layer.addSystem("leg", "M", "Leg")
+	neck = layer.addSystem("neck", "M", "Neck")
+	average = layer.addSystem("average", "M", "Average")
+	breast = layer.addSystem("breast", "M", "Breast")
+	camera = layer.addSystem("camera", "M", "Camera")
+	driven = layer.addSystem("driven", "M", "Driven")
+	foot = layer.addSystem("foot", "M", "Foot")
+	lookat = layer.addSystem("lookat", "M", "LookAt")
+	meta = layer.addSystem("meta", "M", "Meta")
+	piston = layer.addSystem("piston", "M", "Piston")
+	quadrant = layer.addSystem("quadrant", "M", "Quadrant")
+	tracker = layer.addSystem("tracker", "M", "Tracker")
+	attribute = layer.addSystem("attribute", "M", "Attribute")
+	zleg = layer.addSystem("zleg", "M", "ZLeg")
+	psd = layer.addSystem("psd", "M", "PSD")
 
 	# System Settings
 	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
@@ -266,7 +250,7 @@ def fromHarbie():
 	tree = etree.ElementTree(xmlRoot)
 	tree.write(outputFPath)
 
-	print "conversion Full", dt.now() - start
+	logging.info("Conversion Full {t}".format(t=(dt.now() - start)))
 	start = dt.now()
 
 	xmlRoot = convertXmlHarbie(xmlHarbie, useSymmetrySystems=True)
@@ -274,16 +258,15 @@ def fromHarbie():
 	tree = etree.ElementTree(xmlRoot)
 	tree.write(outputXPath)
 
-	print "conversion X", dt.now() - start
+	logging.info("Conversion X {t}".format(t=(dt.now() - start)))
 	start = dt.now()
 
 	guide = Guide.fromXml(outputFPath)
 
-	print "guide creation", dt.now() - start
+	logging.info("Guide Creation {t}".format(t=(dt.now() - start)))
 
-
-	print "Exported to", outputFPath
-	print "Exported to", outputXPath
+	logging.info("Exported to {p}".format(p=outputFPath))
+	logging.info("Exported to {p}".format(p=outputXPath))
 
 	return guide
 

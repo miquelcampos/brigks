@@ -1,11 +1,17 @@
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
-
 class ZlegSystemGuide(SystemGuide):	
 
-	markerNames = ("Part1", "Part2", "Part3", "Part4", "Part5")
-	markerMinMax = dict()
+	markerNames = ("Root", "Knee", "Ankle", "Toe", "Eff")
+	markerPositions = dict(
+		Root=Vector3([15,100,0]),
+		Knee=Vector3([15,50,5]),
+		Ankle=Vector3([15,20,-2]),
+		Toe=Vector3([15,10,0]),
+		Eff=Vector3([15,10,5]),
+		)
 
 	def addSettings(self):
 		self._settings["blend"] = "FK" # FK, IK

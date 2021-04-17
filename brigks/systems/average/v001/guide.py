@@ -1,11 +1,14 @@
-from maya import cmds
+
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
 class AverageSystemGuide(SystemGuide):	
 
 	markerNames = ("Root",)
-	markerMinMax = {}
+	markerPositions = dict(
+		Root=Vector3([0,10,0]),
+		)
 
 	def addSettings(self):
 		self._settings["addControllers"] = False

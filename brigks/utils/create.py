@@ -10,7 +10,7 @@ from math3d.transformation import TransformationArray, Transformation
 from math3d.vectorN import Vector3
 from math3d.matrixN import Matrix4
 
-from brigks.utils import attributes, compounds
+from brigks.utils import attributes, compounds, cast
 
 ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "cubewithpeak",
 	"cylinder", "diamond", "flower", "jaw", "null", "pyramid", "sphere", "spine", "square",
@@ -93,6 +93,79 @@ def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False,
 	cmds.setAttr(mhc+".ShowCenter", showCenter)
 	cmds.setAttr(mhc+".ShowOrientation", showOrientation)
 	cmds.setAttr(mhc+".CenterScale", centerScale)
+
+def text(name="curve", parent=None, matrix=None, text="Text", font="Arial", size=40, align="left", bold=False, italic=False, color=None):
+	'''	Creates a Transform node with a Text NurbsCurve Shape. 
+	This method uses cmds for convenience but return an MFn.
+
+	Args:
+		name(str): Name of the newly created Node
+		parent(MObject): parent of the node. None if no parent
+		transform(MTransformationMatrix or MVector): Transform or position of the node
+		text(str): Text to display. 
+		font(str): Font to be used. Default is Arial
+		size(int): size off the text. Default is 40 which is close to 1 maya unit high.
+		align(left|center|right): Alignment of the Text.
+		bold(bool): Make text bold
+		italic(bool): Make text italic.
+		color(list of float): Color of the curve.
+
+	Returns:
+		MFnTransform
+	'''
+	wt = "wt:75" if bold else "wt:50"
+	sl = "sl:i" if italic else "sl:n"
+	sz = "sz:%s"%size 
+
+	font = "|".join([font, wt, sz, sl, "st:100"])
+
+	text = cmds.textCurves(name=name, font=font, text=text)[0]
+
+	# Make the shape relatives to the first node pivot
+	cmds.makeIdentity(text, apply=True, t=True, r=True, s=True)
+
+	# Set the name properly
+	text = cmds.rename(text, name)
+
+	# Parent all subshapes to the first node
+	for node in cmds.listRelatives(text, allDescendents=True):
+		for shp in cmds.listRelatives(node, shapes=True) or []:
+			cmds.parent(shp, text, shape=True, addObject=True)
+
+	cmds.delete(cmds.listRelatives(text, allDescendents=True, type="transform"))
+
+	if align in ["center", "right"]:
+		bb = [0,0,0]
+		for shp in cmds.listRelatives(text, shapes=True):
+			shp = cast.toMFn(shp)
+			sbb = shp.boundingBox()
+			sctr = sbb.center()
+
+			sbb = [sbb.width()*.5+sctr.x, sbb.height()*.5+sctr.y, sbb.depth()*.5+sctr.z]
+			bb = [max(o, v) for o, v in izip(bb, sbb)]
+
+		if align == "center":
+			cmds.setAttr(text+".translateX", -bb[0]*.5)
+		else:
+			cmds.setAttr(text+".translateX", -bb[0])
+
+		cmds.makeIdentity(text, apply=True, t=True, r=True, s=True)
+		cmds.makeIdentity(text, apply=False, t=True, r=True, s=True)
+
+	if parent:
+		text = cmds.parent(text, parent)[0]
+
+	# Transform
+	if matrix is not None:
+		if isinstance(matrix, Transformation):
+			matrix = matrix.asMatrix().flattened()
+		elif isinstance(matrix, Matrix4):
+			matrix = matrix.flattened()
+
+		cmds.xform(text, matrix=matrix, worldSpace=True)
+
+	return text
+
 
 # ----------------------------------------------------------------------------------
 #  CHAIN

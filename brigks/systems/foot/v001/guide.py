@@ -1,12 +1,21 @@
-from maya import cmds
+
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
 class FootSystemGuide(SystemGuide):	
 
-	markerNames = ("Part", "Heel", "In", "Out")
+	markerNames = ("Root", "Part", "Heel", "In", "Out")
 	markerMinMax = dict(
 		Part=(1,-1)
+		)
+	markerPositions = dict(
+		Root=Vector3([15,10,0]),
+		Part1=Vector3([15,5,10]),
+		Part2=Vector3([15,2,20]),
+		Heel=Vector3([15,0,-5]),
+		In=Vector3([8,0,3]),
+		Out=Vector3([22,0,3]),
 		)
 
 	def addSettings(self):

@@ -1,11 +1,14 @@
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
-
 
 class SpineSystemGuide(SystemGuide):
 
 	markerNames = ("Root", "Eff")
-	markerMinMax = dict()
+	markerPositions = dict(
+		Root=Vector3([0,100,0]),
+		Eff=Vector3([0,135,0]),
+		)
 
 	def addSettings(self):
 		self._settings["blend"] = "IK" # FK, IK

@@ -12,20 +12,20 @@ class StretchSystemBuilder(SystemBuilder):
 	def createObjects(self):
 		# TRANSFORMATION
 		normal = self.directions("Root", "z")
-		positions = Vector3Array([self.translations("Root"), self.translations("End")])
+		positions = Vector3Array([self.translations("Root"), self.translations("Eff")])
 		ctlTfm = TransformationArray.chain(positions, normal, negativeSide=self.negate(), endTransform=True)
 
-		self.length = self.translations("Root").distance(self.translations("End"))
+		self.length = self.translations("Root").distance(self.translations("Eff"))
 
 		# CONTROLLERS
 		startBfr = self.createBuffer(None, "Start", ctlTfm[0])
-		endBfr = self.createBuffer(None, "End", ctlTfm[1])
+		endBfr = self.createBuffer(None, "Eff", ctlTfm[1])
 		
 		if self.settings("addControllers"):
 			startCtl = self.createController(startBfr, "Start", ctlTfm[0], "cube", color=self.colorIk())
 			attributes.setKeyables(startCtl, constants.tr_attrs)
 			
-			endCtl = self.createController(endBfr, "End", ctlTfm[1], "cube", color=self.colorIk())
+			endCtl = self.createController(endBfr, "Eff", ctlTfm[1], "cube", color=self.colorIk())
 			attributes.setKeyables(endCtl, constants.tr_attrs)
 			
 			self.centers = [startCtl, endCtl]

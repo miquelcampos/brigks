@@ -1,11 +1,13 @@
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
-
 
 class QuadrantSystemGuide(SystemGuide):	
 
 	markerNames = ("Root",)
-	markerMinMax = {}
+	markerPositions = dict(
+		Root=Vector3([20,0,0]),
+		)
 
 	def addSettings(self):
 		self._settings["north"] = True

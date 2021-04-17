@@ -9,8 +9,8 @@ class BasicSystemGuide(SystemGuide):
 	markerMinMax = dict(
 		Part=(1,-1),
 		)
-	defaultPositions = dict(
-		Part1=Vector3([0,1,0]),
+	markerPositions = dict(
+		Part1=Vector3([0,10,0]),
 		)
 	markerCompatibility = dict(
 		chain={},
@@ -20,6 +20,7 @@ class BasicSystemGuide(SystemGuide):
 	def addSettings(self):
 		self._settings["addControllers"] = True
 		self._settings["useIkColor"] = False
+		self._settings["addJointReference"] = False
 
 		self._settings["tx"] = True
 		self._settings["ty"] = True

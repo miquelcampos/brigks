@@ -1,12 +1,14 @@
 
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
-
 
 class CameraSystemGuide(SystemGuide):
 
 	markerNames = ("Root",)
-	markerMinMax = {}
+	markerPositions = dict(
+		Root=Vector3([0,175,60]),
+		)
 
 	def addSettings(self):
 		pass

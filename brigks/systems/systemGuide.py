@@ -19,10 +19,10 @@ scriptDefaultValue = '''# cmds returns the maya.cmds module
 
 class SystemGuide(object):
 
-	markerNames = ("Part",)
-	markerPicked = ("Part",)
-	markerMinMax = dict(Part=(1,-1))
-	defaultPositions = {}
+	markerNames = ()
+	markerPicked = ()
+	markerMinMax = {}
+	markerPositions = {}
 	# Marker Compatibility.
 	# Key is the type of systems compatible
 	# Value is a dictionary of markers to rename
@@ -75,7 +75,7 @@ class SystemGuide(object):
 		markers = []
 		for part, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
 			if matrix is None:
-				position = cls.defaultPositions[part]
+				position = cls.markerPositions[part]
 				transform = Transformation.fromParts(translation=position)
 				matrix = transform.asMatrix().tolist()
 				matrix = [j for sub in matrix for j in sub]
@@ -359,6 +359,14 @@ class SystemGuide(object):
 			return Vector3Array([m.direction(axis) for m in self.markers(name)])
 		else:
 			return self.markers(name).direction(axis)
+
+	def scales(self, name=None):
+		if name is None:
+			return {k:m.scale() for k,m in self.markers().iteritems()}
+		elif name in self.markerMinMax:
+			return Vector3Array([m.scale() for m in self.markers(name)])
+		else:
+			return self.markers(name).scale()
 
 	def count(self, name):
 		if name not in self.markerMinMax:

@@ -84,6 +84,12 @@ class SystemMarker(object):
 
 		return self._translation
 
+	def scale(self):
+		if self._scale is None:
+			self.transform()
+
+		return self._scale
+
 	def direction(self, axis="x"):
 		tfm = self.transform()
 		return tfm.rotation.asMatrix()["xyz".index(axis)]

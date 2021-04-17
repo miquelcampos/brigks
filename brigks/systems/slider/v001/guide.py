@@ -1,4 +1,4 @@
-from maya import cmds
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
@@ -9,6 +9,11 @@ class SliderSystemGuide(SystemGuide):
 		Rail=(1,-1),
 		Pos=(1,-1),
 		Neg=(1,-1)
+		)
+	markerPositions = dict(
+		Rail1=Vector3([0,0,0]),
+		Pos1=Vector3([0,0,2]),
+		Neg1=Vector3([0,0,-1]),
 		)
 
 	def addSettings(self):

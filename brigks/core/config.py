@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 
 DATA_ATTRIBUTE = "_userProps"
+BINDPOSE_ATTRIBUTE = "bindMatrix"
 
 
 # SYSTEMS

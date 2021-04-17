@@ -40,7 +40,24 @@ MARKER_NAMES = dict(
 	breast01=dict(
 		Tip="Eff"
 		),
+	piston=dict(
+		End="Eff"
+		),
+	stretch01=dict(
+		End="Eff"
+		),
 	)
+
+SETTINGS_NAMES = dict(
+	basic01=dict(
+		addDeformerReferences="addJointReference",
+		),
+	params01=dict(
+		paramDefOrder="order",
+		paramDefs="definitions",
+		),
+	)
+
 
 PORT_NAMES = dict(
 	lookAt01=dict(
@@ -123,6 +140,9 @@ def _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems):
 
 	xmlHarbieParameters = xmlHarbieSystem.find("Parameters")
 	settings = json.loads(xmlHarbieParameters.get("value", {}))
+	if systemType in SETTINGS_NAMES:
+		for k, v in SETTINGS_NAMES[systemType].iteritems():
+			settings[v] = settings.pop(k)
 
 	if settings["location"] == "X":
 		settings["location"] = "M"

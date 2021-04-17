@@ -1,11 +1,16 @@
 from maya import cmds
 
+from math3d.vectorN import Vector3
+
 from brigks.systems.systemGuide import SystemGuide
 
 class BreastSystemGuide(SystemGuide):	
 
 	markerNames = ("Root", "Eff")
-	markerMinMax = {}
+	markerPositions = dict(
+		Root=Vector3([5,135,5]),
+		Eff=Vector3([5,135,10]),
+		)
 
 	def addSettings(self):
 		self._settings["dynActive"] = False

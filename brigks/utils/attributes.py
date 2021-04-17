@@ -112,6 +112,15 @@ def inheritsTransform(obj, b):
 	cmds.setAttr(obj+".inheritsTransform", b)
 	cmds.xform(obj, matrix=matrix, worldSpace=True)
 	
+def setLimits(node, attrs, minimum=None, maximum=None):
+	for attr in attrs:
+		cmds.setAttr(node+".min"+attr+"LimitEnable", minimum is not None)
+		cmds.setAttr(node+".max"+attr+"LimitEnable", maximum is not None)
+		if minimum is not None:
+			cmds.setAttr(node+".min"+attr+"Limit", minimum)
+		if maximum is not None:
+			cmds.setAttr(node+".max"+attr+"Limit", maximum)
+
 def setColor(node, color):
 	''' Set the color of given node
 

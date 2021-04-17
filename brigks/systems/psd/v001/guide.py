@@ -1,4 +1,4 @@
-
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
@@ -8,6 +8,12 @@ class PsdSystemGuide(SystemGuide):
 	markerMinMax = dict(Driver=(1,-1),
 						Inner=(1,-1),
 						Outer=(1,-1))
+	markerPositions = dict(
+		Root=Vector3([0,0,0]),
+		Driver1=Vector3([0,0,0]),
+		Inner1=Vector3([-2,0,0]),
+		Outer1=Vector3([2,0,0]),
+		)
 
 	def addSettings(self):
 		for i in xrange(1, self.count("Driver")+1):

@@ -6,7 +6,7 @@ from maya import OpenMaya as om
 
 from math3d.matrixN import Matrix4
 
-from brigks.utils import attributes
+from brigks.utils import attributes, cast
 
 POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
 COMPARE_OPS = ["==", "!=", ">", ">=", "<", "<="]
@@ -273,7 +273,7 @@ def curveConstraints(slave, curve, axis="xy", parametric=True, u=.5, percentageT
 
 	if parametric:
 		if percentageToU:
-			curveMFn = _getMFnNurbsCurve(curve)
+			curveMFn = cast.toMFn(shape)
 			length = cmds.arclen(curve)
 			u = curveMFn.findParamFromLength(length*u)
 		else:
@@ -502,7 +502,7 @@ def _closestComponentIndex(shape, position, componentType):
 		int
 	'''
 	point = om.MPoint(*position)
-	shape = _getMFnMesh(shape)
+	shape = cast.toMFn(shape)
 
 	util = om.MScriptUtil()
 	util.createFromInt(0)
@@ -548,13 +548,6 @@ def _closestComponentIndex(shape, position, componentType):
 				vertexId = currentVertexId
 		return vertexId
 
-def _getMFnMesh(shapePath):
-	mobj = om.MObject()
-	selectionList = om.MSelectionList()
-	selectionList.add(str(shapePath))
-	selectionList.getDependNode(0,mobj)
-	return om.MFnMesh(mobj)
-
 def _getClosestUV(surface, point, globalSpace=True):
 	'''Returns the Closest UV values on a NurbsSurface to 'point'
 
@@ -572,8 +565,8 @@ def _getClosestUV(surface, point, globalSpace=True):
 
 	point = om.MPoint(*point)
 
-	#shape = cmds.listRelatives(surface, shapes=True, path=True)[0]
-	fnSurface = _getMFnNurbsSurface(surface)
+	shape = cmds.listRelatives(surface, shapes=True, path=True)[0]
+	fnSurface = cast.toMFn(shape)
 
 	utilA = om.MScriptUtil()
 	utilB = om.MScriptUtil()
@@ -587,20 +580,28 @@ def _getClosestUV(surface, point, globalSpace=True):
 	closestPointV = utilB.getDouble(closestPointV)
 	return [closestPointU, closestPointV]
 
-def _getMFnNurbsSurface(path):
-	mobj = om.MObject()
-	dagPath = om.MDagPath()
-	selectionList = om.MSelectionList()
-	selectionList.add(str(path))
-	selectionList.getDependNode(0,mobj)
-	selectionList.getDagPath(0, dagPath)
-	return om.MFnNurbsSurface(dagPath)
 
-def _getMFnNurbsCurve(path):
-	mobj = om.MObject()
-	dagPath = om.MDagPath()
-	selectionList = om.MSelectionList()
-	selectionList.add(str(path))
-	selectionList.getDependNode(0,mobj)
-	selectionList.getDagPath(0, dagPath)
-	return om.MFnNurbsCurve(dagPath)
+# def _getMFnMesh(shapePath):
+# 	mobj = om.MObject()
+# 	selectionList = om.MSelectionList()
+# 	selectionList.add(str(shapePath))
+# 	selectionList.getDependNode(0,mobj)
+# 	return om.MFnMesh(mobj)
+
+# def _getMFnNurbsSurface(path):
+# 	mobj = om.MObject()
+# 	dagPath = om.MDagPath()
+# 	selectionList = om.MSelectionList()
+# 	selectionList.add(str(path))
+# 	selectionList.getDependNode(0,mobj)
+# 	selectionList.getDagPath(0, dagPath)
+# 	return om.MFnNurbsSurface(dagPath)
+
+# def _getMFnNurbsCurve(path):
+# 	mobj = om.MObject()
+# 	dagPath = om.MDagPath()
+# 	selectionList = om.MSelectionList()
+# 	selectionList.add(str(path))
+# 	selectionList.getDependNode(0,mobj)
+# 	selectionList.getDagPath(0, dagPath)
+# 	return om.MFnNurbsCurve(dagPath)

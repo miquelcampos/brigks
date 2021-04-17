@@ -1,11 +1,14 @@
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
-
 class StretchSystemGuide(SystemGuide):
 
-	markerNames = ("Root", "End")
-	markerMinMax = dict()
+	markerNames = ("Root", "Eff")
+	markerPositions = dict(
+		Root=Vector3([20,0,0]),
+		Eff=Vector3([20,10,0]),
+		)
 	
 	def addSettings(self):
 		self._settings["addControllers"] = False

@@ -1,12 +1,20 @@
-from maya import cmds
+
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
 class DrivenSystemGuide(SystemGuide):	
 
-	markerNames = ("Part",)
+	markerNames = ("Rail", "Pos", "Neg")
 	markerMinMax = dict(
-		Part=(1,-1)
+		Rail=(1,-1), 
+		Pos=(1,-1),
+		Neg=(1,-1) 
+		)
+	markerPositions = dict(
+		Rail1=Vector3([0,5,0]),
+		Pos1=Vector3([0,5,2]),
+		Neg1=Vector3([0,5,-2]),
 		)
 	
 	def addSettings(self):

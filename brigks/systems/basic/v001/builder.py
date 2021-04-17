@@ -52,8 +52,9 @@ class BasicSystemBuilder(SystemBuilder):
 				self.splitParent.append(splitParent)
 
 	def createJoints(self):
-		for i, parent in enumerate(self.jntparent, start=1):
-			self.createJoint(parent, i)
+		for i, (parent, reference) in enumerate(izip(self.jntparent, self.bfr), start=1):
+			reference = reference if self.settings("addJointReference") else None
+			self.createJoint(parent, i, reference)
 
 		for i, parent in enumerate(self.splitParent, start=1):
 			jnt = self.createJoint(parent, "Pos{}".format(i))	

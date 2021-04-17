@@ -1,15 +1,11 @@
 
 from brigks.systems.systemGuide import SystemGuide
 
-
 class AttributeSystemGuide(SystemGuide):
-
-	markerNames = ()
-	markerMinMax = {}
 
 	def addSettings(self):
 		self._settings["order"] = []
-		self._settings["definition"] = {}
+		self._settings["definitions"] = {}
 
 	def connectionPorts(self):
 		super(AttributeSystemGuide, self).connectionPorts()

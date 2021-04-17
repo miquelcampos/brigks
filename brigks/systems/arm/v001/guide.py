@@ -1,11 +1,17 @@
-from maya import cmds
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
 class ArmSystemGuide(SystemGuide):	
 
 	markerNames = ("Root", "Elbow", "Wrist", "Eff", "Prop")
-	markerMinMax = {}
+	markerPositions = dict(
+		Root=Vector3([17,145,0]),
+		Elbow=Vector3([38,125,0]),
+		Wrist=Vector3([55,110,12]),
+		Eff=Vector3([61,98,17]),
+		Prop=Vector3([57,100,14]),
+		)
 
 	def addSettings(self):
 		self._settings["blend"] = "FK" # FK, IK

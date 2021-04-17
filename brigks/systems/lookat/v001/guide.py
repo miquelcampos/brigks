@@ -1,11 +1,14 @@
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
-
 
 class LookatSystemGuide(SystemGuide):
 
 	markerNames = ("Root", "Eff")
-	markerMinMax = {}
+	markerPositions = dict(
+		Root=Vector3([0,10,0]),
+		Eff=Vector3([0,10,10]),
+		)
 
 	def addSettings(self):
 		self._settings["addLocalController"] = True

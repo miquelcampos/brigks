@@ -1,12 +1,16 @@
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
-
 
 class TwistSystemGuide(SystemGuide):	
 
 	markerNames = ("Part",)
 	markerMinMax = dict(
 		Part=(2,-1)
+		)
+	markerPositions = dict(
+		Part1=Vector3([5,10,0]),
+		Part2=Vector3([5,30,0]),
 		)
 
 	def addSettings(self):
@@ -40,6 +44,8 @@ class TwistSystemGuide(SystemGuide):
 		ports = {}
 		for i in xrange(1, self.count("Part")+1):
 			ports["Control%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+
+		ports["UI"] = ["uiHost"]
 
 		return ports
 

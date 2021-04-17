@@ -1,13 +1,18 @@
-
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
-
 
 class MetaSystemGuide(SystemGuide):
 
 	markerNames = ("Part",)
 	markerMinMax = dict(
 		Part=(2,-1)
+		)
+	markerPositions = dict(
+		Part1=Vector3([55,105,15]),
+		Part2=Vector3([55,105,13]),
+		Part3=Vector3([55,105,11]),
+		Part4=Vector3([55,105,9]),
 		)
 
 	def addSettings(self):

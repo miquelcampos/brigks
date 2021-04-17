@@ -1,12 +1,17 @@
 
-from brigks.systems.systemGuide import SystemGuide
+from math3d.vectorN import Vector3
 
+from brigks.systems.systemGuide import SystemGuide
 
 class ChainSystemGuide(SystemGuide):
 
 	markerNames = ("Part",)
 	markerMinMax = dict(
 		Part=(2,-1)
+		)
+	markerPositions = dict(
+		Part1=Vector3([5,10,0]),
+		Part2=Vector3([10,10,0]),
 		)
 	markerCompatibility = dict(
 		basic=dict(),

@@ -5,7 +5,7 @@ from collections import OrderedDict
 from maya import cmds
 
 from brigks.utils import attributes, create, compounds
-from brigks.core import naming 
+from brigks.core import naming, config
 
 class SystemBuilder():
 
@@ -25,6 +25,7 @@ class SystemBuilder():
 		self.transforms = self.guide.transforms
 		self.translations = self.guide.translations
 		self.directions = self.guide.directions
+		self.scales = self.guide.scales
 		self.count = self.guide.count
 
 		# Building Steps
@@ -76,6 +77,7 @@ class SystemBuilder():
 		self.executeScript(self.settings("preScriptPath"), self.settings("preScriptValue"))
 
 	def stepObjects(self):
+		self.preDeleteObjects()
 		self.deleteObjects()
 		self.createObjects()
 		if self.settings("createJoints"):
@@ -110,6 +112,9 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	# BUILDING STEPS
 	# ----------------------------------------------------------------------------------
+	def preDeleteObjects(self):
+		pass
+		
 	def deleteObjects(self):
 		search = self.getObject("*", "*")
 		parent = cmds.ls(self.nodes("local"), long=True)[0]
@@ -206,12 +211,32 @@ class SystemBuilder():
 		color = [0,0,0]
 		return self.createTransform(parent, part, usage, tfm, icon, size, po, ro, so, color)
 
-	def createJoint(self, parent, part):
+	def createJoint(self, parent, part, reference=None):
 		usage = naming.USAGES["Joint"]
 		color = [1,0,0]
 		parent = parent if parent is not None else self.nodes("local")
 		name = self.getObjectName(usage, part)
-		return create.joint(parent, name, tfm=None, color=color)
+
+		jnt = create.joint(parent, name, tfm=None, color=color)
+
+		# Bind Pose reference
+		if reference:
+			attr = jnt+"."+config.BINDPOSE_ATTRIBUTE
+			if not cmds.ls(attr):
+				cmds.addAttr(jnt, longName=config.BINDPOSE_ATTRIBUTE, dataType="matrix")
+
+			cmds.connectAttr(reference+".worldInverseMatrix[0]", attr, force=True)
+
+			done = []
+			for connection in cmds.listConnections(jnt, type="skinCluster", plugs=True) or []:
+				skinCluster, skinClusterAttr = connection.split(".") 
+				if skinCluster in done:
+					continue
+				index = int(skinClusterAttr.split("[")[-1][:-1])
+				cmds.connectAttr(attr, skinCluster+".bindPreMatrix[{}]".format(index), force=True)
+				done.append(skinCluster)
+
+		return jnt
 
 	def createSurfaceJoints(self, surface, count, part="Strap"):
 		parent = surface

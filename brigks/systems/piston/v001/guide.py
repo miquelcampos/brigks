@@ -1,11 +1,14 @@
-from maya import cmds
+from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
 
 class PistonSystemGuide(SystemGuide):	
 
-	markerNames = ("Root", "End")
-	markerMinMax = {}
+	markerNames = ("Root", "Eff")
+	markerPositions = dict(
+		Root=Vector3([10,0,0]),
+		Eff=Vector3([10,10,0]),
+		)
 
 	def addSettings(self):
 		self._settings["addControllers"] = False
