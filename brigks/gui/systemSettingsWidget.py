@@ -6,7 +6,7 @@ from Qt.QtCore import Signal
 from Qt.QtWidgets import QWidget
 
 from brigks.utils import gui
-from brigks.core.config import LOCATIONS
+from brigks.config import LOCATIONS
 from brigks.systems import getSystemWidgetClass, getSystemVersions
 from brigks.gui.connectionWidget import ConnectionWidget
 from brigks.gui.scriptWidget import ScriptWidget

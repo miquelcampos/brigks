@@ -5,6 +5,7 @@ from math3d.vectorN import Vector3
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import create, attributes
+from brigks import config
 
 class QuadrantSystemBuilder(SystemBuilder):
 
@@ -12,7 +13,7 @@ class QuadrantSystemBuilder(SystemBuilder):
 
 	def preDeleteObjects(self):
 		# Store controllers output connections
-		searchString = self.getObjectName("Ctl", "*")
+		searchString = self.getObjectName(config.USE_CTL, "*")
 		controllers = cmds.ls(searchString, type="transform", long=True)
 		controllers = [c for c in controllers if c.startswith("|"+self.setup())]
 		exclude = ["message", "instObjGroups", "xxxxxxxxxxxx"]
@@ -78,15 +79,15 @@ class QuadrantSystemBuilder(SystemBuilder):
 		sclx = 1 * (east + west) if (east or west) else 0
 		offy = .5 * (north - south)
 		offx = .5 * (east - west)
-		frame = self.createRig(None, "Frame", tfm, "cube", size=1, po=(offx,offy,0), so=(sclx,scly,0))
+		frame = self.addRig(None, "Frame", tfm, "cube", size=1, po=(offx,offy,0), so=(sclx,scly,0))
 
 		# Controller
-		self.ctl = self.createController(frame, "1", tfm, "cube", size=1, so=(.5,.5,0), color=self.colorFk())
+		self.ctl = self.addCtl(frame, "1", tfm, "cube", size=1, so=(.5,.5,0), color=self.colorFk())
 		attributes.setKeyables(self.ctl, ["posx", "posy"])  # Faceware doesn't like if the posx is not keyable, so we make it keyable all the time...
 
 		# Label
 		labelText = self.settings("label") if (self.settings("customLabel") and self.settings("label") != "") else self.settings("name")
-		label = create.text(self.getObjectName("Rig", "Label"), frame, labelTfm, labelText, size=.2, align=align)
+		label = create.text(self.getObjectName(config.USE_RIG, "Label"), frame, labelTfm, labelText, size=.2, align=align)
 
 
 		# RECONNECT 
@@ -106,8 +107,7 @@ class QuadrantSystemBuilder(SystemBuilder):
 
 	#------------------------------------------------------------------
 	# CONNECTION
-	def createConnection(self):
-		# Get objects from rig
-		frame = self.getObject("Frame", usage="Rig")
-		self.connect_parenting(frame, "Root")
-		
+	def createConnections(self):
+		if "Root" in self.connections():
+			root = self.getObject(config.USE_RIG, "Frame")
+			self.connections("Root").connect(root)

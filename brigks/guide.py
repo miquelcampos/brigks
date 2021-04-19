@@ -4,10 +4,10 @@ import xml.etree.cElementTree as etree
 import getpass
 import datetime
 
-from brigks.core.layer import Layer
-from brigks.core.builder import Builder
-from brigks.core import naming
-from brigks.core.config import DATA_ATTRIBUTE
+from brigks.layer import Layer
+from brigks.builder import Builder
+from brigks import naming
+from brigks.config import DATA_ATTRIBUTE
 from brigks.utils.xmldom import indent
 
 

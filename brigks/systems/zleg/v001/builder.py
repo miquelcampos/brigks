@@ -5,4 +5,4 @@ class ZlegSystemBuilder(SystemBuilder):
 
 	def createObjects(self):
 
-		bfr = self.createRig(None, "X")
+		bfr = self.addRig(None, "X")

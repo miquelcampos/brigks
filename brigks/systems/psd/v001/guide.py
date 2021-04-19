@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class PsdSystemGuide(SystemGuide):	
 
@@ -31,9 +32,8 @@ class PsdSystemGuide(SystemGuide):
 
 		ports = dict(
 			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			Reference=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			Tracker=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			Orientation=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			Tracker=["rotationTracker"],
+			Orient=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 			)
 
 		return ports
@@ -42,7 +42,7 @@ class PsdSystemGuide(SystemGuide):
 		super(PsdSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Root=("Rig", "Root"))
+			Root=(config.USE_RIG, "Root"))
 
 		return slots
 		

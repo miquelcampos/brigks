@@ -4,7 +4,7 @@ from maya import cmds
 
 from math3d import Transformation, Matrix4, Vector3
 
-from brigks.core import naming
+from brigks import naming
 from brigks.utils import create
 
 class SystemMarker(object):

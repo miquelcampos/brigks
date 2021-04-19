@@ -4,10 +4,10 @@ from brigks.utils import attributes, compounds
 
 from brigks.connections.systemConnection import SystemConnection
 
-class MultiParentSystemConnection(SystemConnection):
+class MultiOrientSystemConnection(SystemConnection):
 
 	def __init__(self):
-		super(MultiParentSystemConnection, self).__init__()
+		super(MultiOrientSystemConnection, self).__init__()
 		self._settings = dict(definitions=[], default=0, key=None, slot=None)
 
 	def connect(self, child, attrName="Blend"):
@@ -43,7 +43,7 @@ class MultiParentSystemConnection(SystemConnection):
 		if len(masters) <= 1:
 			return
 
-		bmNode = self._parentConstraint(child, masters)
+		bmNode = self._parentConstraint(child, masters, translate=False, scale=False)
 
 		# TODO Should be replaced with Enum
 		attrType = "float" if len(masters) == 2 else "short"

@@ -2,6 +2,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class DrivenSystemGuide(SystemGuide):	
 
@@ -34,19 +35,16 @@ class DrivenSystemGuide(SystemGuide):
 
 		ports = {}
 		for i in xrange(1, self.count("Rail")+1):
-			self.port["Rail%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
-			self.port["RailCls%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
-			self.port["RailCustom%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			self.port["Rail{}".format(i)] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 			
-		self.port["Reference"] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
-		self.port["Tracker"] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+		self.port["Tracker"] = ["rotationTracker"]
 
 		return ports
 
 	def connectionSlots(self):
 		super(DrivenSystemGuide, self).connectionSlots()
 
-		usage = "Ctl" if self._settings("addControllers") else "Rig"
+		usage = config.USE_CTL if self._settings("addControllers") else config.USE_RIG
 		slots = dict()
 		for i in xrange(1, self.count("Rail")+1):
 			slots["Part%s"%i] = (usage, "Part%s"%i)

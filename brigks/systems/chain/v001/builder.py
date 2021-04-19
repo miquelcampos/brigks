@@ -4,6 +4,7 @@ from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, compounds, umath
+from brigks import config
 
 from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
@@ -60,7 +61,7 @@ class ChainSystemBuilder(SystemBuilder):
 		# OBJECTS
 
 		# Root
-		self._root = self.createRig(None, "Root", tfm=boneTfm[0])
+		self._root = self.addRig(None, "Root", tfm=boneTfm[0])
 		
 		# FK Controllers -----------------------------------------
 		if self.isFk:
@@ -70,8 +71,8 @@ class ChainSystemBuilder(SystemBuilder):
 			parent = self._root
 			for i, (tfm, btfm, dist) in enumerate(izip(boneTfm, bfrTfm, boneLen), start=1):
 				
-				fkBfr = self.createBuffer(parent, "Fk{}".format(i), tfm=btfm)
-				fkCtl = self.createController(fkBfr, "Fk{}".format(i), tfm, "sphere", so=[0,1,1], color=self.settings("colorFk"))
+				fkBfr = self.addBfr(parent, "Fk{}".format(i), tfm=btfm)
+				fkCtl = self.addCtl(fkBfr, "Fk{}".format(i), tfm, "sphere", so=[0,1,1], color=self.settings("colorFk"))
 				attributes.setRotOrder(fkCtl, self.settings("defaultRotationOrder"))
 
 				parent = fkCtl
@@ -79,28 +80,28 @@ class ChainSystemBuilder(SystemBuilder):
 				self.fkBfr.append(fkBfr)
 				self.fkCtl.append(fkCtl)
 
-				bone = self.createRig(fkCtl, "Dir{}".format(i), tfm, "pyramid", size=1, ro=[0,0,-90], so=[.5,self.factor()*dist,.5])
+				bone = self.addRig(fkCtl, "Dir{}".format(i), tfm, "pyramid", size=1, ro=[0,0,-90], so=[.5,self.factor()*dist,.5])
 
 				self.fkDir.append(bone)
 
 			# Add the end reference for ikfk matching
 			tfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
-			self._tip = self.createRig(self.fkCtl[-1], "Tip", tfm)
+			self._tip = self.addRig(self.fkCtl[-1], "Tip", tfm)
 				
 		# IK Controllers --------------------------------------
 		if self.isIk:
 			# Ik Controller
-			self.ikBfr = self.createBuffer(self._root, "Ik", tfm=ikTfm)
-			self.ikCtl = self.createController(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.settings("colorIk"))
+			self.ikBfr = self.addBfr(self._root, "Ik", tfm=ikTfm)
+			self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.settings("colorIk"))
 			attributes.setKeyables(self.ikCtl, constants.tr_attrs)
 
 			# UpVector Controller
-			self.upvBfr = self.createBuffer(self._root, "UpV", upvTfm)
-			self.upvCtl = self.createController(self.upvBfr, "upv", upvTfm, "diamond", color=self.settings("colorIk"))
+			self.upvBfr = self.addBfr(self._root, "UpV", upvTfm)
+			self.upvCtl = self.addCtl(self.upvBfr, "upv", upvTfm, "diamond", color=self.settings("colorIk"))
 			attributes.setKeyables(self.upvCtl, constants.t_attrs)
 
 			# Ik Chain
-			self.ikBones, self.effector, self.handle = create.chain(self.getObjectName("Rig", "Ik"), self._root, positions, normal, negate=self.negate())
+			self.ikBones, self.effector, self.handle = create.chain(self.getObjectName(config.USE_RIG, "Ik"), self._root, positions, normal, negate=self.negate())
 			
 			# self.upvCrv = self.addCnsCurve([self.ikChn.root(), self.upvCtl, self.ikChn.effector()], "UpvCrv")
 
@@ -109,7 +110,7 @@ class ChainSystemBuilder(SystemBuilder):
 			self.bones = []
 			parent = self._root
 			for i, (tfm, dist) in enumerate(izip(boneTfm, boneLen), start=1):
-				bone = self.createRig(parent, "Bone{}".format(i), tfm, "cube", size=1, po=[self.factor()*dist*.5,0,0], so=[dist,.5,.5])
+				bone = self.addRig(parent, "Bone{}".format(i), tfm, "cube", size=1, po=[self.factor()*dist*.5,0,0], so=[dist,.5,.5])
 	
 				self.bones.append(bone)
 				parent = bone
@@ -129,14 +130,14 @@ class ChainSystemBuilder(SystemBuilder):
 			parent = self._root
 			for i, (bone, tfmA, tfmB) in enumerate(izip(self.bones, boneTfm, tgtTfm), start=1):
 
-				dynCns = self.createRig(parent, "DynCns{}".format(i), tfmA, "cube", size=1)
+				dynCns = self.addRig(parent, "DynCns{}".format(i), tfmA, "cube", size=1)
 				self.dynCns.append(dynCns)
-				target = self.createRig(dynCns, "Target{}".format(i), tfmB, "null", size=1)
+				target = self.addRig(dynCns, "Target{}".format(i), tfmB, "null", size=1)
 				self.target.append(target)
-				harmonic = self.createRig(target, "Harmonic{}".format(i), tfmB, "diamond", size=1)
+				harmonic = self.addRig(target, "Harmonic{}".format(i), tfmB, "diamond", size=1)
 				self.harmonic.append(harmonic)
 			
-				dynBone = self.createRig(parent, "Dynamic{}".format(i), tfmA, "pyramid", size=1, ro=[0,0,-90], so=[1,self.factor(),1])
+				dynBone = self.addRig(parent, "Dynamic{}".format(i), tfmA, "pyramid", size=1, ro=[0,0,-90], so=[1,self.factor(),1])
 				self.dynBone.append(dynBone)
 				parent = dynBone
 				self.dfmHost.append(dynBone)
@@ -146,16 +147,16 @@ class ChainSystemBuilder(SystemBuilder):
 		# Strap ----------------------------
 		if self.settings("strap"):
 			endTfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
-			self.end = self.createRig(self.dfmHost[-1], "End", endTfm)
+			self.end = self.addRig(self.dfmHost[-1], "End", endTfm)
 
 	def createJoints(self):
-		centers = [self.createJoint(master, i) for i, master in enumerate(self.dfmHost, start=1)]
+		centers = [self.addJnt(master, i) for i, master in enumerate(self.dfmHost, start=1)]
 			
 		# Strap ----------------------------
 		if self.settings("strap"):
-			centers.append(self.createJoint(self.end, "End"))
+			centers.append(self.addJnt(self.end, "End"))
 
-			name = self.getObjectName("Rig", "Strap")
+			name = self.getObjectName(config.USE_RIG, "Strap")
 			surface = create.cnsSurface(name, self._root, centers, width=1.0, tangent=.25)
 		 	self.createSurfaceJoints(surface, self.settings("strapDeformers"))
 
@@ -168,24 +169,24 @@ class ChainSystemBuilder(SystemBuilder):
 		self.isFkIk = self.isFk and self.isIk
 
 		if self.isFkIk:
-			self.blendAttr = self.createAnimAttr("Blend", "float", self.settings("blend")=="IK", 0, 1)
-			self.showCtrlAttr = self.createAnimAttr("showCtrl", "bool", False) 
+			self.blendAttr = self.addAnimAttr("Blend", "float", self.settings("blend")=="IK", 0, 1)
+			self.showCtrlAttr = self.addAnimAttr("showCtrl", "bool", False) 
 
-			self.createSetupAttr("Count", "short", len(self.fkCtl))
+			self.addSetupAttr("Count", "short", len(self.fkCtl))
 
 		if self.isIk:
-			self.rollAttr = self.createAnimAttr("Roll", "float", 0, -180, 180)
+			self.rollAttr = self.addAnimAttr("Roll", "float", 0, -180, 180)
 
 		if self.settings("dynamic"):
-			self.dynamicAttr = self.createAnimAttr("Dynamic", "bool", self.settings("dynActive"))
-			self.globalAmplAttr = self.createAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplAttr = [self.createAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
+			self.dynamicAttr = self.addAnimAttr("Dynamic", "bool", self.settings("dynActive"))
+			self.globalAmplAttr = self.addAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
+			self.localAmplAttr = [self.addAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
 			
 			if self.settings("dynamicAnimatable"):
-				self.axisAttr = self.createAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
-				self.decayAttr = self.createAnimAttr("Decay", "float", self.settings("decay"), 0, 10)
-				self.terminationAttr = self.createAnimAttr("Termination", "float", self.settings("termination"), 0, 1)
-				self.frequencyAttr = self.createAnimAttr("Frequency", "float", self.settings("frequency"), 0, 1)
+				self.axisAttr = self.addAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
+				self.decayAttr = self.addAnimAttr("Decay", "float", self.settings("decay"), 0, 10)
+				self.terminationAttr = self.addAnimAttr("Termination", "float", self.settings("termination"), 0, 1)
+				self.frequencyAttr = self.addAnimAttr("Frequency", "float", self.settings("frequency"), 0, 1)
 
 	#----------------------------------------------------------------------------
 	# OPERATORS
@@ -227,7 +228,7 @@ class ChainSystemBuilder(SystemBuilder):
 				else:
 					master = self._tip
 					
-				name = self.getObjectName("Nde", "FkAim")
+				name = self.getObjectName(config.USE_NDE, "FkAim")
 				compounds.aimConstraint(name, fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
 				
 		# # Bones -----------------------------------------
@@ -242,7 +243,7 @@ class ChainSystemBuilder(SystemBuilder):
 					
 		if self.settings("dynamic"):
 			for i, (harmonic, target, dynCns, dynBone, bone) in enumerate(izip(self.harmonic, self.target, self.dynCns, self.dynBone, self.bones)):
-				nodeName = self.getObjectName("Nde", "Harmonic{}".format(i))
+				nodeName = self.getObjectName(config.USE_NDE, "Harmonic{}".format(i))
 				cns = compounds.harmonic(nodeName, harmonic, target, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
@@ -254,7 +255,7 @@ class ChainSystemBuilder(SystemBuilder):
 					mulNode = self._createNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
 
 					# Connect to Attributes
-					mulNode = self.getObjectName("Nde", "AmplitudeGlobal{}".format(i))
+					mulNode = self.getObjectName(config.USE_NDE, "AmplitudeGlobal{}".format(i))
 					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1X")
 					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Y")
 					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Z")
@@ -275,7 +276,7 @@ class ChainSystemBuilder(SystemBuilder):
 					cmds.connectAttr(self.terminationAttr, cns+".termination")
 					cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 
-				name = self.getObjectName("Nde", "DynAim")
+				name = self.getObjectName(config.USE_NDE, "DynAim")
 				cns = compounds.aimConstraint(name, dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
 				compounds.blendMatrix(dynCns, [bone], translate=False, rotate=True, scale=False)
 
@@ -285,7 +286,7 @@ class ChainSystemBuilder(SystemBuilder):
 
 		if "Root" in self._connections:
 			cnx = self._connections["Root"]
-			root = self.getObject("Rig", "Root")	
+			root = self.getObject(config.USE_RIG, "Root")	
 			cnx.connect(root)
 
 

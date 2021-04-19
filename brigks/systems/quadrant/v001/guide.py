@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class QuadrantSystemGuide(SystemGuide):	
 
@@ -34,7 +35,7 @@ class QuadrantSystemGuide(SystemGuide):
 		super(QuadrantSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Ctl=("Ctl", "Root")
+			Ctl=(config.USE_CTL, "Root")
 			)
 
 		return slots

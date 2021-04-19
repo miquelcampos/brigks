@@ -1,13 +1,15 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class LookatSystemGuide(SystemGuide):
 
-	markerNames = ("Root", "Eff")
+	markerNames = ("Root", "Eff", "Ctrl")
 	markerPositions = dict(
 		Root=Vector3([0,10,0]),
 		Eff=Vector3([0,10,10]),
+		Ctrl=Vector3([0,15,0]),
 		)
 
 	def addSettings(self):
@@ -33,11 +35,11 @@ class LookatSystemGuide(SystemGuide):
 		super(LookatSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Direction=("Rig", "Direction"),
-			Local=("Rig", "Local")
+			Direction=(config.USE_RIG, "Direction"),
+			Local=(config.USE_RIG, "Local")
 		)
 
 		if self._settings["extraOffsetController"]:
-			slots["Offset"] = ("Rig", "Offset")
+			slots["Offset"] = (config.USE_RIG, "Offset")
 
 		return slots

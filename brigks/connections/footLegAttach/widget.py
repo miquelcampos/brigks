@@ -5,7 +5,7 @@ from brigks.connections.systemConnectionWidget import SystemConnectionWidget
 from brigks.gui.pickSlotDialog import PickSlotDialog
 
 
-class LegAttachConnectionWidget(SystemConnectionWidget):
+class FootLegAttachConnectionWidget(SystemConnectionWidget):
 
 	def __init__(self, connection, system):
 		super(UiHostConnectionWidget, self).__init__(connection, system)

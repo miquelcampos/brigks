@@ -33,7 +33,7 @@ class SpineSystemBuilder(SystemBuilder):
 			transforms.append(t)
 
 		# OBJECTS
-		self.root = self.createRig(None, "Root")
+		self.root = self.addRig(None, "Root")
 
 		# Curves
 		points = [positions[i] for i in [0,2,2,4]]
@@ -52,7 +52,7 @@ class SpineSystemBuilder(SystemBuilder):
 		for i, tfm in enumerate(transforms, start=1):
 			
 			# Fk Controllers
-			fkCtl = self.createController(fk_parent, "Fk%s"%i, tfm, "sphere", size=fkSize, so=(1,0,1), color=self.colorFk())
+			fkCtl = self.addCtl(fk_parent, "Fk%s"%i, tfm, "sphere", size=fkSize, so=(1,0,1), color=self.colorFk())
 			# self.setInversedsettings(fkCtl, ["posx", "rotz", "roty"])
 			attributes.setRotOrder(fkCtl, "XYZ")
 			
@@ -60,15 +60,15 @@ class SpineSystemBuilder(SystemBuilder):
 			self.fkCtl.append(fkCtl)
 			
 			# Ik Controllers
-			ikBfr = self.createBuffer(self.root, "Ik%s"%i, tfm)
+			ikBfr = self.addBfr(self.root, "Ik%s"%i, tfm)
 			self.ikBfr.append(ikBfr)
 			
 
 			# First ik ctl is a box
 			if i in [1,5]:
-				ikCtl = self.createController(ikBfr, "Ik%s"%i, tfm, "cube", size=hipSize, so=(1,.25,1), color=self.colorIk())
+				ikCtl = self.addCtl(ikBfr, "Ik%s"%i, tfm, "cube", size=hipSize, so=(1,.25,1), color=self.colorIk())
 			else:
-				ikCtl = self.createController(ikBfr, "Ik%s"%i, tfm, "sphere", size=ikSize, so=(1,0,1), color=self.colorIk())
+				ikCtl = self.addCtl(ikBfr, "Ik%s"%i, tfm, "sphere", size=ikSize, so=(1,0,1), color=self.colorIk())
 			
 			# if i in [2,4]:
 			# 	self.addToSubControllers(ikCtl)
@@ -82,39 +82,39 @@ class SpineSystemBuilder(SystemBuilder):
 			if i == 1:
 				hookRig = None
 			else:
-				hookRig = self.createRig(self.root, "Hook%s"%i, tfm, "cube", size=2)
+				hookRig = self.addRig(self.root, "Hook%s"%i, tfm, "cube", size=2)
 			self.hookRig.append(hookRig)
 
 		# Tangent parents
-		self.aTan0 = self.createRig(self.ikCtl[0], "ATan0", transforms[2], "pyramid", size=.5)
-		self.aTan1 = self.createRig(self.ikCtl[-1], "ATan1", transforms[2], "pyramid", size=.5)
+		self.aTan0 = self.addRig(self.ikCtl[0], "ATan0", transforms[2], "pyramid", size=.5)
+		self.aTan1 = self.addRig(self.ikCtl[-1], "ATan1", transforms[2], "pyramid", size=.5)
 
-		self.bTan0 = self.createRig(self.ikCtl[0], "BTan0", transforms[1], "pyramid", size=.5)
-		self.bTan1 = self.createRig(self.ikCtl[2], "BTan1", transforms[1], "pyramid", size=.5)
-		self.bTan2 = self.createRig(self.ikCtl[2], "BTan2", transforms[2], "pyramid", size=.5)
-		self.bTan3 = self.createRig(self.ikCtl[2], "BTan3", transforms[3], "pyramid", size=.5)
-		self.bTan4 = self.createRig(self.ikCtl[4], "BTan4", transforms[3], "pyramid", size=.5)
+		self.bTan0 = self.addRig(self.ikCtl[0], "BTan0", transforms[1], "pyramid", size=.5)
+		self.bTan1 = self.addRig(self.ikCtl[2], "BTan1", transforms[1], "pyramid", size=.5)
+		self.bTan2 = self.addRig(self.ikCtl[2], "BTan2", transforms[2], "pyramid", size=.5)
+		self.bTan3 = self.addRig(self.ikCtl[2], "BTan3", transforms[3], "pyramid", size=.5)
+		self.bTan4 = self.addRig(self.ikCtl[4], "BTan4", transforms[3], "pyramid", size=.5)
 		
 		if self.settings("breathing"):
-			breathBfr = self.createBuffer(self.hookRig[4], "Breathing", transforms[-1])
-			self.breathCtl = self.createController(breathBfr, "Breathing", transforms[-1], "cube", size=ikSize, color=self.colorIk())
+			breathBfr = self.addBfr(self.hookRig[4], "Breathing", transforms[-1])
+			self.breathCtl = self.addCtl(breathBfr, "Breathing", transforms[-1], "cube", size=ikSize, color=self.colorIk())
 			# self.addToSubControllers(self.breathCtl)
 			# self.setInversedsettings(self.breathCtl, ["posx", "rotz", "roty"])
 			attributes.setRotOrder(self.breathCtl, "YZX")
 
 	def createJoints(self):
-		self.createJoint(self.ikCtl[0], "1")
-		self.createJoint(self.hookRig[2], "3")
+		self.addJnt(self.ikCtl[0], "1")
+		self.addJnt(self.hookRig[2], "3")
 		if self.settings("breathing"):
-			self.createJoint(self.breathCtl, "5")
+			self.addJnt(self.breathCtl, "5")
 		else:
-			self.createJoint(self.hookRig[4], "5")
+			self.addJnt(self.hookRig[4], "5")
 	
 	#----------------------------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
-		self.blendAttr = self.createAnimAttr("Blend", "float", self.settings("blend") == "IK", 0, 1)
-		self.showCtrlAttr = self.createAnimAttr("showCtrl", "bool", False) 
+		self.blendAttr = self.addAnimAttr("Blend", "float", self.settings("blend") == "IK", 0, 1)
+		self.showCtrlAttr = self.addAnimAttr("showCtrl", "bool", False) 
 		
 	def createLayout(self): 
 		pass

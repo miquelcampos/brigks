@@ -9,7 +9,7 @@ from Qt.QtWidgets import QWidget
 from maya import cmds
 
 from brigks.utils import gui
-from brigks.core.guide import Guide
+from brigks.guide import Guide
 from brigks.systems.systemGuide import SystemGuide
 
 class ScriptWidget(QWidget):

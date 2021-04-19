@@ -12,7 +12,7 @@ class CameraSystemBuilder(SystemBuilder):
 		tfm = Transformation.lookAt(self.translations("Root"), self.directions("Root", "y"), self.directions("Root", "z"), "y"+self.sign()+"z", False)
 		
 		# OBJECTS
-		bfr = self.createBuffer(None, "Camera", tfm)
+		bfr = self.addBfr(None, "Camera", tfm)
 		# camera = self.addCamera(bfr, "Camera", tfm=tfm, isController=True)
 		# shape = cmds.listRelatives(camera, shapes=True)[0]
 
@@ -27,7 +27,7 @@ class CameraSystemBuilder(SystemBuilder):
 		# 	cmds.setAttr(shape+"."+name, value)
 
 
-	def createConnection(self):
-		bfr = self.getObject("Camera", usage="Hbfr")
-		self.connect_parenting(bfr, "Root")
-		
+	def createConnections(self):
+		if "Root" in self.connections():
+			root = self.getObject(config.USE_BFR, "Camera")
+			self.connections("Root").connect(root)

@@ -4,6 +4,7 @@ from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, compounds, umath
+from brigks import config
 
 from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
@@ -28,16 +29,16 @@ class DrivenSystemBuilder(SystemBuilder):
 		self._slds = []
 		self._bfrs = []
 		for i, (rtfm, ptfm, ntfm) in enumerate(izip(rootTfm, posTfm, negTfm), start=1):
-			rail = self.createRig(None, "Rail{}".format(i), rtfm, "cube", size=1)
-			pos = self.createRig(rail, "Pos{}".format(i), ptfm, "null", size=1)
-			neg = self.createRig(rail, "Neg{}".format(i), ntfm, "cube", size=1)
+			rail = self.addRig(None, "Rail{}".format(i), rtfm, "cube", size=1)
+			pos = self.addRig(rail, "Pos{}".format(i), ptfm, "null", size=1)
+			neg = self.addRig(rail, "Neg{}".format(i), ntfm, "cube", size=1)
 
-			bfr = self.createBuffer(rail, "Slider{}".format(i), rtfm)
+			bfr = self.addBfr(rail, "Slider{}".format(i), rtfm)
 			if self.settings("addControllers"):
-				slider = self.createController(bfr, "Part{}".format(i), rtfm, "sphere", color=self.colorIk())
+				slider = self.addCtl(bfr, "Part{}".format(i), rtfm, "sphere", color=self.colorIk())
 				attributes.setKeyables(slider)
 			else:
-				slider = self.createRig(bfr, "Part{}".format(i), rtfm, "sphere", size=1)
+				slider = self.addRig(bfr, "Part{}".format(i), rtfm, "sphere", size=1)
 
 			create.cnsCurve("Crv{}".format(i), [neg,rail,pos], degree=1)
 
@@ -54,13 +55,13 @@ class DrivenSystemBuilder(SystemBuilder):
 				ref = rail
 			else:
 				ref = None
-			self.createJoint(slider, str(i), reference=ref)
+			self.addJnt(slider, str(i), reference=ref)
 
 	#----------------------------------------------------------------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
-		self.outrotAttr = self.createSetupAttr("OutRot", "float3", (0,0,0))
-		self.slideAttr = [self.createSetupAttr("Slide{}".format(i), "float", 0, -1.0, 1.0) for i in xrange(1, self.count("Rail")+1)]
+		self.outrotAttr = self.addSetupAttr("OutRot", "float3", (0,0,0))
+		self.slideAttr = [self.addSetupAttr("Slide{}".format(i), "float", 0, -1.0, 1.0) for i in xrange(1, self.count("Rail")+1)]
 
 
 	#----------------------------------------------------------------------------------------------------------------
@@ -104,24 +105,12 @@ class DrivenSystemBuilder(SystemBuilder):
 			cmds.connectAttr(condNegNode+".outColorR", bmNode+".target[2].weight")
 
 	#----------------------------------------------------------------------------------------------------------------
-	# CONNECTION
-	def createConnection(self):
-		rails = [self.getObject("Rail{}".format(i), usage="Rig") for i in xrange(1, self.count("Rail")+1)]
-		
-		if self.settings("connectionType") == "standard":
-			self.connect_hierarchyParenting(rails, "Rail")
-		elif self.settings("connectionType") == "obj2cls":
-			self.connect_hierarchyObject2Cluster(rails, "RailCls")
-		elif self.settings("connectionType") == "customParent":
-			self.connect_hierarchyCustomParenting(rails, "RailCustom")
-		
-		
-		reference = self.connectionObject("Reference")
-		tracker = self.connectionObject("Tracker")
-		outrotAttr = self.attributes("OutRot", "setup")
-		
-		if None in [reference, tracker]:
-			return
-
-		cns = self._createCompound("rotationTrackerNode", outrotAttr.nativePointer(), reference, tracker)
+	# CONNECTIONS
+	def createConnections(self):
+		for port, cnx in self.connections().iteritems():
+			if port == "Tracker":
+				cnx.connect(self.outrotAttr)
+			else:
+				child = self.getObject(config.USE_RIG, port)
+				cnx.connect(child)
 			

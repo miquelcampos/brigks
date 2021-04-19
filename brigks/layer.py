@@ -2,8 +2,8 @@ from maya import cmds
 import xml.etree.cElementTree as etree
 import json
 
-from ..systems import getSystemGuideClass
-from brigks.core import naming
+from brigks.systems import getSystemGuideClass
+from brigks import naming
 
 class Layer():
 

@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class SliderSystemGuide(SystemGuide):	
 
@@ -39,7 +40,7 @@ class SliderSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(SliderSystemGuide, self).connectionSlots()
 
-		usage = "Ctl" if self.settings("addControllers") else "Rig"
+		usage = config.USE_CTL if self.settings("addControllers") else config.USE_RIG
 		slots = dict()
 		for i in xrange(1, self.count("Rail")+1):
 			slots["Slider{}".format(i)] = (usage, "Slider{}".format(i))

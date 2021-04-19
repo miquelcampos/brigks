@@ -5,6 +5,7 @@ from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, compounds, umath
+from brigks import config
 
 class TwistSystemBuilder(SystemBuilder):
 
@@ -49,9 +50,9 @@ class TwistSystemBuilder(SystemBuilder):
 			int_keyableParameters += ["scl"+s for s in "xyz" if s != self.axis]
 
 		# Start Controller
-		bfr = self.createBuffer(None, "Start", ctlTfm[0])
+		bfr = self.addBfr(None, "Start", ctlTfm[0])
 		if self.settings("startController"):
-			ctl = self.createController(bfr, "Start", ctlTfm[0], "sphere", so=shdScl, color=self.colorFk())
+			ctl = self.addCtl(bfr, "Start", ctlTfm[0], "sphere", so=shdScl, color=self.colorFk())
 			attributes.setKeyables(ctl, se_keyableParameters)
 			self._centers.append(ctl)
 		else:
@@ -60,19 +61,19 @@ class TwistSystemBuilder(SystemBuilder):
 		# Inter Controller
 		for i, tfm in enumerate(ctlTfm[1:-1], start=1):
 
-			bfr = self.createBuffer(None, "Part%s"%i, tfm)
+			bfr = self.addBfr(None, "Part%s"%i, tfm)
 
 			if self.settings("interControllers"):
-				ctl = self.createController(bfr, "Part%s"%i, tfm, "cube", size=2, so=shdScl, color=self.colorFk())
+				ctl = self.addCtl(bfr, "Part%s"%i, tfm, "cube", size=2, so=shdScl, color=self.colorFk())
 				attributes.setKeyables(ctl, int_keyableParameters)
 				self._centers.append(ctl)
 			else:
 				self._centers.append(bfr)
 
 		# End Controller
-		bfr = self.createBuffer(None, "End", ctlTfm[-1])
+		bfr = self.addBfr(None, "End", ctlTfm[-1])
 		if self.settings("endController"):
-			ctl = self.createController(bfr, "End", ctlTfm[-1], "sphere", so=shdScl, color=self.colorFk())
+			ctl = self.addCtl(bfr, "End", ctlTfm[-1], "sphere", so=shdScl, color=self.colorFk())
 			attributes.setKeyables(ctl, se_keyableParameters)
 			self._centers.append(ctl)
 		else:
@@ -81,58 +82,58 @@ class TwistSystemBuilder(SystemBuilder):
 
 		# CURVE
 		# tangent = self.settings("tangentDistance") if self.settings("tangent") else None
-		self.crv = create.cnsCurve(self.getObjectName("Rig", "Crv"), self._centers, closed=False, degree=3)
+		self.crv = create.cnsCurve(self.getObjectName(config.USE_RIG, "Crv"), self._centers, closed=False, degree=3)
 		self.length = cmds.arclen(self.crv)
 
 		# DIVISIONS
 		parent = self._centers[0]
 		self.start_iter = 0 if self.settings("startDeformer") and not self.settings("tangent") else 1
 		if self.settings("tangent"):
-			self.interDiv = [self.createRig(parent, "Div%s"%i, divTfm, "cube", size=2) for i in xrange(1, self.settings("interDeformers")+1)]
+			self.interDiv = [self.addRig(parent, "Div%s"%i, divTfm, "cube", size=2) for i in xrange(1, self.settings("interDeformers")+1)]
 			if self.settings("untwistDeformers"):
-				self.unTwistDiv = [self.createRig(parent, "Untwist%s"%i, divTfm, "cube", size=1) for i in xrange(1, self.settings("interDeformers")+1)]
-				self.unTwistStart = self.createRig(self._centers[0], "UntwistStart", ctlTfm[0], "cube", size=1)
-				self.unTwistEnd = self.createRig(self._centers[-1], "UntwistEnd", ctlTfm[-1], "cube", size=1)
+				self.unTwistDiv = [self.addRig(parent, "Untwist%s"%i, divTfm, "cube", size=1) for i in xrange(1, self.settings("interDeformers")+1)]
+				self.unTwistStart = self.addRig(self._centers[0], "UntwistStart", ctlTfm[0], "cube", size=1)
+				self.unTwistEnd = self.addRig(self._centers[-1], "UntwistEnd", ctlTfm[-1], "cube", size=1)
 		else:
 			div_count = self.settings("interDeformers") + self.settings("startDeformer") + self.settings("endDeformer")
-			self.interDiv = [self.createRig(parent, "Div%s"%i, divTfm, "cube", size=2) for i in xrange(self.start_iter, div_count+self.start_iter)]
+			self.interDiv = [self.addRig(parent, "Div%s"%i, divTfm, "cube", size=2) for i in xrange(self.start_iter, div_count+self.start_iter)]
 			if self.settings("untwistDeformers"):
-				self.unTwistDiv = [self.createRig(parent, "Untwist%s"%i, divTfm, "cube", size=1) for i in xrange(self.start_iter, div_count+self.start_iter)]
+				self.unTwistDiv = [self.addRig(parent, "Untwist%s"%i, divTfm, "cube", size=1) for i in xrange(self.start_iter, div_count+self.start_iter)]
 
 	def createJoints(self):
 		if self.settings("tangent"):
 			if self.settings("startDeformer"):
-				self.createJoint(self._centers[0], "0")
+				self.addJnt(self._centers[0], "0")
 
 			for i, interDiv in enumerate(self.interDiv, start=1):
-				self.createJoint(interDiv, str(i))
+				self.addJnt(interDiv, str(i))
 
 			if self.settings("endDeformer"):
-				self.createJoint(self._centers[-1], len(self.interDiv)+1)
+				self.addJnt(self._centers[-1], len(self.interDiv)+1)
 
 		else:
 			for i, interDiv in enumerate(self.interDiv, start=self.start_iter):
-				self.createJoint(interDiv, str(i))
+				self.addJnt(interDiv, str(i))
 
 		if self.settings("untwistDeformers"):
 			for i, untwist in enumerate(self.unTwistDiv, start=self.start_iter):
-				dfm = self.createJoint(untwist, "Untwist%s"%i)
+				dfm = self.addJnt(untwist, "Untwist%s"%i)
 			if self.settings("tangent") and self.settings("startDeformer"):
-				dfm = self.createJoint(self.unTwistStart, "Untwist0")
+				dfm = self.addJnt(self.unTwistStart, "Untwist0")
 			if self.settings("tangent") and self.settings("endDeformer"):
-				dfm = self.createJoint(self.unTwistEnd, "Untwist%i"%(len(self.interDiv)+1))
+				dfm = self.addJnt(self.unTwistEnd, "Untwist%i"%(len(self.interDiv)+1))
 
 	# --------------------------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
 		if self.settings("scaleWithCurve") or self.settings("preserveLength"):
-			self.crvLengthAttr = self.createSetupAttr("curveLength", "float", self.length, 0, None)
+			self.crvLengthAttr = self.addSetupAttr("curveLength", "float", self.length, 0, None)
 
 		step = 1.0 / (self.settings("interDeformers") + 1.0)
 		self.scaleAttrs = [None] * 100
 		for i, div in enumerate(self.interDiv, start=self.start_iter):
 			u = i*step
-			attr = self.createSetupAttr("Scale%s"%i, "float", 1-u, None, None)
+			attr = self.addSetupAttr("Scale%s"%i, "float", 1-u, None, None)
 			self.scaleAttrs[i] = attr
 
 	# --------------------------------------------------------------------------

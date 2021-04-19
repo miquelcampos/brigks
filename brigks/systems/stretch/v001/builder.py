@@ -5,7 +5,7 @@ from math3d.vectorN import Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import attributes, compounds
-
+from brigks import config
 
 class StretchSystemBuilder(SystemBuilder):
 
@@ -18,14 +18,14 @@ class StretchSystemBuilder(SystemBuilder):
 		self.length = self.translations("Root").distance(self.translations("Eff"))
 
 		# CONTROLLERS
-		startBfr = self.createBuffer(None, "Start", ctlTfm[0])
-		endBfr = self.createBuffer(None, "Eff", ctlTfm[1])
+		startBfr = self.addBfr(None, "Start", ctlTfm[0])
+		endBfr = self.addBfr(None, "Eff", ctlTfm[1])
 		
 		if self.settings("addControllers"):
-			startCtl = self.createController(startBfr, "Start", ctlTfm[0], "cube", color=self.colorIk())
+			startCtl = self.addCtl(startBfr, "Start", ctlTfm[0], "cube", color=self.colorIk())
 			attributes.setKeyables(startCtl, constants.tr_attrs)
 			
-			endCtl = self.createController(endBfr, "Eff", ctlTfm[1], "cube", color=self.colorIk())
+			endCtl = self.addCtl(endBfr, "Eff", ctlTfm[1], "cube", color=self.colorIk())
 			attributes.setKeyables(endCtl, constants.tr_attrs)
 			
 			self.centers = [startCtl, endCtl]
@@ -33,7 +33,7 @@ class StretchSystemBuilder(SystemBuilder):
 			self.centers = [startBfr, endBfr]
 
 		# Stretch
-		self.bone = self.createRig(self.centers[0], "Bone", ctlTfm[0], "cube", po=(self.length*.5,0,0), so=(self.length,1,1))
+		self.bone = self.addRig(self.centers[0], "Bone", ctlTfm[0], "cube", po=(self.length*.5,0,0), so=(self.length,1,1))
 
 	def createDeformers(self):
 		self.addJoint(self.bone, "Bone")
@@ -42,15 +42,15 @@ class StretchSystemBuilder(SystemBuilder):
 	# PROPERTIES 
 	def createAttributes(self):
 		if self.settings("twist"):
-			self.twistBlendAttr = self.createAnimAttr("twistBlend", "float", self.settings("twistBlend"), 0, 1)
+			self.twistBlendAttr = self.addAnimAttr("twistBlend", "float", self.settings("twistBlend"), 0, 1)
 
 		if self.settings("squash"):
-			self.squashAttr = [self.createAnimAttr("squash"+s, "float", self.settings("squash"+s), None, None, -1, 1) for s in "yz"]
+			self.squashAttr = [self.addAnimAttr("squash"+s, "float", self.settings("squash"+s), None, None, -1, 1) for s in "yz"]
 
 		if self.settings("stretch"):
-			self.stretchBlendAttr = self.createAnimAttr("stretchBlend", "float", self.settings("stretchBlend"), 0, 1)
+			self.stretchBlendAttr = self.addAnimAttr("stretchBlend", "float", self.settings("stretchBlend"), 0, 1)
 
-		self.lengthRatioAttr = self.createAnimAttr("lengthRatio", "float", 1, 0, None)
+		self.lengthRatioAttr = self.addAnimAttr("lengthRatio", "float", 1, 0, None)
 
 	#----------------------------------------------------------------------------
 	# OPERATORS
@@ -121,9 +121,9 @@ class StretchSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnection(self):
 		if "Start" in self.connections():
-			child = self.getObject("Bfr", "Start")
+			child = self.getObject(config.USE_BFR, "Start")
 			self.connections("Start").connect(child)
 
 		if "End" in self.connections():
-			child = self.getObject("Bfr", "End")
+			child = self.getObject(config.USE_BFR, "End")
 			self.connections("End").connect(child)

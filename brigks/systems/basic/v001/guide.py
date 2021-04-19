@@ -1,7 +1,9 @@
 from maya import cmds
 
-from brigks.systems.systemGuide import SystemGuide
 from math3d.vectorN import Vector3
+
+from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class BasicSystemGuide(SystemGuide):	
 
@@ -56,7 +58,7 @@ class BasicSystemGuide(SystemGuide):
 		ports = {}
 		for part in self.markers().keys():
 			# port = marker.split("_")[-1]
-			ports[part] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			ports[part] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent", "averageTransform", "multiOrient"]
 
 		ports["UI"] = ["uiHost"]
 
@@ -68,7 +70,7 @@ class BasicSystemGuide(SystemGuide):
 		slots = {}
 		for part in self.markers().keys():
 			# slot = marker.split("_")[-1]
-			slots[part] = ("Ctl", part)
+			slots[part] = (config.USE_CTL, part)
 
 		return slots
 

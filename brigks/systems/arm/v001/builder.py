@@ -8,6 +8,7 @@ from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, compounds, umath
+from brigks import config
 
 class ArmSystemBuilder(SystemBuilder):
 
@@ -72,20 +73,20 @@ class ArmSystemBuilder(SystemBuilder):
 
 		# CONTROLLERS
 		# Root 
-		self.rootBfr = self.createBuffer(None, "Root", rootTfm)
-		self.rootCtl = self.createController(self.rootBfr, "Root", rootTfm, "sphere", size=rootSize, color=self.colorIk())
+		self.rootBfr = self.addBfr(None, "Root", rootTfm)
+		self.rootCtl = self.addCtl(self.rootBfr, "Root", rootTfm, "sphere", size=rootSize, color=self.colorIk())
 		# self.addToSubControllers(self.rootCtl)
 		attributes.setKeyables(self.rootCtl, constants.t_attrs)
 		
 		# Fk Ref
 		# Used as a reference for the upr start twist
 		# We cannot use the fk1Bfr cause this one get constrained when fk ref changes
-		self.fkRef = self.createRig(self.rootBfr, "FkRef", bfrTfm[0])
+		self.fkRef = self.addRig(self.rootBfr, "FkRef", bfrTfm[0])
 
 		# GinmbalController
 		if self.settings("gimbalControllers"):
-			fkBfr = self.createBuffer(self.fkRef, "FkOff", tfm=bfrTfm[0])
-			self.fkOffCtl = self.createController(fkBfr, "FkOff", bfrTfm[0], "cube", size=.9, so=[0,1,1], color=self.colorFk())
+			fkBfr = self.addBfr(self.fkRef, "FkOff", tfm=bfrTfm[0])
+			self.fkOffCtl = self.addCtl(fkBfr, "FkOff", bfrTfm[0], "cube", size=.9, so=[0,1,1], color=self.colorFk())
 			# self.addToSubControllers(self.fkOffCtl)
 			fkParent = self.fkOffCtl
 			boneParent = self.fkOffCtl
@@ -99,8 +100,8 @@ class ArmSystemBuilder(SystemBuilder):
 		self.bones = []
 		self.stretches = []
 		for i, (tfm, btfm) in enumerate(izip(fkTfm, bfrTfm), start=1):
-			bfr = self.createBuffer(fkParent, "Fk{}".format(i), btfm)
-			ctl = self.createController(bfr, "Fk{}".format(i), tfm, "sphere", size=fkSize, so=(0,1,1), color=self.colorFk())
+			bfr = self.addBfr(fkParent, "Fk{}".format(i), btfm)
+			ctl = self.addCtl(bfr, "Fk{}".format(i), tfm, "sphere", size=fkSize, so=(0,1,1), color=self.colorFk())
 
 			if self.settings("lockElbowRotation") and i == 2:
 				attributes.setRotOrder(ctl, "xyz")
@@ -113,76 +114,76 @@ class ArmSystemBuilder(SystemBuilder):
 			self.fkBfr.append(bfr)
 			self.fkCtl.append(ctl)
 
-			bone = self.createRig(boneParent, "Bone{}".format(i), tfm=tfm, icon="bone", so=(self.factor(), 1, 1))
+			bone = self.addRig(boneParent, "Bone{}".format(i), tfm=tfm, icon="bone", so=(self.factor(), 1, 1))
 			boneParent = bone
 			self.bones.append(bone)
 			
 		# IK Controllers
-		self.ikBfr = self.createBuffer(None, "Ik", ikbfrTfm)
-		self.ikCtl = self.createController(self.ikBfr, "Ik", ikTfm, "cube", size=ikSize, color=self.colorIk())
+		self.ikBfr = self.addBfr(None, "Ik", ikbfrTfm)
+		self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube", size=ikSize, color=self.colorIk())
 
 		attributes.setKeyables(self.ikCtl, constants.trs_attrs)
 		attributes.setRotOrder(self.ikCtl, "XZY")
 
-		self.ikoffCtl = self.createController(self.ikCtl, "IkOffset", ikTfm, "null", size=ikSize, color=self.colorIk())
+		self.ikoffCtl = self.addCtl(self.ikCtl, "IkOffset", ikTfm, "null", size=ikSize, color=self.colorIk())
 		# self.addToSubControllers(self.ikoffCtl)
 		attributes.setKeyables(self.ikoffCtl, constants.trs_attrs)
-		self.ikRef = self.createRig(self.ikoffCtl, "IkRef", fkTfm[-1])
+		self.ikRef = self.addRig(self.ikoffCtl, "IkRef", fkTfm[-1])
 		attributes.setRotOrder(self.ikoffCtl, "XZY")
 
-		self.upvBfr = self.createBuffer(None, "Upv", upvbfrTfm)
-		self.upvCtl = self.createController(self.upvBfr, "Upv", upvTfm, "diamond", size=upvSize, color=self.colorIk())
+		self.upvBfr = self.addBfr(None, "Upv", upvbfrTfm)
+		self.upvCtl = self.addCtl(self.upvBfr, "Upv", upvTfm, "diamond", size=upvSize, color=self.colorIk())
 		attributes.setKeyables(self.upvCtl, constants.t_attrs)
 
-		self.ctrBfr = self.createBuffer(self.bones[0], "Center", ctrTfm)
-		self.ctrCtl = self.createController(self.ctrBfr, "Center", ctrTfm, "sphere", size=upvSize, color=self.colorIk())
+		self.ctrBfr = self.addBfr(self.bones[0], "Center", ctrTfm)
+		self.ctrCtl = self.addCtl(self.ctrBfr, "Center", ctrTfm, "sphere", size=upvSize, color=self.colorIk())
 		# self.addToSubControllers(self.ctrCtl)
 		attributes.setKeyables(self.ctrCtl, constants.trs_attrs)
 
-		self.upvCrv = create.cnsCurve(self.getObjectName("Rig", "UpvCrv"), [self.upvCtl, self.ctrCtl])
+		self.upvCrv = create.cnsCurve(self.getObjectName(config.USE_RIG, "UpvCrv"), [self.upvCtl, self.ctrCtl])
 	
 		# Twisters
 		self.twisters = defaultdict(list)
 		for p in self.twp:
 			for s, tfm, factor in izip(["Start", "End"], twisterTfm[p], [1,-1]):
-				twisterBfr = self.createBuffer(self.rootBfr, "Tw"+p+s, tfm )
-				twister = self.createRig(twisterBfr, "Tw"+p+s, tfm, "pyramid")
+				twisterBfr = self.addBfr(self.rootBfr, "Tw"+p+s, tfm )
+				twister = self.addRig(twisterBfr, "Tw"+p+s, tfm, "pyramid")
 				self.twisters[p].append(twister)
 
 		# Inter
 		self.inters = {}
 		for p in self.twp:
-			self.inters[p] = self.createRig(self.rootBfr, "Inter"+p, interTfm[p], "cube")
+			self.inters[p] = self.addRig(self.rootBfr, "Inter"+p, interTfm[p], "cube")
 
 		# Prop Controller
-		propBfr = self.createBuffer(self.bones[-1], "Prop", propTfm)
-		self.propCtl = self.createController(propBfr, "Prop", propTfm, "cube", color=self.colorIk())
+		propBfr = self.addBfr(self.bones[-1], "Prop", propTfm)
+		self.propCtl = self.addCtl(propBfr, "Prop", propTfm, "cube", color=self.colorIk())
 
 	def createJoints(self):
 		for p in self.twp:
 			for s, twister in izip(["Start", "End"], self.twisters[p]):
-				self.createJoint(twister,  "Tw"+p+s)
+				self.addJnt(twister,  "Tw"+p+s)
 		
-		self.createJoint(self.ctrCtl, "Center")
-		self.createJoint(self.bones[2], "Hand")
+		self.addJnt(self.ctrCtl, "Center")
+		self.addJnt(self.bones[2], "Hand")
 	
 	#-----------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
-		self.blendAttr = self.createAnimAttr("Blend", "float", self.settings("blend") == "IK", 0, 1)
+		self.blendAttr = self.addAnimAttr("Blend", "float", self.settings("blend") == "IK", 0, 1)
 
-		self.showCtrlAttr = self.createAnimAttr("showCtrl", "bool", False) 
+		self.showCtrlAttr = self.addAnimAttr("showCtrl", "bool", False) 
 
-		self.rollAttr = self.createAnimAttr("Roll", "float", 0, -180, 180)
-		self.scaleAAttr = self.createAnimAttr("ScaleA", "float", 1)
-		self.scaleBAttr = self.createAnimAttr("ScaleB", "float", 1)
-		self.maxStretchAttr = self.createAnimAttr("MaxStretch", "float", self.settings("stretchDefault"), 1, None)
-		self.slideAttr = self.createAnimAttr("Slide", "float", .5, 0, 1)
-		self.reverseAttr = self.createAnimAttr("Reverse", "float", self.settings("reverseDefault"), 0, 1)
-		self.softnessAttr = self.createAnimAttr("Softness", "float", 0, 0, 1)
+		self.rollAttr = self.addAnimAttr("Roll", "float", 0, -180, 180)
+		self.scaleAAttr = self.addAnimAttr("ScaleA", "float", 1)
+		self.scaleBAttr = self.addAnimAttr("ScaleB", "float", 1)
+		self.maxStretchAttr = self.addAnimAttr("MaxStretch", "float", self.settings("stretchDefault"), 1, None)
+		self.slideAttr = self.addAnimAttr("Slide", "float", .5, 0, 1)
+		self.reverseAttr = self.addAnimAttr("Reverse", "float", self.settings("reverseDefault"), 0, 1)
+		self.softnessAttr = self.addAnimAttr("Softness", "float", 0, 0, 1)
 
-		self.lengthAAttr = self.createSetupAttr("LengthA", "float", self.lengths[0])
-		self.lengthBAttr = self.createSetupAttr("LengthB", "float", self.lengths[1])
+		self.lengthAAttr = self.addSetupAttr("LengthA", "float", self.lengths[0])
+		self.lengthBAttr = self.addSetupAttr("LengthB", "float", self.lengths[1])
 
 	def createLayout(self): 
 		pass
@@ -242,7 +243,7 @@ class ArmSystemBuilder(SystemBuilder):
 		# # Inter
 		for p in self.twp:
 			cmds.pointConstraint(self.twisters[p], self.inters[p])
-			cns = compounds.aimConstraint(self.getObjectName("Nde", "Aim"), self.inters[p], self.twisters[p][1], axis="x-z")
+			cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), self.inters[p], self.twisters[p][1], axis="x-z")
 			compounds.spinePointAt(cns, self.twisters[p][0], self.twisters[p][1], blend=.5, solver=1) 
 		
 	
@@ -256,10 +257,10 @@ class ArmSystemBuilder(SystemBuilder):
 
 		# Rotation 
 		if pntAtDouble:
-			cns = compounds.aimConstraint(self.getObjectName("Nde", "Aim"), tws, aim, axis=axis, upMaster=None, upVector=(0,0,1))
+			cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), tws, aim, axis=axis, upMaster=None, upVector=(0,0,1))
 			compounds.pointAtDoubleAxis(cns, pntAtRef, pntAt, axis="z")
 		else:
-			cns = compounds.aimConstraint(self.getObjectName("Nde", "Aim"), tws, aim, axis=axis, upMaster=pntAt, upVector=(0,1,0))
+			cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), tws, aim, axis=axis, upMaster=pntAt, upVector=(0,1,0))
 			
 		# Scaling
 		dist_Node = self._createNode("distanceBetween", "twsScaleDist")
@@ -288,20 +289,21 @@ class ArmSystemBuilder(SystemBuilder):
 
 	#-----------------------------------------------------------
 	# CONNECTION
-	def createConnection(self):
-		# Root
-		rootBfr = self.getObject("Root", "Hbfr")
-		self.connect_parenting(rootBfr, "Root")
-		
-		# Ik Ref
-		ikBfr = self.getObject("Ik", "Hbfr")
-		upvBfr = self.getObject("Upv", "Hbfr")
-		self.connect_parenting(ikBfr, "IkRef", paramName="IkRef")
-		self.connect_parenting(upvBfr, "IkRef", paramName="UpvRef")
+	def createConnections(self):
+		if "Root" in self.connections():
+			root = self.getObject(config.USE_BFR, "Root")
+			self.connections("Root").connect(root)
+
+		if "IK" in self.connections():
+			ik = self.getObject(config.USE_BFR, "Ik")
+			self.connections("IK").connect(root)
+
+		if "UpVector" in self.connections():
+			upv = self.getObject(config.USE_BFR, "Upv")
+			self.connections("UpVector").connect(upv)
 		
 		# Fk Ref
-		if self.settings("gimbalControllers"):
-			fk1Bfr = self.getObject("FkOff", "Hbfr")
-		else:
-			fk1Bfr = self.getObject("Fk1", "Hbfr")
-		self.connect_orientation(fk1Bfr, "FkRef", paramName="FkRef")
+		if "FK" in self.connections():
+			part = "FkOff" if self.settings("gimbalControllers") else "Fk1"
+			fk = self.getObject(config.USE_BFR, part)
+			self.connections("FK").connect(fk)

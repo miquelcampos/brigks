@@ -21,4 +21,4 @@ class AttributeSystemBuilder(SystemBuilder):
 			uiMinValue = definition["uiMin"] if definition["hasUIMin"] else None
 			uiMaxValue = definition["uiMax"] if definition["hasUIMax"] else None
 
-			self.createAnimAttr(scriptName, type_, value, minValue, maxValue, uiMinValue, uiMaxValue)
+			self.addAnimAttr(scriptName, type_, value, minValue, maxValue, uiMinValue, uiMaxValue)

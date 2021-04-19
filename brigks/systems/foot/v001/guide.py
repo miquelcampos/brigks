@@ -2,12 +2,13 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class FootSystemGuide(SystemGuide):	
 
 	markerNames = ("Root", "Part", "Heel", "In", "Out")
 	markerMinMax = dict(
-		Part=(1,-1)
+		Part=(2,-1)
 		)
 	markerPositions = dict(
 		Root=Vector3([15,10,0]),
@@ -28,7 +29,7 @@ class FootSystemGuide(SystemGuide):
 		super(FootSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Root=["legAttach"],
+			Root=["footLegAttach"],
 			UI=["uiHost"]
 			)
 
@@ -38,11 +39,11 @@ class FootSystemGuide(SystemGuide):
 		super(FootSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Root=("Rig", "FkRef")
+			Root=(config.USE_RIG, "FkRef")
 			)
 
 		for i in xrange(1, self.count("Part")):
-			slots["Bone%s"%i] = ("Ctl", "Fk%s"%i)
+			slots["Bone%s"%i] = (config.USE_CTL, "Fk%s"%i)
 
 		return slots
 

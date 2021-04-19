@@ -2,6 +2,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class LegSystemGuide(SystemGuide):	
 
@@ -28,7 +29,7 @@ class LegSystemGuide(SystemGuide):
 
 		ports = dict(
 			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			FK=["slotParent", "meshAttach", "multiParent", "customParent"],
+			FK=["multiOrient"],
 			IK=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
 			UpVector=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
 			UI=["uiHost"],
@@ -40,14 +41,14 @@ class LegSystemGuide(SystemGuide):
 		super(LegSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			TwUprStart=("Rig", "TwUprStart"),
-			InterUpr=("Rig", "InterUpr"),
-			TwUprEnd=("Rig", "TwUprEnd"),
-			TwLwrStart=("Rig", "TwLwrStart"),
-			InterLwr=("Rig", "InterLwr"),
-			TwLwrEnd=("Rig", "TwLwrEnd"),
-			Foot=("Rig", "Bone3"),
-			Center=("Ctrl", "Center"),
+			TwUprStart=(config.USE_RIG, "TwUprStart"),
+			InterUpr=(config.USE_RIG, "InterUpr"),
+			TwUprEnd=(config.USE_RIG, "TwUprEnd"),
+			TwLwrStart=(config.USE_RIG, "TwLwrStart"),
+			InterLwr=(config.USE_RIG, "InterLwr"),
+			TwLwrEnd=(config.USE_RIG, "TwLwrEnd"),
+			Foot=(config.USE_RIG, "Bone3"),
+			Center=(config.USE_CTL, "Center"),
 			)
 
 		return slots

@@ -7,7 +7,7 @@ from math3d.transformation import Transformation
 from math3d import TransformationArray, Vector3Array
 
 from brigks.connections import getSystemConnectionClass
-from brigks.core import naming
+from brigks import naming, config
 from brigks.utils import create
 from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
@@ -381,10 +381,9 @@ class SystemGuide(object):
 	# 	cmds.parent(node, self.model())
 
 	def getMarkerName(self, part, location=None, name=None):
-		use = "Gde"
 		location = location if location is not None else self._settings["location"]
 		name = name if name is not None else self._settings["name"]
-		return naming.getObjectName(use, location, name, part)
+		return naming.getObjectName(config.USE_GDE, location, name, part)
 
 	def deleteMarkers(self):
 		self.loadMarkers(force=True)

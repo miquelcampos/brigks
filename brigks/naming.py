@@ -1,16 +1,5 @@
 
-
-# ----------------------------------------------------------------------------------
-# CONSTANTS
-# ----------------------------------------------------------------------------------
-USAGES = dict(
-	Organizer="Org",
-	Controller="Ctl",
-	Guide="Gde",
-	Buffer="Bfr",
-	Rig="Rig",
-	Joint="Jnt")
-
+from brigks import config
 
 # ----------------------------------------------------------------------------------
 # METHODS
@@ -20,11 +9,11 @@ def getSystemKey(location, name):
 
 
 def getObjectName(usage, location, name, part):
-	return "{use}_{loc}_{name}_{part}".format(
-								use=usage,
-								loc=location,
-								name=name,
-								part=part)
+	return config.TOKENS.format(
+					use=usage,
+					loc=location,
+					name=name,
+					part=part)
 
 
 # def getMarkerName(self, part):

@@ -2,6 +2,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class ChainSystemGuide(SystemGuide):
 
@@ -60,16 +61,16 @@ class ChainSystemGuide(SystemGuide):
 		super(ChainSystemGuide, self).connectionSlots()
 
 		if self._settings["dynamic"]:
-			usage = "Rig"
+			usage = config.USE_RIG
 			name = "Dynamic{}"
 		elif self._settings["kinematic"] == "FK/IK":
-			usage = "Rig"
+			usage = config.USE_RIG
 			name = "Part{}"
 		elif self._settings["kinematic"] == "FK":
 			usage = "Ctrl"
 			name = "Fk{}"
 		else:
-			usage = "Rig"
+			usage = config.USE_RIG
 			name = "Ik{02d}"
 
 		slots = dict()

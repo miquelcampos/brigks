@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class TwistSystemGuide(SystemGuide):	
 
@@ -54,18 +55,18 @@ class TwistSystemGuide(SystemGuide):
 
 		slots = {}
 
-		start_usage = "Ctl" if self._settings["startController"] else "Bfr"
+		start_usage = config.USE_CTL if self._settings["startController"] else config.USE_BFR
 		slots["Start"] = (start_usage, "Start")
 		
-		usage = "Ctl" if self._settings["interControllers"] else "Bfr"
+		usage = config.USE_CTL if self._settings["interControllers"] else config.USE_BFR
 		for i in xrange(1, self.count("Part")-1):
 			slots["Part%s"%i] = (usage, "Part%s"%i)
 				
-		end_usage = "Ctl" if self._settings["endController"] else "Bfr"
+		end_usage = config.USE_CTL if self._settings["endController"] else config.USE_BFR
 		slots["End"] = (end_usage, "End")
 
 		if self._settings["tangent"] and self._settings["untwistDeformers"]:
-			slots["UntwistStart"] = ("Rig", "UntwistStart")
+			slots["UntwistStart"] = (config.USE_RIG, "UntwistStart")
 		
 		# Divisions
 		if self._settings["startDeformer"]:
@@ -74,23 +75,23 @@ class TwistSystemGuide(SystemGuide):
 			else:
 				slots["Div0"] = ("Div0")
 				if self._settings["untwistDeformers"]:
-					slots["Untwist0"] = ("Rig", "Untwist0")
+					slots["Untwist0"] = (config.USE_RIG, "Untwist0")
 		
 		for i in xrange(1, self._settings["interDeformers"]+1):
-			slots["Div%s"%i] = ("Rig", "Div%s"%i)
+			slots["Div%s"%i] = (config.USE_RIG, "Div%s"%i)
 			if self._settings["untwistDeformers"]:
-				slots["Untwist%s"%i] = ("Rig", "Untwist%s"%i)
+				slots["Untwist%s"%i] = (config.USE_RIG, "Untwist%s"%i)
 			
 		if self._settings["endDeformer"]:
 			if self._settings["tangent"]: 
 				slots["End"] = (end_usage, "End")
 			else:
-				slots["Div%s"%(self._settings["interDeformers"]+1)] = ("Rig", "Div%s"%(self._settings["interDeformers"]+1))
+				slots["Div%s"%(self._settings["interDeformers"]+1)] = (config.USE_RIG, "Div%s"%(self._settings["interDeformers"]+1))
 				if self._settings["untwistDeformers"]:
-					slots["Untwist%s"%i(self._settings["interDeformers"]+1)] = ("Rig", "Untwist%s"%(self._settings["interDeformers"]+1))
+					slots["Untwist%s"%i(self._settings["interDeformers"]+1)] = (config.USE_RIG, "Untwist%s"%(self._settings["interDeformers"]+1))
 
 		if self._settings["tangent"] and self._settings["untwistDeformers"]:
-			slots["UntwistEnd"] = ("Rig", "UntwistEnd")
+			slots["UntwistEnd"] = (config.USE_RIG, "UntwistEnd")
 			
 
 		return slots

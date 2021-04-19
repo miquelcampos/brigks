@@ -2,6 +2,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class AverageSystemGuide(SystemGuide):	
 
@@ -23,9 +24,7 @@ class AverageSystemGuide(SystemGuide):
 		super(AverageSystemGuide, self).connectionPorts()
 		
 		ports = dict(
-			Parent=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			MasterA=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			MasterB=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			Average=["averageTransform"],
 			UI=["uiHost"]
 			)
 
@@ -34,7 +33,7 @@ class AverageSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(AverageSystemGuide, self).connectionSlots()
 
-		usage = "Ctl" if self.settings("addControllers") else "Bfr"
+		usage = config.USE_CTL if self.settings("addControllers") else config.USE_BFR
 		slots = dict(
 			Average=(usage, "Average")
 			)

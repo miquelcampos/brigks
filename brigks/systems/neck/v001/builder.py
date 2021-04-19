@@ -7,6 +7,7 @@ from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, compounds, umath
+from brigks import config
 
 class NeckSystemBuilder(SystemBuilder):
 
@@ -49,20 +50,20 @@ class NeckSystemBuilder(SystemBuilder):
 
 		# CONTROLLERS
 		# Root
-		self.rootRig = self.createRig(None, "Root", rootTfm)
-		self.tan0 = self.createRig(self.rootRig, "Tan0", tan0Tfm)
+		self.rootRig = self.addRig(None, "Root", rootTfm)
+		self.tan0 = self.addRig(self.rootRig, "Tan0", tan0Tfm)
 		
 		# Ik 
-		self.ikBfr = self.createBuffer(self.rootRig, "Ik", headTfm)
-		self.ikOri = self.createBuffer(self.ikBfr, "IkOri", headTfm) # Maya requires an extra object for the ori cns
-		self.ikCtl = self.createController(self.ikOri, "Ik", ikTfm, "cube", size=1, 
+		self.ikBfr = self.addBfr(self.rootRig, "Ik", headTfm)
+		self.ikOri = self.addBfr(self.ikBfr, "IkOri", headTfm) # Maya requires an extra object for the ori cns
+		self.ikCtl = self.addCtl(self.ikOri, "Ik", ikTfm, "cube", size=1, 
 			po=(0,headLength*.5,0), so=(8, headLength, 8),color=self.colorIk())   
 		# self.setInversedsettings(self.ikCtl, middle=["posx", "roty", "rotz"])
 		attributes.setRotOrder(self.ikCtl, "XZY")
-		self.tan1 = self.createRig(self.ikCtl, "Tan1", tan1Tfm)
+		self.tan1 = self.addRig(self.ikCtl, "Tan1", tan1Tfm)
 
 		if self.settings("gimbalControllers"):
-			self.ikOffCtl = self.createController(self.ikCtl, "IkOff", ikTfm, "cube", size=.9, 
+			self.ikOffCtl = self.addCtl(self.ikCtl, "IkOff", ikTfm, "cube", size=.9, 
 				po=(0,headLength*.5,0), so=(8, headLength, 8),color=self.colorIk())   
 			# self.setInversedsettings(self.ikOffCtl, middle=["posx", "roty", "rotz"])
 			attributes.setKeyables(self.ikOffCtl, constants.r_attrs)
@@ -76,19 +77,19 @@ class NeckSystemBuilder(SystemBuilder):
 		self.crv = create.curve("Crv", crvPos, closed=False, degree=3, parent=self.rootRig)
 
 		# References
-		self.baseBfr = self.createBuffer(self.rootRig, "Base", rootTfm)
-		self.baseCtl = self.createController(self.baseBfr, "Base", rootTfm, "sphere", size=4, so=(1,0,1), color=self.colorIk())
+		self.baseBfr = self.addBfr(self.rootRig, "Base", rootTfm)
+		self.baseCtl = self.addCtl(self.baseBfr, "Base", rootTfm, "sphere", size=4, so=(1,0,1), color=self.colorIk())
 		# self.setInversedsettings(self.baseCtl, middle=["posx", "roty", "rotz"])
 		attributes.setRotOrder(self.baseCtl, "XZY")
 		
-		self.midBfr = self.createBuffer(self.crv, "Mid", midTfm)
-		self.midCtl = self.createController(self.midBfr, "Mid", midTfm, "sphere", size=4, so=(1,0,1), color=self.colorIk())
+		self.midBfr = self.addBfr(self.crv, "Mid", midTfm)
+		self.midCtl = self.addCtl(self.midBfr, "Mid", midTfm, "sphere", size=4, so=(1,0,1), color=self.colorIk())
 		attributes.setKeyables(self.midCtl, constants.ts_attrs)
 		# self.setInversedsettings(self.midCtl, middle=["posx"])
 		
-		self.headBfr = self.createBuffer(self.crv, "Head", endTfm)
+		self.headBfr = self.addBfr(self.crv, "Head", endTfm)
 		if self.settings("extraHeadController"):
-			self.headCtl = self.createController(self.headBfr, "Head", rootTfm, "sphere", so=(1,0,1), color=self.colorIk())
+			self.headCtl = self.addCtl(self.headBfr, "Head", rootTfm, "sphere", so=(1,0,1), color=self.colorIk())
 			# self.addToSubControllers(self.headCtl)
 			# self.setInversedsettings(self.headCtl, middle=["posx", "roty", "rotz"])
 			attributes.setRotOrder(self.headCtl, "XZY")
@@ -102,10 +103,10 @@ class NeckSystemBuilder(SystemBuilder):
 			parent = self.rootRig
 			for i, tfm in enumerate(boneTfm, start=1):
 				if self.settings("orientToWorld") and i == len(boneTfm):
-					bfr = self.createBuffer(parent, "Fk%s"%i, headTfm)
+					bfr = self.addBfr(parent, "Fk%s"%i, headTfm)
 				else:
-					bfr = self.createBuffer(parent, "Fk%s"%i, tfm)
-				ctl = self.createController(bfr, "Fk%s"%i, tfm, "cube", size=8, so=(1,.1,1), color=self.colorFk())
+					bfr = self.addBfr(parent, "Fk%s"%i, tfm)
+				ctl = self.addCtl(bfr, "Fk%s"%i, tfm, "cube", size=8, so=(1,.1,1), color=self.colorFk())
 				attributes.setRotOrder(ctl, "XZY")
 				
 				parent = ctl
@@ -113,7 +114,7 @@ class NeckSystemBuilder(SystemBuilder):
 				self.fkCtl.append(ctl)
 
 			if self.settings("gimbalControllers"):
-				self.fkOffCtl = self.createController(self.fkCtl[-1], "fkOffCtl", boneTfm[-1], "cube", size=7.5, so=(1,.1,1), color=self.colorFk())
+				self.fkOffCtl = self.addCtl(self.fkCtl[-1], "fkOffCtl", boneTfm[-1], "cube", size=7.5, so=(1,.1,1), color=self.colorFk())
 				attributes.setKeyables(self.fkOffCtl, constants.r_attrs)
 				attributes.setRotOrder(self.fkOffCtl, "XZY")
 
@@ -122,25 +123,25 @@ class NeckSystemBuilder(SystemBuilder):
 		self.hooks = []
 		for i, (tfm, parent) in enumerate(izip(boneTfm, self.ikParents), start=1):
 
-			hk = self.createRig(parent, "Hook%s"%i, tfm)
+			hk = self.addRig(parent, "Hook%s"%i, tfm)
 			self.hooks.append(hk)
 
 
 	def createJoints(self):
 		for i, hk in enumerate(self.hooks, start=1):
 			if i == 3: i = "Head"
-			self.createJoint(hk, i)
+			self.addJnt(hk, i)
 	
 	#----------------------------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
 		if self.settings("kinematic") == "FK/IK":
-			self.blendAttr = self.createAnimAttr("Blend", "float", self.settings("blend")=="IK", 0, 1)
-			self.showCtrlAttr = self.createAnimAttr("showCtrl", "bool", False) 
+			self.blendAttr = self.addAnimAttr("Blend", "float", self.settings("blend")=="IK", 0, 1)
+			self.showCtrlAttr = self.addAnimAttr("showCtrl", "bool", False) 
 
-		self.stretchAttr = self.createAnimAttr("Stretch", "float", self.settings("stretch"), 0, 1)
+		self.stretchAttr = self.addAnimAttr("Stretch", "float", self.settings("stretch"), 0, 1)
 		
-		self.lengthAttr = self.createSetupAttr("Length", "float", self.neckLength, 0)
+		self.lengthAttr = self.addSetupAttr("Length", "float", self.neckLength, 0)
 		
 		
 	#----------------------------------------------------------------------------
@@ -171,7 +172,7 @@ class NeckSystemBuilder(SystemBuilder):
 		compounds.curvePointCenters(self.crv, self.lastIkCtl, 3)
 
 		# Direction
-		cns = compounds.aimConstraint(self.getObjectName("Nde", "Aim"), self.baseBfr, self.midCtl, 
+		cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), self.baseBfr, self.midCtl, 
 								axis=self.sign()+"yx", upMaster=self.rootRig, upVector=(1,0,0))
 
 		# Stretch
@@ -190,7 +191,7 @@ class NeckSystemBuilder(SystemBuilder):
 		crvCns = compounds.curveConstraints(self.headBfr, self.crv, axis=self.sign()+"y-z", parametric=False, u=1)
 		cmds.connectAttr(outStretch, crvCns+".uValue")
 
-		cmds.parentConstraint([self.lastIkCtl], self.headBfr, maintainOffset=True, name=self.getObjectName("Nde", "Orient"))
+		cmds.parentConstraint([self.lastIkCtl], self.headBfr, maintainOffset=True, name=self.getObjectName(config.USE_NDE, "Orient"))
 		cmds.connectAttr(self.nodes("local")+".scale", self.headBfr+".scale")
 		cmds.connectAttr(self.nodes("local")+".scale", self.midBfr+".scale")
 
@@ -241,17 +242,17 @@ class NeckSystemBuilder(SystemBuilder):
 
 	#----------------------------------------------------------------------------
 	# CONNECTION
-	def createConnection(self):
-		root = self.getObject("Root")
-		self.connect_parenting(root, "Root")
-		
-		# Ik Ref
-		ikBfr = self.getObject("Ik", "Hbfr")
-		self.connect_parenting(ikBfr, "IkRef", paramName="IkRef")
-		
-		# Head Rot Ref
-		ikOri = self.getObject("IkOri", "Hbfr")
-		self.connect_orientation(ikOri, "OriRef", paramName="OriRef")
-		
-		fkBfr = self.getObject("Fk3", "Hbfr")
-		self.connect_orientation(fkBfr, "OriRef", paramName="FkOriRef")
+	def createConnections(self):
+		if "Root" in self.connections():
+			root = self.getObject(config.USE_RIG, "Root")
+			self.connections("Root").connect(root)
+
+		if "IK" in self.connections():
+			root = self.getObject(config.USE_BFR, "Ik")
+			self.connections("IK").connect(root, attrName="IkParent")
+
+		if "Orient" in self.connections():
+			root = self.getObject(config.USE_BFR, "IkOri")
+			self.connections("Orient").connect(root, attrName="IkOrient")
+			root = self.getObject(config.USE_BFR, "Fk3")
+			self.connections("Orient").connect(root, attrName="FkOrient")

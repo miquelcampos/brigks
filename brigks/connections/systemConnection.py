@@ -3,6 +3,7 @@ import xml.etree.cElementTree as etree
 from maya import cmds
 
 from brigks.utils import compounds
+from brigks import config
 
 class SystemConnection(object):
 
@@ -42,6 +43,10 @@ class SystemConnection(object):
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------
+	def getSystem(self, key):
+		if key in self._builder.coreBuilder.systems():
+			return self._builder.coreBuilder.systems(key)
+
 	def getParentFromSlot(self, key, slot, useDefault=True):
 		parent = None
 		if key in self._builder.coreBuilder.systems():
@@ -57,7 +62,7 @@ class SystemConnection(object):
 		if not cmds.objExists(mesh):
 			return parent
 
-		attachName = self.getObjectName(usage="Rig", part="MeshAttach")
+		attachName = self.getObjectName(usage=config.USE_RIG, part="MeshAttach")
 		attach = cmds.createNode("transform", name=attachName)
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)
@@ -74,7 +79,7 @@ class SystemConnection(object):
 		if useClosest:
 			u, v = None, None
 
-		attachName = self.getObjectName(usage="Rig", part="MeshAttach")
+		attachName = self.getObjectName(usage=config.USE_RIG, part="MeshAttach")
 		attach = cmds.createNode("transform", name=attachName)
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)
@@ -102,9 +107,9 @@ class SystemConnection(object):
 
 		cmds.parent(child, parent)
 
-	def _parentConstraint(self, slave, masters):
+	def _parentConstraint(self, slave, masters, translate=True, rotation=True, scale=True):
 		name = "MultiParent"
-		return compounds.blendMatrix(slave, masters, maintainOffset=True)
+		return compounds.blendMatrix(slave, masters, maintainOffset=True, translate=translate, rotate=rotation, scale=scale)
 
 	# ----------------------------------------------------------------------------------
 	# XML IO

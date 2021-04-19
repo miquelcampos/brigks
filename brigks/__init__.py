@@ -1,6 +1,6 @@
 
-# from brigks.core.guide import Guide
-# from brigks.core.builder import Builder
+# from brigks.guide import Guide
+# from brigks.builder import Builder
 
 
 import sys
@@ -9,5 +9,5 @@ if math3d not in sys.path:
 	sys.path.append(math3d)
 
 
-from brigks.core.guide import Guide
-from brigks.core.builder import Builder 
+from brigks.guide import Guide
+from brigks.builder import Builder 

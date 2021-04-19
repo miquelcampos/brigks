@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class SpineSystemGuide(SystemGuide):
 
@@ -29,12 +30,12 @@ class SpineSystemGuide(SystemGuide):
 		super(SpineSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Pelvis=("Ctl", "Ik1"),
-			Lower=("Rig", "Hook2"),
-			Middle=("Rig", "Hook3"),
-			Upper=("Rig", "Hook4"),
-			Chest=("Rig", "Hook5"),
-			Breathing=("Ctl", "Breathing")
+			Pelvis=(config.USE_CTL, "Ik1"),
+			Lower=(config.USE_RIG, "Hook2"),
+			Middle=(config.USE_RIG, "Hook3"),
+			Upper=(config.USE_RIG, "Hook4"),
+			Chest=(config.USE_RIG, "Hook5"),
+			Breathing=(config.USE_CTL, "Breathing")
 			)
 
 		return slots

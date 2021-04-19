@@ -6,6 +6,7 @@ from math3d.transformation import Transformation
 
 from brigks.utils import attributes, compounds
 from brigks.systems.systemBuilder import SystemBuilder
+from brigks import config
 
 class SliderSystemBuilder(SystemBuilder):
 
@@ -39,13 +40,13 @@ class SliderSystemBuilder(SystemBuilder):
 			
 			self._lmts.append([limit_min, limit_max])
 
-			rail = self.createRig(None, "Rail{}".format(i), rtfm, "cube", size=1, 
+			rail = self.addRig(None, "Rail{}".format(i), rtfm, "cube", size=1, 
 				po=(offset,0,0), so=(abs(length), .5, .5))
 						
-			slider = self.createRig(rail, "Slider{}".format(i), rtfm, "cube")	
+			slider = self.addRig(rail, "Slider{}".format(i), rtfm, "cube")	
 
 			if self.settings("addControllers"):
-				ctl = self.createController(slider, "Slider{}".format(i), rtfm, "cube", color=self.colorIk())
+				ctl = self.addCtl(slider, "Slider{}".format(i), rtfm, "cube", color=self.colorIk())
 				self._ctls.append(ctl)
 
 			attributes.setKeyables(slider)
@@ -59,12 +60,12 @@ class SliderSystemBuilder(SystemBuilder):
 	def createDeformers(self):
 		parents = self._ctls if self.settings("addControllers") else self._slds
 		for i, slider in enumerate(parents, start=1):
-			self.createJoint(slider, str(i))
+			self.addJnt(slider, str(i))
 
 	#----------------------------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
-		self.outrotAttr = self.createSetupAttr("OutRot", "float3", (0,0,0))
+		self.outrotAttr = self.addSetupAttr("OutRot", "float3", (0,0,0))
 
 	#----------------------------------------------------------------------------
 	# OPERATORS
@@ -85,5 +86,5 @@ class SliderSystemBuilder(SystemBuilder):
 			if port == "Tracker":
 				cnx.connect(self.outrotAttr)
 			else:
-				child = self.getObject("Rig", port)
+				child = self.getObject(config.USE_RIG, port)
 				cnx.connect(child)

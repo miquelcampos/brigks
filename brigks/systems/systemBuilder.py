@@ -5,7 +5,7 @@ from collections import OrderedDict
 from maya import cmds
 
 from brigks.utils import attributes, create, compounds
-from brigks.core import naming, config
+from brigks import naming, config
 
 class SystemBuilder():
 
@@ -116,7 +116,7 @@ class SystemBuilder():
 		pass
 		
 	def deleteObjects(self):
-		search = self.getObject("*", "*")
+		search = self.getObjectName("*", "*")
 		parent = cmds.ls(self.nodes("local"), long=True)[0]
 		toDelete = [x for x in cmds.ls(search, type="transform", long=True) if x.startswith(parent)]
 		if toDelete:
@@ -133,7 +133,7 @@ class SystemBuilder():
 		pass
 
 	def deleteJoints(self):
-		search = self.getObject("Jnt", "*")
+		search = self.getObjectName(config.USE_JNT, "*")
 		parent = cmds.ls(self.nodes("local"), long=True)[0]
 		toDelete = [x for x in cmds.ls(search, type="joint", long=True) if x.startswith(parent)]
 		if toDelete:
@@ -194,28 +194,24 @@ class SystemBuilder():
 			create.icon(icon, node, size, po, ro, so)
 		return node
 
-	def createController(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
-		usage = naming.USAGES["Controller"]
+	def addCtl(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		color = [0,0,1]
-		return self.createTransform(parent, part, usage, tfm, icon, size, po, ro, so, color)
+		return self.createTransform(parent, part, config.USE_CTL, tfm, icon, size, po, ro, so, color)
 
-	def createBuffer(self, parent, part, tfm=None):
-		usage = naming.USAGES["Buffer"]
+	def addBfr(self, parent, part, tfm=None):
 		icon = "cube"
 		size = .2
 		color = [0,0,0]
-		return self.createTransform(parent, part, usage, tfm, icon, size, color=color)
+		return self.createTransform(parent, part, config.USE_BFR, tfm, icon, size, color=color)
 
-	def createRig(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
-		usage = naming.USAGES["Rig"]
+	def addRig(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		color = [0,0,0]
-		return self.createTransform(parent, part, usage, tfm, icon, size, po, ro, so, color)
+		return self.createTransform(parent, part, config.USE_RIG, tfm, icon, size, po, ro, so, color)
 
-	def createJoint(self, parent, part, reference=None):
-		usage = naming.USAGES["Joint"]
+	def addJnt(self, parent, part, reference=None):
 		color = [1,0,0]
 		parent = parent if parent is not None else self.nodes("local")
-		name = self.getObjectName(usage, part)
+		name = self.getObjectName(config.USE_JNT, part)
 
 		jnt = create.joint(parent, name, tfm=None, color=color)
 
@@ -240,7 +236,7 @@ class SystemBuilder():
 
 	def createSurfaceJoints(self, surface, count, part="Strap"):
 		parent = surface
-		joints = [self.createJoint(parent, "{}{}".format(part,i)) for i in xrange(1, count+1)]
+		joints = [self.addJnt(parent, "{}{}".format(part,i)) for i in xrange(1, count+1)]
 		
 		# Disconnect the deformer if there is a left over constraint
 		for jnt in joints:
@@ -251,7 +247,7 @@ class SystemBuilder():
 					cmds.delete(srfAttach)
 
 		# 0 Parametric, 1 Percentage, 2 Fixed Length
-		name = self.getObjectName("Rig", "Srf")
+		name = self.getObjectName(config.USE_RIG, "Srf")
 		compounds.surfaceMultiAttach([joints], surface, attach=0, evenly=True)
 
 		for jnt in joints:
@@ -268,19 +264,19 @@ class SystemBuilder():
 		# pass an argument for which host to crete the attr to
 		host = self._uiHosts.get("UI", self.nodes("local"))
 
-		longName = self.getObjectName("Rig", displayName)
+		longName = self.getObjectName(config.USE_RIG, displayName)
 		a = attributes.create(host, longName, attrType, value, minValue, maxValue,
 					keyable, writable, readable, channelBox, displayName)
 		self.attributeNames.append(longName)
 		return a
 
-	def createAnimAttr(self, name, attrType, value,
+	def addAnimAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
 		a = self._createAttr(name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
 		return a
 
-	def createSetupAttr(self, name, attrType, value,
+	def addSetupAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
 			keyable=False, writable=True):
 		a = self._createAttr(name, attrType, value,
@@ -288,7 +284,7 @@ class SystemBuilder():
 		return a
 
 	def _createNode(self, nodeType, name):
-		name = self.getObjectName("Nde", name)
+		name = self.getObjectName(config.USE_NDE, name)
 		return cmds.createNode(nodeType, name=name)
 
 	# ----------------------------------------------------------------------------------
@@ -303,13 +299,16 @@ class SystemBuilder():
 
 	def getNodeName(self, part):
 		return naming.getObjectName(
-			usage="Nde",
+			usage=config.USE_NDE,
 			location=self.settings("location"),
 			name=self.settings("name"),
 			part=part)
 
 	def getObject(self, usage, part):
-		return self.getObjectName(usage, part)
+		name = self.getObjectName(usage, part)
+		objects = [x for x in cmds.ls(name, type=transform, long=True) if x.startswith("|"+self.model)]
+		if objects:
+			return objects[0]
 
 	def getObjectFromSlot(self, slot):
 		slots = self.guide.connectionSlots()

@@ -4,6 +4,7 @@ from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, compounds, umath
+from brigks import config
 
 from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
@@ -29,39 +30,39 @@ class BreastSystemBuilder(SystemBuilder):
 
 		# OBJECTS
 		# Controller
-		self.dynBfr = self.createBuffer(None, "1", dynTfm)
-		self.dynCtl = self.createController(self.dynBfr, "1", dynTfm, "sphere", size=size, po=(self.factor(),0,0), so=(1,1,0), color=self.colorFk())
+		self.dynBfr = self.addBfr(None, "Part1", dynTfm)
+		self.dynCtl = self.addCtl(self.dynBfr, "Part1", dynTfm, "sphere", size=size, po=(self.factor(),0,0), so=(1,1,0), color=self.colorFk())
 		attributes.setKeyables(self.dynCtl)
 		# self.setInversedParameters(self.dynCtl, middle=["posz", "rotx", "roty"])
 		
-		self.posBfr = self.createBuffer(self.dynBfr, "2", posTfm)
-		self.posCtl = self.createController(self.posBfr, "2", posTfm, "sphere", size=size*1.5, so=[0,1,1], color=self.colorIk())
+		self.posBfr = self.addBfr(self.dynBfr, "Part2", posTfm)
+		self.posCtl = self.addCtl(self.posBfr, "Part2", posTfm, "sphere", size=size*1.5, so=[0,1,1], color=self.colorIk())
 		attributes.setKeyables(self.posCtl)
 		# self.setInversedParameters(self.posCtl, middle=["posz", "rotx", "roty"])
 
 		# Dynamic ----------------------------
-		self.harmonic = self.createRig(self.posCtl, "Harmonic", posTfm, "diamond", size=1)
+		self.harmonic = self.addRig(self.posCtl, "Harmonic", posTfm, "diamond", size=1)
 
 			
 	def createJoints(self):
-		self.createJoint(self.harmonic, "1")
+		self.addJnt(self.harmonic, "Part1")
 			
 	#-------------------------------------------------------------------------------
 	# PROPERTIES 
 	def createAttributes(self):
-		self.dynamicAttr = self.createAnimAttr("dynamic", "bool", self.settings("dynActive"))
-		self.amplitudeAttr = self.createAnimAttr("amplitude", "float", self.settings("amplitude"), 0, 5)
+		self.dynamicAttr = self.addAnimAttr("dynamic", "bool", self.settings("dynActive"))
+		self.amplitudeAttr = self.addAnimAttr("amplitude", "float", self.settings("amplitude"), 0, 5)
 		
 		if self.settings("dynamicAnimatable"):
-			self.axisAttr = self.createAnimAttr("axis", "vector", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
-			self.decayAttr = self.createAnimAttr("decay", "float", self.settings("decay"), 0, 10)
-			self.terminationAttr = self.createAnimAttr("termination", "float", self.settings("termination"), 0, 1)
-			self.frequencyAttr = self.createAnimAttr("frequency", "float", self.settings("frequency"), 0, 1)
+			self.axisAttr = self.addAnimAttr("axis", "vector", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
+			self.decayAttr = self.addAnimAttr("decay", "float", self.settings("decay"), 0, 10)
+			self.terminationAttr = self.addAnimAttr("termination", "float", self.settings("termination"), 0, 1)
+			self.frequencyAttr = self.addAnimAttr("frequency", "float", self.settings("frequency"), 0, 1)
 		
 	#-------------------------------------------------------------------------------
 	# OPERATORS
 	def createOperators(self):
-		cns = compounds.harmonic(self.getObjectName("Nde", "Harmonic"), self.harmonic, self.posCtl, 
+		cns = compounds.harmonic(self.getObjectName(config.USE_NDE, "Harmonic"), self.harmonic, self.posCtl, 
 			amplitude=1.0, 
 			decay=self.settings("decay"), 
 			frequency=self.settings("frequency"), 
@@ -86,6 +87,7 @@ class BreastSystemBuilder(SystemBuilder):
 
 	#-------------------------------------------------------------------------------
 	# CONNECTION
-	def createConnection(self):
-		root = self.getObject("1", usage="Hbfr")
-		self.connect_parenting(root, "Root")
+	def createConnections(self):
+		if "Root" in self.connections():
+			root = self.getObject(config.USE_BFR, "Part1")
+			self.connections("Root").connect(root)

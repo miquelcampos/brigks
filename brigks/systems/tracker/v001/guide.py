@@ -8,13 +8,13 @@ class TrackerSystemGuide(SystemGuide):
 	markerMinMax = dict()
 
 	def addSettings(self):
-		pass
+		self._settings["driverDefOrder"] = []
+		self._settings["driverDefs"] = {}
 
 	def connectionPorts(self):
 		super(TrackerSystemGuide, self).connectionPorts()
 
 		ports = dict(
-			Reference=["rotationTracker"],
 			Tracker=["rotationTracker"]
 			)
 

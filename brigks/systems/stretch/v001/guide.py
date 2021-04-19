@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class StretchSystemGuide(SystemGuide):
 
@@ -38,7 +39,7 @@ class StretchSystemGuide(SystemGuide):
 		super(StretchSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			Bone=("Rig", "Bone")
+			Bone=(config.USE_RIG, "Bone")
 			)
 
 		return slots

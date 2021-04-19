@@ -6,8 +6,8 @@ import xml.etree.cElementTree as etree
 
 from maya import cmds
 
-from brigks.core import naming
-from brigks.core.config import DATA_ATTRIBUTE
+from brigks import naming
+from brigks import config
 
 HIERARCHY_XML_PATH = os.path.join(os.path.dirname(__file__),"hierarchy.xml")
 
@@ -106,8 +106,8 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	def _initCore(self, create=True):
 		self._model = self._createModel(create)
-		# self.globalCtl = self._createController(self._model, part="Global", create=create)
-		# self.localCtl = self._createController(self.globalCtl, part="Local", create=create)
+		# self.globalCtl = self._addCtl(self._model, part="Global", create=create)
+		# self.localCtl = self._addCtl(self.globalCtl, part="Local", create=create)
 
 		xmlHierarchy = etree.parse(HIERARCHY_XML_PATH).getroot()
 		for xmlNode in xmlHierarchy:
@@ -120,7 +120,7 @@ class Builder():
 		if xmlNode.tag == "organizer":
 			node = self._createOrganizer(parent, part, create)
 		elif xmlNode.tag == "controller":
-			node = self._createController(parent, part, create)
+			node = self._addCtl(parent, part, create)
 		
 		self._nodes[key] = node
 
@@ -224,7 +224,7 @@ class Builder():
 		self.builtSystems().update(newSystemsData)
 
 		data = self._settings
-		cmds.setAttr(self._model+"."+DATA_ATTRIBUTE, json.dumps(data), type="string")
+		cmds.setAttr(self._model+"."+config.DATA_ATTRIBUTE, json.dumps(data), type="string")
 
 	# ----------------------------------------------------------------------------------
 	# CREATE
@@ -240,11 +240,11 @@ class Builder():
 	
 		if not cmds.ls(model+".model"):
 			cmds.addAttr(model, longName="model", attributeType="bool")
-		if not cmds.ls(model+"."+DATA_ATTRIBUTE):
-			cmds.addAttr(model, longName=DATA_ATTRIBUTE, dataType="string")
+		if not cmds.ls(model+"."+config.DATA_ATTRIBUTE):
+			cmds.addAttr(model, longName=config.DATA_ATTRIBUTE, dataType="string")
 
 		# Loading the data from the model
-		data = cmds.getAttr(model+"."+DATA_ATTRIBUTE)
+		data = cmds.getAttr(model+"."+config.DATA_ATTRIBUTE)
 		if data:
 			self._settings.update(json.loads(data))
 	
@@ -252,8 +252,8 @@ class Builder():
 		cmds.connectAttr(model+".model", self.guide.model()+".model", force=True)
 		return model
 
-	def _createController(self, parent, part, create):
-		name = naming.getObjectName(naming.USAGES["Controller"], "M", "Root", part)
+	def _addCtl(self, parent, part, create):
+		name = naming.getObjectName(config.USE_CTL, "M", "Root", part)
 
 		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
 		if exisiting:
@@ -269,7 +269,7 @@ class Builder():
 		return controller
 
 	def _createOrganizer(self, parent, part, create):
-		name = naming.getObjectName(naming.USAGES["Organizer"], "M", "Root", part)
+		name = naming.getObjectName(config.USE_ORG, "M", "Root", part)
 
 		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
 		if exisiting:

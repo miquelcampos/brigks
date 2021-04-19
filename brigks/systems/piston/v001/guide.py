@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class PistonSystemGuide(SystemGuide):	
 
@@ -29,10 +30,10 @@ class PistonSystemGuide(SystemGuide):
 		super(PistonSystemGuide, self).connectionSlots()
 
 		slots = dict(
-			StretchStart=("Rig", "StretchStart"),
-			StretchEnd=("Rig", "StretchEnd")
+			StretchStart=(config.USE_RIG, "StretchStart"),
+			StretchEnd=(config.USE_RIG, "StretchEnd")
 			)
 		for i in xrange(1, self.settings("interDeformers")+1):
-			slots["Div{}".format(i)] = ("Rig", "Div{}".format(i))
+			slots["Div{}".format(i)] = (config.USE_RIG, "Div{}".format(i))
 
 		return slots

@@ -1,6 +1,7 @@
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
+from brigks import config
 
 class NeckSystemGuide(SystemGuide):
 
@@ -25,8 +26,8 @@ class NeckSystemGuide(SystemGuide):
 
 		ports = dict(
 			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			IkRef=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			OriRef=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			IK=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			Orient=["multiOrient"],
 			UI=("uiHost")
 		)
 
@@ -37,6 +38,6 @@ class NeckSystemGuide(SystemGuide):
 
 		slots = {}
 		for i, s in enumerate(["Root", "Mid", "Head"], start=1):
-			slots[s] = ("Rig", "Hook{}".format(i))
+			slots[s] = (config.USE_RIG, "Hook{}".format(i))
 
 		return slots
