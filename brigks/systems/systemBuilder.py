@@ -263,29 +263,30 @@ class SystemBuilder():
 
 		return joints
 
-	def _createAttr(self, displayName, attrType, value=None, minValue=None, maxValue=None,
+	def addAttr(self, host, shortName, attrType, value=None, minValue=None, maxValue=None,
 			keyable=False, writable=True, readable=True, channelBox=True):
-
-		# For now we only support one UIHost, but we could 
-		# pass an argument for which host to crete the attr to
-		host = self._uiHosts.get("UI", self.nodes("local"))
-
-		longName = self.getObjectName(config.USE_RIG, displayName)
+		longName = self.getObjectName(config.USE_RIG, shortName)
 		a = attributes.create(host, longName, attrType, value, minValue, maxValue,
-					keyable, writable, readable, channelBox, displayName)
+					keyable, writable, readable, channelBox, shortName)
 		self.attributeNames.append(longName)
 		return a
 
 	def addAnimAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
-		a = self._createAttr(name, attrType, value,
+		# For now we only support one UIHost, but we could 
+		# pass an argument for which host to crete the attr to
+		host = self._uiHosts.get("UI", self.nodes("local"))
+		a = self.addAttr(host, name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
 		return a
 
 	def addSetupAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
 			keyable=False, writable=True):
-		a = self._createAttr(name, attrType, value,
+		# For now we only support one UIHost, but we could 
+		# pass an argument for which host to crete the attr to
+		host = self._uiHosts.get("UI", self.nodes("local"))
+		a = self.addAttr(host, name, attrType, value,
 					minValue, maxValue, keyable, writable)
 		return a
 

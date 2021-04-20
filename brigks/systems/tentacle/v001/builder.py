@@ -303,17 +303,17 @@ class TentacleSystemBuilder(SystemBuilder):
 		currentLength = 0
 		length = sum(self.distances)
 		for i, (host, dist) in enumerate(izip(self.hosts, self.distances), start=1):
-			self.tanVisAttr.append(Attribute.create(host, "TanVisible", "bool", False, 0, 1, 0, 1, writable=True, keyable=True))
+			self.tanVisAttr.append(self.addAttr(host, "TanVisible", "bool", False, 0, 1, 0, 1, writable=True, keyable=True))
 			pinLoc = currentLength / length
 			if i==1:
 				weightVal = 1
 			else:
 				weightVal = 0
-			pinWeightAttr = Attribute.create(host, "PinWeight", "float", weightVal, 0, 1, 0, 1, writable=True, keyable=True)
-			pinLocAttr = Attribute.create(host, "PinLocation", "float", pinLoc, 0, 1, 0, 1, writable=True, keyable=True)
+			pinWeightAttr = self.addAttr(host, "PinWeight", "float", weightVal, 0, 1, 0, 1, writable=True, keyable=True)
+			pinLocAttr = self.addAttr(host, "PinLocation", "float", pinLoc, 0, 1, 0, 1, writable=True, keyable=True)
 			self.pinAttrs.append({"paramValue":pinLocAttr, "paramWeight":pinWeightAttr})
 			currentLength += dist
-			self.useRollAttr.append(Attribute.create(host, "UseRoll", "float", 1, 0, 1, 0, 1, writable=True, keyable=True))
+			self.useRollAttr.append(self.addAttr(host, "UseRoll", "float", 1, 0, 1, 0, 1, writable=True, keyable=True))
 
 		# Tangent Attributes
 		self.tangentAttrs = []
@@ -321,9 +321,9 @@ class TentacleSystemBuilder(SystemBuilder):
 			attrSet = []
 			for tangent in tanSet:
 				if tangent:
-					weightAttr = Attribute.create(tangent, "Weight", "float", 1, 0, 10, 0, 5, writable=True, keyable=True)
-					smoothAttr = Attribute.create(tangent, "Smooth", "float", 1, 0, 1, 0, 1, writable=True, keyable=True)
-					autoAttr = Attribute.create(tangent, "Auto", "float", 1, 0, 1, 0, 1, writable=True, keyable=True)
+					weightAttr = self.addAttr(tangent, "Weight", "float", 1, 0, 10, 0, 5, writable=True, keyable=True)
+					smoothAttr = self.addAttr(tangent, "Smooth", "float", 1, 0, 1, 0, 1, writable=True, keyable=True)
+					autoAttr = self.addAttr(tangent, "Auto", "float", 1, 0, 1, 0, 1, writable=True, keyable=True)
 
 					attrSet.append({"weight":weightAttr, "smooth":smoothAttr, "auto":autoAttr})
 				else:
@@ -339,7 +339,7 @@ class TentacleSystemBuilder(SystemBuilder):
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.addAnimAttr("dynamic", "bool", self.settings("dynActive"))
 			self.globalAmplitudeAttr = self.addAnimAttr("globalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplitudeAttr = [self.addAnimAttr("localAmplitude%s"%i, "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
+			self.localAmplitudeAttr = [self.addAnimAttr("localAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
 			
 			if self.settings("dynamicAnimatable"):
 				self.axisAttr = self.addAnimAttr("axis", "vector", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
@@ -352,38 +352,38 @@ class TentacleSystemBuilder(SystemBuilder):
 	def createOperators(self):
 		# Visiblities --------------------------------
 		if self.isFkIk:
-			fkCompare = self._createCompound("compare", self.blendAttr, 1, "<")
-			ikCompare = self._createCompound("compare", self.blendAttr, 0, ">")
+			fkCompare = self.addCompound("compare", "FkViz", self.blendAttr, 1, "<")
+			ikCompare = self.addCompound("compare", "IkViz", self.blendAttr, 0, ">")
 
-			self._connectAttr(self.showCtrlAttr, (fkCompare.nodes("Cond"), "colorIfFalseR"))
-			self._connectAttr(self.showCtrlAttr, (ikCompare.nodes("Cond"), "colorIfFalseR"))
+			self.connectAttr(self.showCtrlAttr, fkCompare+".colorIfFalseR")
+			self.connectAttr(self.showCtrlAttr, ikCompare+".colorIfFalseR")
 
 			for ctl in self.fkCtl:
-				for shp in ctl.activePrimitives():
-					fkCompare.connectResult((shp(), "visibility"))
+				for shp in cmds.listRelatives(ctl, shapes=True):
+					cmds.connectAttr(fkCompare+".outColorR", shp+".visibility")
 
 			for ctl in self.ikCtl:
-				for shp in ctl.activePrimitives():
-					ikCompare.connectResult((shp(), "visibility"))
+				for shp in cmds.listRelatives(ctl, shapes=True):
+					cmds.connectAttr(ikCompare+".outColorR", shp+".visibility")
 
 		# Visibility based on the specified number of controllers
 		compareNodes = []
 		for i in xrange(len(self.bones)):
-			visCompare = self._createCompound("compare", self.ctrlNumberAttr, i+1, ">=")
+			visCompare = self.addCompound("compare", "Viz{}".format(i), self.ctrlNumberAttr, i+1, ">=")
 			if self.isFk:
-				visCompare.connectResult((self.fkBfr[i](), "visibility"))
+				cmds.connectAttr(visCompare+".outColorR", self.fkBfr[i]+".visibility")
 			if self.isIk:
-				visCompare.connectResult((self.ikBfr[i](), "visibility"))
+				cmds.connectAttr(visCompare+".outColorR", self.ikBfr[i]+".visibility")
 
 			if self.isFkIk or (self.isFk and self.settings("dynamic")):
-				visCompare.connectResult((self.bones[i](), "visibility"))
+				cmds.connectAttr(visCompare+".outColorR", self.bones[i]+".visibility")
 
 			compareNodes.append(visCompare)
 
 		compareNodes.append(None)
-		for i,tanBfr in enumerate(self.tangentBfr):
+		for i, tanBfr in enumerate(self.tangentBfr):
 			if compareNodes[i+1] and tanBfr[1]:
-				compareNodes[i+1].connectResult((tanBfr[1](), "visibility"))
+				cmds.connectAttr(compareNodes+".outColorR", self.tanBfr[1]+".visibility")
 
 
 		# Bones --------------------------------------

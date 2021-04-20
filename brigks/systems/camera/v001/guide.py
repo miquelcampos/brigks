@@ -10,7 +10,13 @@ class CameraSystemGuide(SystemGuide):
 		Root=Vector3([0,175,60]),
 		)
 
+	def createMarkers(self, matrices):
+		parent = self.model()
+		matrix = matrices["Root"] if "Root" in matrices else None
+		self.addMarkerCamera("Root", parent=None, matrix=matrix)
+
 	def addSettings(self):
+		# Camera settings (such as FOV) are directly taken from the marker attributes
 		pass
 
 	def connectionPorts(self):

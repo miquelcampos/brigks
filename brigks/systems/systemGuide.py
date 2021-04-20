@@ -255,14 +255,10 @@ class SystemGuide(object):
 	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
 	def createMarkers(self, matrices):
-		parent = self.model()
+		parent = None
 		markers = []
 		for part, matrix in checkMarkersMinMax(matrices, self.markerNames, self.markerMinMax):
-			if matrix is None:
-				position = self.markerPositions[part]
-				matrix = Transformation.fromParts(translation=position)
-			name = self.getMarkerName(part)
-			marker = SystemMarker.create(name, self, parent, matrix)
+			marker = self.addMarker(part, parent, matrix=None)
 			parent = marker
 			markers.append(marker.name())
 
@@ -275,6 +271,22 @@ class SystemGuide(object):
 		markers = [m.name() for m in self._markers.values()]
 		if markers:
 			cmds.delete(markers)
+
+	def addMarker(self, part, parent=None, matrix=None):
+		parent = self.model() if parent is None else parent
+		name = self.getMarkerName(part)
+		if matrix is None:
+			position = self.markerPositions[part]
+			matrix = Transformation.fromParts(translation=position)
+		return SystemMarker.create(name, self, parent, matrix)
+
+	def addMarkerCamera(self, part, parent=None, matrix=None):
+		parent = self.model() if parent is None else parent
+		name = self.getMarkerName(part)
+		if matrix is None:
+			position = self.markerPositions[part]
+			matrix = Transformation.fromParts(translation=position)
+		return SystemMarker.createCamera(name, self, parent, matrix)
 
 	def getMarkerName(self, part, location=None, name=None):
 		location = location if location is not None else self._settings["location"]

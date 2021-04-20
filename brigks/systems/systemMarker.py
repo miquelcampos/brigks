@@ -38,7 +38,12 @@ class SystemMarker(object):
 		parent = parent._marker if isinstance(parent, cls) else parent
 		node = create.transform(name, parent, matrix, color=[1,1,0])
 		create.icon("sphere", node, size=.5)
-		#cmds.xform(node, matrix=matrix, worldSpace=True)
+		return cls(node, system)
+
+	@classmethod
+	def createCamera(cls, name, system, parent, matrix=None):
+		parent = parent._marker if isinstance(parent, cls) else parent
+		node = create.camera(name, parent, matrix, color=[1,1,0])
 		return cls(node, system)
 
 	def rename(self, newName):

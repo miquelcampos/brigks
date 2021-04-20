@@ -99,6 +99,8 @@ def camera(name, parent=None, matrix=None, color=None, **kwargs):
 	options.update(kwargs)
 
 	camera = cmds.camera(name=name, **options)[0]
+	# For some reason the name is not set properly with the command
+	camera = cmds.rename(camera, name)
 
 	if parent:
 		camera = cmds.parent(camera, parent)[0]
