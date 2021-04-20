@@ -36,7 +36,6 @@ class FootSystemBuilder(SystemBuilder):
 		direction = self.translations("Part")[0] - self.translations("Root")
 		fkrefTfm = Transformation.lookAt(self.translations("Root"), direction, normal, "xz", self.negate())
 		
-		print self.translations("Part")
 		fkTfm = TransformationArray.chain(self.translations("Part"), normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		fkTfm = fkTfm.appended(heelTfm.copy(translation=self.translations("Part")[-1]))
 		
@@ -136,11 +135,11 @@ class FootSystemBuilder(SystemBuilder):
 
 		# Roll / Bank
 		rollAttr = self.rollCtl+".rotateX"
-		bankAttr = self.rollCtl, "rotateZ"
+		bankAttr = self.rollCtl+".rotateZ"
 		
 		# # Bank pivot compensation
-		outside = self.translations("Out").distanceToAxe(self.translations("Heel"), self.translations("Part")[-1])
-		inside = self.translations("In").distanceToAxe(self.translations("Heel"), self.translations("Part")[-1])
+		outside = self.translations("Out").distanceToAxis(self.translations("Heel"), self.translations("Part")[-1])
+		inside = self.translations("In").distanceToAxis(self.translations("Heel"), self.translations("Part")[-1])
 		bankOffsets = [outside, inside]
 
 
@@ -227,7 +226,7 @@ class FootSystemBuilder(SystemBuilder):
 				cmds.setAttr(fkBfrs[i]+".rotateOrder", lock=False)
 
 				cmds.connectAttr(bkCtls[i]+".rotateOrder", invRotOrdNode+".rotationOrder")
-				cmds.connectAttr(invRotOrdNode+".output", rotOrderAttr)
+				cmds.connectAttr(invRotOrdNode+".output", fkBfrs[i]+".rotateOrder")
 
 		# Heel Roll
 		negHeelNode = self._createNode("multiplyDivide", name="negHeel")

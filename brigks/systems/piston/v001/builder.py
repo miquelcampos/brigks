@@ -46,7 +46,7 @@ class PistonSystemBuilder(SystemBuilder):
 
 		self.interDiv = [self.addRig(self.startParent, "Div%s"%i, startTfm, "cube", self.size()) for i in xrange(1, self.settings("interDeformers")+1)]
 
-		
+
 	def createJoints(self):
 		self.addJnt(self.startRig, "Start")
 		self.addJnt(self.endRig, "End")

@@ -306,7 +306,7 @@ class SystemBuilder():
 
 	def getObject(self, usage, part):
 		name = self.getObjectName(usage, part)
-		objects = [x for x in cmds.ls(name, type=transform, long=True) if x.startswith("|"+self.model)]
+		objects = [x for x in cmds.ls(name, type="transform", long=True) if x.startswith("|"+self.model())]
 		if objects:
 			return objects[0]
 

@@ -50,8 +50,8 @@ class MetaSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------
 	# OPERATORS
 	def createOperators(self):
-		sRef = self.bones[0](PointerTypes.Transform)
-		eRef = self.bones[-1](PointerTypes.Transform)
+		sRef = self.bones[0]
+		eRef = self.bones[-1]
 		for i, drv in enumerate(self.drivers[1:-1], start=1):
 			d = i / (self.count("Part") - 1.0)
 
