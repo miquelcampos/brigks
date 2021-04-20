@@ -6,7 +6,7 @@ from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 
 class SpineSystemBuilder(SystemBuilder):
 	ctl_count = 5
@@ -123,8 +123,8 @@ class SpineSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		# Visibilities
-		fkCompare = compounds.compare(self.blendAttr, 1, "<")
-		ikCompare = compounds.compare(self.blendAttr, 0, ">")
+		fkCompare = self.addCompound("compare", "FkViz", self.blendAttr, 1, "<")
+		ikCompare = self.addCompound("compare", "IkViz", self.blendAttr, 0, ">")
 		
 		cmds.connectAttr(self.showCtrlAttr, fkCompare+".colorIfFalseR")
 		cmds.connectAttr(self.showCtrlAttr, ikCompare+".colorIfFalseR")
@@ -138,38 +138,38 @@ class SpineSystemBuilder(SystemBuilder):
 				cmds.connectAttr(ikCompare+".outColorR", shp+".visibility")
 
 		# Cluster Centers
-		compounds.curvePointCenters(self.crvA, self.ikCtl[0], 0)
-		compounds.curvePointCenters(self.crvA, self.aTan0, 1)
-		compounds.curvePointCenters(self.crvA, self.aTan1, 2)
-		compounds.curvePointCenters(self.crvA, self.ikCtl[4], 3)
+		self.addCompound("curvePointCenters", "CPCA0", self.crvA, self.ikCtl[0], 0)
+		self.addCompound("curvePointCenters", "CPCA1", self.crvA, self.aTan0, 1)
+		self.addCompound("curvePointCenters", "CPCA2", self.crvA, self.aTan1, 2)
+		self.addCompound("curvePointCenters", "CPCA3", self.crvA, self.ikCtl[4], 3)
 
-		compounds.curvePointCenters(self.crvB, self.ikCtl[0], 0)
-		compounds.curvePointCenters(self.crvB, self.bTan0, 1)
-		compounds.curvePointCenters(self.crvB, self.bTan1, 2)
-		compounds.curvePointCenters(self.crvB, self.bTan2, 3)
-		compounds.curvePointCenters(self.crvB, self.bTan3, 4)
-		compounds.curvePointCenters(self.crvB, self.bTan4, 5)
-		compounds.curvePointCenters(self.crvB, self.ikCtl[4], 6)
+		self.addCompound("curvePointCenters", "CPCB0", self.crvB, self.ikCtl[0], 0)
+		self.addCompound("curvePointCenters", "CPCB1", self.crvB, self.bTan0, 1)
+		self.addCompound("curvePointCenters", "CPCB2", self.crvB, self.bTan1, 2)
+		self.addCompound("curvePointCenters", "CPCB3", self.crvB, self.bTan2, 3)
+		self.addCompound("curvePointCenters", "CPCB4", self.crvB, self.bTan3, 4)
+		self.addCompound("curvePointCenters", "CPCB5", self.crvB, self.bTan4, 5)
+		self.addCompound("curvePointCenters", "CPCB6", self.crvB, self.ikCtl[4], 6)
 
 		# Hooks
 		for hookRig, fkCtl, ikCtl in izip(self.hookRig, self.fkCtl, self.ikCtl):
 			if hookRig is None:
 				continue
 
-			cns = compounds.blendMatrix(hookRig, [ikCtl, fkCtl])
+			cns = self.addCompound("blendMatrix", "Hook", hookRig, [ikCtl, fkCtl])
 			cmds.connectAttr(self.blendAttr, cns+".target[1].weight")
 		
 		# Mid Ik Controller
 		axis = self.settings("axis").lower()
 		axis = axis[0] + "-"+ axis[-1]
-		cns = compounds.curveConstraints(self.ikBfr[2], self.crvA, axis=axis, parametric=True, u=.5)
-		compounds.spinePointAt(cns, self.ikCtl[0], self.ikCtl[4], blend=.5, solver=1) 
+		cns = self.addCompound("curveConstraints", "Ik0", self.ikBfr[2], self.crvA, axis=axis, parametric=True, u=.5)
+		self.addCompound("spinePointAt", "SPA0", cns, self.ikCtl[0], self.ikCtl[4], blend=.5, solver=1) 
 
-		cns = compounds.curveConstraints(self.ikBfr[1], self.crvB, axis=axis, parametric=False, u=.25)
-		compounds.spinePointAt(cns, self.ikCtl[0], self.ikCtl[2], blend=.5, solver=1) 
+		cns = self.addCompound("curveConstraints", "Ik1", self.ikBfr[1], self.crvB, axis=axis, parametric=False, u=.25)
+		self.addCompound("spinePointAt", "SPA1", cns, self.ikCtl[0], self.ikCtl[2], blend=.5, solver=1) 
 
-		cns = compounds.curveConstraints(self.ikBfr[3], self.crvB, axis=axis, parametric=False, u=.75)
-		compounds.spinePointAt(cns, self.ikCtl[2], self.ikCtl[4], blend=.5, solver=1) 
+		cns = self.addCompound("curveConstraints", "Ik2", self.ikBfr[3], self.crvB, axis=axis, parametric=False, u=.75)
+		self.addCompound("spinePointAt", "SPA2", cns, self.ikCtl[2], self.ikCtl[4], blend=.5, solver=1) 
 
 	
 	#----------------------------------------------------------------------------

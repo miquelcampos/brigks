@@ -25,16 +25,16 @@ class TrackerSystemBuilder(SystemBuilder):
 			_driver = self.outrotAttr.nativePointer().child("XYZ".index(definition["axis"]))
 			# Check if there is a positive and negative angle, and if so set up two remap nodes
 			if definition["min"] * definition["max"] < 0:
-				add_Node = self._createNode("plusMinusAverage", name="add%s"%driverName)
+				add_Node = self.addNode("plusMinusAverage", name="add%s"%driverName)
 
-				remapNeg_Node = self._createNode("remapValue", name="remap%sNeg"%driverName)
+				remapNeg_Node = self.addNode("remapValue", name="remap%sNeg"%driverName)
 				cmds.connectAttr(_attrs["min"], remapNeg_Node+".inputMax")
 				cmds.connectAttr(_driver, remapNeg_Node+".inputValue")
 				cmds.setAttr(remapNeg_Node+".outputMax", -1.0)
 				cmds.setAttr(remapNeg_Node+".value[0].value_Interp", _interp)
 				cmds.connectAttr(remapNeg_Node+".outValue", add_Node+".input1D[0]")
 
-				remapPos_Node = self._createNode("remapValue", name="remap%sPos"%driverName)
+				remapPos_Node = self.addNode("remapValue", name="remap%sPos"%driverName)
 				cmds.connectAttr(_attrs["max"], remapPos_Node+".inputMax")
 				cmds.connectAttr(_driver, remapPos_Node+".inputValue")
 				cmds.setAttr(remapPos_Node+".value[0].value_Interp", _interp)
@@ -43,7 +43,7 @@ class TrackerSystemBuilder(SystemBuilder):
 				cmds.connectAttr(add_Node+".output1D", _attrs["value"])
 
 			else:
-				remap_Node = self._createNode("remapValue", name="remap%s"%driverName)
+				remap_Node = self.addNode("remapValue", name="remap%s"%driverName)
 				cmds.connectAttr(_attrs["min"], remap_Node+".inputMin")
 				cmds.connectAttr(_attrs["max"], remap_Node+".inputMax")
 				cmds.connectAttr(_driver, remap_Node+".inputValue")

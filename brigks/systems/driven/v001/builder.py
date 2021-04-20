@@ -3,7 +3,7 @@ from itertools import izip
 from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 from math3d.transformation import Transformation, TransformationArray
@@ -72,15 +72,15 @@ class DrivenSystemBuilder(SystemBuilder):
 
 		for rail, pos, neg, slider, rot, a, slide in izip(self._rails, self._psts, self._ngts, self._bfrs, rots, axis, self.slideAttr):
 			# Slider Op
-			cns = compounds.rotationToSlider(slide, rotMin=rot[0], rotMax=rot[1], slideMin=-1, slideMax=1)
+			cns = self.addCompound("rotationToSlider", "RailTrk", slide, rotMin=rot[0], rotMax=rot[1], slideMin=-1, slideMax=1)
 			cmds.connectAttr(self.outrotAttr+str(a), cns+".angle")
 
 			# Blending Constraints
-			bmNode = compounds.blendMatrix(slider, [rail, pos, neg])
+			bmNode = self.addCompound("blendMatrix", "RailCns", slider, [rail, pos, neg])
 
 			# Positive Expression
 			# Returns Maximum Value (There's no min/max node in Maya)
-			condPosNode = self._createNode("condition", name="condPos")
+			condPosNode = self.addNode("condition", name="CondPos")
 			cmds.setAttr(condPosNode+".operation", 2)# Greater Than >
 			cmds.connectAttr(slide, condPosNode+".firstTerm")
 			cmds.connectAttr(slide, condPosNode+".colorIfTrueR")
@@ -89,12 +89,12 @@ class DrivenSystemBuilder(SystemBuilder):
 
 			# Negative Expression
 			# Returns Negative Value (There's no neg node in Maya)
-			negNode = self._createNode("multiplyDivide", name="neg")
+			negNode = self.addNode("multiplyDivide", name="Neg")
 			cmds.connectAttr(slide, negNode+".input1X")
 			cmds.setAttr(negNode+".input2X", -1)
 
 			# Returns Maximum Value (There's no min/max node in Maya)
-			condNegNode = self._createNode("condition", name="condNeg")
+			condNegNode = self.addNode("condition", name="CondNeg")
 			cmds.setAttr(condNegNode+".operation", 2)# Greater Than >
 			cmds.connectAttr(negNode+".outputX", condNegNode+".firstTerm")
 			cmds.connectAttr(negNode+".outputX", condNegNode+".colorIfTrueR")

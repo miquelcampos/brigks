@@ -4,7 +4,7 @@ from math3d.transformation import TransformationArray
 from math3d.vectorN import Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import attributes, compounds
+from brigks.utils import attributes
 from brigks import config
 
 class StretchSystemBuilder(SystemBuilder):
@@ -56,23 +56,23 @@ class StretchSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		#Direction
-		cns = compounds.aimConstraint("AIM", self.bone, self.centers[1], axis="xy", upMaster=self.centers[0], upVector=(0,0,1))
+		cns = self.addCompound("aimConstraint", "Aim", self.bone, self.centers[1], axis="xy", upMaster=self.centers[0], upVector=(0,0,1))
 
 		# Twist
 		if self.settings("twist"):
-			pabaCns = compounds.pointAtBlendedAxis(cns, self.centers[0], self.centers[1], blend=self.settings("twistBlend"))
+			pabaCns = self.addCompound("pointAtBlendedAxis", "Twst", cns, self.centers[0], self.centers[1], blend=self.settings("twistBlend"))
 			cmds.connectAttr(self.twistBlendAttr, pabaCns+".blend")
 
 		# length ratio
 		if self.settings("stretch") or self.settings("squash"):
-			multMatNode = self._createNode("multMatrix", "MultMat")
+			multMatNode = self.addNode("multMatrix", "MultMat")
 			cmds.connectAttr(self.centers[1]+".worldMatrix[0]", multMatNode+".matrixIn[0]")
 			cmds.connectAttr(self.centers[0]+".worldInverseMatrix[0]", multMatNode+".matrixIn[1]")
 
-			distNode = self._createNode("distanceBetween", "Distance")
+			distNode = self.addNode("distanceBetween", "Distance")
 			cmds.connectAttr(multMatNode+".matrixSum", distNode+".inMatrix2")
 
-			divNode = self._createNode("multiplyDivide", "LengthRatio")
+			divNode = self.addNode("multiplyDivide", "LengthRatio")
 			cmds.setAttr(divNode+".operation", 2) # Divide
 			cmds.connectAttr(distNode+".distance", divNode+".input1X")
 			cmds.setAttr(divNode+".input2X", self.length)
@@ -81,33 +81,33 @@ class StretchSystemBuilder(SystemBuilder):
 
 		# Scaling
 		if self.settings("stretch"):
-			negateNode = self._createNode("multiplyDivide", "Negate")
+			negateNode = self.addNode("multiplyDivide", "Negate")
 			cmds.setAttr(negateNode+".operation", 1) # Multiply
 			cmds.connectAttr(self.stretchBlendAttr, negateNode+".input1X")
 			cmds.setAttr(negateNode+".input2X", -1)
 
-			addNode1 = self._createNode("addDoubleLinear", "Add")
+			addNode1 = self.addNode("addDoubleLinear", "Add")
 			cmds.setAttr(addNode1+".input1", 1)
 			cmds.connectAttr(negateNode+".outputX", addNode1+".input2")
 
-			mulNode = self._createNode("multiplyDivide", "Multiply")
+			mulNode = self.addNode("multiplyDivide", "Multiply")
 			cmds.setAttr(mulNode+".operation", 1) # Multiply
 			cmds.connectAttr(self.lengthRatioAttr, mulNode+".input1X")
 			cmds.connectAttr(self.stretchBlendAttr, mulNode+".input2X")
 
-			addNode2 = self._createNode("addDoubleLinear", "Add")
+			addNode2 = self.addNode("addDoubleLinear", "Add")
 			cmds.connectAttr(addNode1+".output", addNode2+".input1")
 			cmds.connectAttr(mulNode+".outputX", addNode2+".input2")
 
 			cmds.connectAttr(addNode2+".output", self.bone+".scaleX")
 
 		if self.settings("squash"):
-			divNode3 = self._createNode("multiplyDivide", "Divide")
+			divNode3 = self.addNode("multiplyDivide", "Divide")
 			cmds.setAttr(divNode3+".operation", 2) # Divide
 			cmds.setAttr(divNode3+".input1X", 1)
 			cmds.connectAttr(self.lengthRatioAttr, divNode3+".input2X")
 
-			powNode = self._createNode("multiplyDivide", "Power")
+			powNode = self.addNode("multiplyDivide", "Power")
 			cmds.setAttr(powNode+".operation", 3) # Power
 			cmds.connectAttr(divNode3+".outputX", powNode+".input1Y")
 			cmds.connectAttr(self.squashAttr[0], powNode+".input2Y")

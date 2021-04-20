@@ -7,7 +7,7 @@ from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 class FootSystemBuilder(SystemBuilder):
@@ -116,7 +116,7 @@ class FootSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		# Visibilities
-		ikCompare = compounds.compare(self.blendAttr, 0, ">")
+		ikCompare = self.addCompound("compare", "IkViz", self.blendAttr, 0, ">")
 		for ctl in self.bkCtl + [self.heelCtl, self.swivelCtl, self.rollCtl]:
 			for shp in cmds.listRelatives(ctl, shapes=True):
 				cmds.connectAttr(ikCompare+".outColorR", shp+".visibility")
@@ -143,14 +143,14 @@ class FootSystemBuilder(SystemBuilder):
 		bankOffsets = [outside, inside]
 
 
-		negNode = self._createNode("multiplyDivide", name="neg")
+		negNode = self.addNode("multiplyDivide", name="neg")
 		cmds.connectAttr(rollAttr, negNode+".input1X")
 		cmds.setAttr(negNode+".input2X", -1)
 
 		prevNode = None
 		aSumNodes = []
 		for i in xrange(1, len(angleAttr)):
-			adlNode = self._createNode("addDoubleLinear", name="angleSum")
+			adlNode = self.addNode("addDoubleLinear", name="angleSum")
 			if i == 1:
 				cmds.connectAttr(angleAttr[i-1], adlNode+".input1")
 			else:
@@ -165,7 +165,7 @@ class FootSystemBuilder(SystemBuilder):
 		for i in xrange(len(angleAttr)+1):
 			bkBfr = bkBfrs[i]
 
-			adlNode = self._createNode("addDoubleLinear", name="rollAngleSum%s"%i)
+			adlNode = self.addNode("addDoubleLinear", name="rollAngleSum%s"%i)
 			if i == 0:
 				cmds.setAttr(adlNode+".input1", 0)
 			elif i == 1:
@@ -176,11 +176,11 @@ class FootSystemBuilder(SystemBuilder):
 			cmds.connectAttr(negNode+".outputX", adlNode+".input2")
 
 
-			clpNode = self._createNode("clamp", name="clamp%s"%i)
+			clpNode = self.addNode("clamp", name="clamp%s"%i)
 			cmds.connectAttr(adlNode+".output", clpNode+".inputR")
 			cmds.setAttr(clpNode+".maxR", 0)
 			if i < len(angleAttr):
-				negANode = self._createNode("multiplyDivide", name="negAngle%s"%i)
+				negANode = self.addNode("multiplyDivide", name="negAngle%s"%i)
 				cmds.connectAttr(angleAttr[i], negANode+".input1X")
 				cmds.setAttr(negANode+".input2X", -1)
 				cmds.connectAttr(negANode+".outputX", clpNode+".minR")
@@ -191,9 +191,9 @@ class FootSystemBuilder(SystemBuilder):
 
 
 			if i < len(angleAttr):
-				adlXNode = self._createNode("addDoubleLinear", name="bkSumX%s"%i)
-				adlYNode = self._createNode("addDoubleLinear", name="bkSumY%s"%i)
-				adlZNode = self._createNode("addDoubleLinear", name="bkSumZ%s"%i)
+				adlXNode = self.addNode("addDoubleLinear", name="bkSumX%s"%i)
+				adlYNode = self.addNode("addDoubleLinear", name="bkSumY%s"%i)
+				adlZNode = self.addNode("addDoubleLinear", name="bkSumZ%s"%i)
 
 				cmds.connectAttr(bkBfrs[i]+".rotateX", adlXNode+".input1")
 				cmds.connectAttr(bkBfrs[i]+".rotateY", adlYNode+".input1")
@@ -203,7 +203,7 @@ class FootSystemBuilder(SystemBuilder):
 				cmds.connectAttr(bkCtls[i]+".rotateY", adlYNode+".input2")
 				cmds.connectAttr(bkCtls[i]+".rotateZ", adlZNode+".input2")
 
-				negBkNode = self._createNode("multiplyDivide", name="negBk%s"%i)
+				negBkNode = self.addNode("multiplyDivide", name="negBk%s"%i)
 				cmds.setAttr(negBkNode+".input2X", -1)
 				cmds.setAttr(negBkNode+".input2Y", -1)
 				cmds.setAttr(negBkNode+".input2Z", -1)
@@ -211,7 +211,7 @@ class FootSystemBuilder(SystemBuilder):
 				cmds.connectAttr(adlYNode+".output", negBkNode+".input1Y")
 				cmds.connectAttr(adlZNode+".output", negBkNode+".input1Z")
 
-				mulNode = self._createNode("multiplyDivide", name="mulBlend%s"%i)
+				mulNode = self.addNode("multiplyDivide", name="mulBlend%s"%i)
 				cmds.connectAttr(negBkNode+".outputX", mulNode+".input1X")
 				cmds.connectAttr(negBkNode+".outputY", mulNode+".input1Y")
 				cmds.connectAttr(negBkNode+".outputZ", mulNode+".input1Z")
@@ -221,7 +221,7 @@ class FootSystemBuilder(SystemBuilder):
 
 				cmds.connectAttr(mulNode+".output", fkBfrs[i]+".rotate")
 
-				invRotOrdNode = self._createNode("InverseRotOrder", name="invRotOrd%s"%i)
+				invRotOrdNode = self.addNode("InverseRotOrder", name="invRotOrd%s"%i)
 
 				cmds.setAttr(fkBfrs[i]+".rotateOrder", lock=False)
 
@@ -229,7 +229,7 @@ class FootSystemBuilder(SystemBuilder):
 				cmds.connectAttr(invRotOrdNode+".output", fkBfrs[i]+".rotateOrder")
 
 		# Heel Roll
-		negHeelNode = self._createNode("multiplyDivide", name="negHeel")
+		negHeelNode = self.addNode("multiplyDivide", name="negHeel")
 		cmds.setAttr(heelBfr+".minRotZLimitEnable", True)
 		cmds.setAttr(heelBfr+".minRotZLimit", 0)
 		cmds.connectAttr(rollAttr, negHeelNode+".input1X")
@@ -238,7 +238,7 @@ class FootSystemBuilder(SystemBuilder):
 
 		# Heel banking
 		cmds.connectAttr(bankAttr, heelBfr+".rotateX")
-		bankCondNode = self._createNode("condition", name="condHeel")
+		bankCondNode = self.addNode("condition", name="condHeel")
 		cmds.connectAttr(bankAttr, bankCondNode+".firstTerm")
 		cmds.setAttr(bankCondNode+".secondTerm", 0)
 		if self.negate():

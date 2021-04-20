@@ -36,7 +36,7 @@ class SystemMarker(object):
 	@classmethod
 	def create(cls, name, system, parent, matrix=None):
 		parent = parent._marker if isinstance(parent, cls) else parent
-		node = create.transform(parent, name, matrix, color=[1,1,0])
+		node = create.transform(name, parent, matrix, color=[1,1,0])
 		create.icon("sphere", node, size=.5)
 		#cmds.xform(node, matrix=matrix, worldSpace=True)
 		return cls(node, system)

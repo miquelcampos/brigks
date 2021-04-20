@@ -11,11 +11,14 @@ from brigks.utils import attributes, cast
 POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
 COMPARE_OPS = ["==", "!=", ">", ">=", "<", "<="]
 
-def compare(first, second, operation):
+def compare(name, first, second, operation):
 	if operation not in COMPARE_OPS:
-		raise ValueError("Given operation must be in %s"%COMPARE_OPS)
+		raise ValueError("Given operation must be in {}".format(COMPARE_OPS))
 
-	node = cmds.createNode("condition", name="Cond")
+	if "{node}" not in name:
+		name += "{node}"
+
+	node = cmds.createNode("condition", name=name.format(node="Cond"))
 
 	if isinstance(first, float) or isinstance(first, int):
 		cmds.setAttr(node+".firstTerm", first)
@@ -38,10 +41,13 @@ def compare(first, second, operation):
 # ----------------------------------------------------------------------------------
 # TRANSFORMS
 # ----------------------------------------------------------------------------------
-def blendMatrix(slave, masters, maintainOffset=False, translate=True, rotate=True, scale=True, useJointOrient=False):
-	bmNode = cmds.createNode("blendMatrix", name="BlendMatrix")
-	mmNode = cmds.createNode("multMatrix", name="MultMatrix")
-	dmNode = cmds.createNode("decomposeMatrix", name="DecomposeMatrix")
+def blendMatrix(name, slave, masters, maintainOffset=False, translate=True, rotate=True, scale=True, useJointOrient=False):
+	if "{node}" not in name:
+		name += "{node}"
+
+	bmNode = cmds.createNode("blendMatrix", name=name.format(node="BlendMatrix"))
+	mmNode = cmds.createNode("multMatrix", name=name.format(node="MulMatrix"))
+	dmNode = cmds.createNode("decomposeMatrix", name=name.format(node="DcpMatrix"))
 
 	cmds.connectAttr(bmNode+".outputMatrix", mmNode+".matrixIn[0]")
 	cmds.connectAttr(slave+".parentInverseMatrix[0]", mmNode+".matrixIn[1]")
@@ -56,7 +62,7 @@ def blendMatrix(slave, masters, maintainOffset=False, translate=True, rotate=Tru
 			masterMatrix = Matrix4(masterMatrix)
 			offset = slaveMatrix * masterMatrix.inverse()
 
-			offNode = cmds.createNode("multMatrix", name="Offset{}".format(i))
+			offNode = cmds.createNode("multMatrix", name=name+"{i}".format(node="Offset", i=i))
 			cmds.setAttr(offNode+".matrixIn[0]", offset.flattened(), type="matrix")
 			cmds.connectAttr(master+".worldMatrix[0]", offNode+".matrixIn[1]")
 			cmds.connectAttr(offNode+".matrixSum", bmNode+".target[{}].targetMatrix".format(i))
@@ -116,11 +122,11 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, 
 		upVector = upVector
 
 	skip = [s for s in "xyz" if cmds.getAttr(slave+".r"+s, lock=True)] or "none"
-	cns = cmds.aimConstraint(master, slave, worldUpType=upType, maintainOffset=maintainOffset, name=name, skip=skip)[0]
+	cns = cmds.aimConstraint(master, slave, worldUpType=upType, maintainOffset=maintainOffset, name=name.format(node="AimCns"), skip=skip)[0]
 
 	# UpVector
 	if upVector is None:
-		dmNode = cmds.createNode("decomposeMatrix", name="dcpMat")
+		dmNode = cmds.createNode("decomposeMatrix", name=name.format(node="DcpMatrix"))
 		cmds.connectAttr(upMaster+".worldMatrix[0]", dmNode+".inputMatrix")
 		cmds.connectAttr(dmNode+".outputTranslate", cns+".worldUpVector")
 	else:
@@ -137,16 +143,16 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, 
 	out = [0]*6
 	out["xyz".index(a[0])] = -1 if axis[0] == "-" else 1
 	out["xyz".index(a[1])+3] = -1 if axis[-2] == "-" else 1
-	for name, value in izip(aimAttr, out):
-		cmds.setAttr(cns+"."+name, value)
+	for attr, value in izip(aimAttr, out):
+		cmds.setAttr(cns+"."+attr, value)
 
 	return cns
 
-def pointAtDoubleAxis(cns, masterA, masterB, axis="z"):
+def pointAtDoubleAxis(name, cns, masterA, masterB, axis="z"):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	node = cmds.createNode("PointAtDoubleAxis", name="PtAtDouble")
+	node = cmds.createNode("PointAtDoubleAxis", name=name.format(node="PtAtDouble"))
 	cmds.connectAttr(masterA+".worldMatrix[0]", node+".ref")
 	cmds.connectAttr(masterB+".worldMatrix[0]", node+".trk")
 	cmds.setAttr(node+".axis", "zy".index(axis))
@@ -154,11 +160,11 @@ def pointAtDoubleAxis(cns, masterA, masterB, axis="z"):
 	cmds.setAttr(cns+".worldUpType", 3)
 	cmds.connectAttr(node+".out", cns+".worldUpVector")
 
-def pointAtBlendedAxis(cns, masterA, masterB, blend=.5, axis="Z"):
+def pointAtBlendedAxis(name, cns, masterA, masterB, blend=.5, axis="Z"):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	node = cmds.createNode("PointAtBlendedAxis", name="PtAtBlended")
+	node = cmds.createNode("PointAtBlendedAxis", name=name.format(node="PtAtBlended"))
 	cmds.connectAttr(masterA+".worldMatrix[0]", node+".mA")
 	cmds.connectAttr(masterB+".worldMatrix[0]", node+".mB")
 
@@ -170,11 +176,11 @@ def pointAtBlendedAxis(cns, masterA, masterB, blend=.5, axis="Z"):
 
 	return node
 
-def spinePointAt(cnsNode, masterA, masterB, blend=.5, axis="-Z", solver=0):
+def spinePointAt(name, cnsNode, masterA, masterB, blend=.5, axis="-Z", solver=0):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	spaNode = cmds.createNode("SpinePointAt", name="SPA")
+	spaNode = cmds.createNode("SpinePointAt", name=name.format(node="SpPtAt"))
 
 	cmds.setAttr(spaNode+".blend", blend)
 	cmds.setAttr(spaNode+".axis", POINTAT_AXIS.index(axis))
@@ -195,7 +201,7 @@ def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termi
 	if not cmds.pluginInfo("harmonics", q=True,  loaded=True):
 		cmds.loadPlugin("harmonics")
 
-	hNode = cmds.createNode("harmonics", name=name)
+	hNode = cmds.createNode("harmonics", name=name.format(node="Harmonic"))
 
 	cmds.connectAttr(hNode+".output", slave+".translate")
 	cmds.connectAttr(master+".wm", hNode+".input")
@@ -213,11 +219,11 @@ def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termi
 
 	return hNode
 
-def rotationTracker(attr, reference, tracker):
+def rotationTracker(name, attr, reference, tracker):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	node = cmds.createNode("RotationTracker", name="RotTrk")
+	node = cmds.createNode("RotationTracker", name=name.format(node="RotTrk"))
 
 	cmds.connectAttr(reference+".worldMatrix[0]", node+".reference")
 	cmds.connectAttr(tracker+".worldMatrix[0]", node+".tracker")
@@ -238,11 +244,11 @@ def rotationTracker(attr, reference, tracker):
 
 	return node
 
-def rotationToSlider(attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
+def rotationToSlider(name, attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	node = cmds.createNode("RotationToSlider", name="RTS")
+	node = cmds.createNode("RotationToSlider", name=name.format(node="RotToSld"))
 
 	cmds.connectAttr(node+".output", attr)
 	cmds.setAttr(node+".rotMin", rotMin)
@@ -252,7 +258,7 @@ def rotationToSlider(attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
 
 	return node
 
-def curveConstraints(slave, curve, axis="xy", parametric=True, u=.5, percentageToU=False):
+def curveConstraints(name, slave, curve, axis="xy", parametric=True, u=.5, percentageToU=False):
 	'''
 	Args:
 		slave():
@@ -264,7 +270,7 @@ def curveConstraints(slave, curve, axis="xy", parametric=True, u=.5, percentageT
 	'''
 	shape = cmds.listRelatives(curve, shapes=True)[0]
 
-	mpNode = cmds.createNode("motionPath", name="Path")
+	mpNode = cmds.createNode("motionPath", name=name.format(node="MoPath"))
 	cmds.connectAttr(shape+".worldSpace[0]", mpNode+".geometryPath")
 
 	# Maya doesn't compute the orientation properly at 1.0
@@ -291,26 +297,26 @@ def curveConstraints(slave, curve, axis="xy", parametric=True, u=.5, percentageT
 	cmds.setAttr(mpNode+".uValue", u)
 	cmds.setAttr(mpNode+".follow", True)
 
-	pmmNode = cmds.createNode("pointMatrixMult", name="PathPtMatMul")
+	pmmNode = cmds.createNode("pointMatrixMult", name=name.format(node="PtMatMul"))
 	cmds.connectAttr(slave+".parentInverseMatrix[0]", pmmNode+".inMatrix")
 	cmds.connectAttr(mpNode+".allCoordinates", pmmNode+".inPoint")
 	cmds.connectAttr(pmmNode+".output", slave+".translate")
 
-	mmNode = cmds.createNode("multMatrix", name="PathMulMat")
+	mmNode = cmds.createNode("multMatrix", name=name.format(node="MulMat"))
 	cmds.connectAttr(mpNode+".orientMatrix", mmNode+".matrixIn[0]")
 	cmds.connectAttr(slave+".parentInverseMatrix[0]", mmNode+".matrixIn[1]")
 
-	dmNode = cmds.createNode("decomposeMatrix", name="PathDcpMat")
+	dmNode = cmds.createNode("decomposeMatrix", name=name.format(node="DcpMat"))
 	cmds.connectAttr(mmNode+".matrixSum", dmNode+".inputMatrix")
 	cmds.connectAttr(dmNode+".outputRotate", slave+".rotate")
 
 	return mpNode
 
-def fkik2Bones(iks, fks, bones, lenA, lenB, neg):
+def fkik2Bones(name, iks, fks, bones, lenA, lenB, neg):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	fkikNode = cmds.createNode("FkIk2Bones", name="FKIK")
+	fkikNode = cmds.createNode("FkIk2Bones", name=name.format(node="FKIK"))
 
 	for ctl, attr in izip(iks, ["Root", "effector", "upVector"]):
 		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
@@ -329,7 +335,7 @@ def fkik2Bones(iks, fks, bones, lenA, lenB, neg):
 		cmds.setAttr(bone+".shearXZ", 0)
 		cmds.setAttr(bone+".shearYZ", 0)
 
-		dmNode = cmds.createNode("decomposeMatrix", name="FKIKDM{}".format(s))
+		dmNode = cmds.createNode("decomposeMatrix", name=name+"{s}".format(node="FKIKDcpMat", s=s))
 
 		cmds.connectAttr(fkikNode+".bone{}Tfm".format(s), dmNode+".inputMatrix")
 
@@ -342,16 +348,16 @@ def fkik2Bones(iks, fks, bones, lenA, lenB, neg):
 # ----------------------------------------------------------------------------------
 # ATTACH
 # ----------------------------------------------------------------------------------
-def curvePointCenters(curve, center, index):
+def curvePointCenters(name, curve, center, index):
 	# If that fails it might be that you don't have the matrixNodes.mll plungin installed
-	dmNode = cmds.createNode("decomposeMatrix", name="%sDcpMat"%index)
+	dmNode = cmds.createNode("decomposeMatrix", name=name+"{i}".format(node="DcpMat", i=index))
 
 	shape = cmds.listRelatives(curve, shapes=True)[0]
 
 	cmds.setAttr(curve+".inheritsTransform", False)
 
 	cmds.connectAttr(center+".worldMatrix[0]", dmNode+".inputMatrix")
-	cmds.connectAttr(dmNode+".outputTranslate", shape+".controlPoints[%s]"%index)
+	cmds.connectAttr(dmNode+".outputTranslate", shape+".controlPoints[{}]".format(index))
 
 	for t, a in product(["translate", "rotate", "scale"], "XYZ"):
 		attrName = t+a
@@ -361,14 +367,14 @@ def curvePointCenters(curve, center, index):
 		cmds.setAttr(curve+"."+attrName, value)
 		cmds.setAttr(curve+"."+attrName, lock=True)
 
-def surfaceAttach(slave, surface, u=None, v=None):
+def surfaceAttach(name, slave, surface, u=None, v=None):
 	if u is None or v is None:
 		u, v = self._getClosestUV(surface, position, globalSpace=True)
 
-	compounds.surfaceMultiAttach([[slave]], surface, 0, [u], [v])
+	compounds.surfaceMultiAttach(name, [[slave]], surface, 0, [u], [v])
 	return attach
 
-def surfaceMultiAttach(slaves, surface, attach=0, uParams=None, vParams=None, evenly=False):
+def surfaceMultiAttach(name, slaves, surface, attach=0, uParams=None, vParams=None, evenly=False):
 	'''
 	Args:
 		slaves(List of List of Transform): 
@@ -394,7 +400,7 @@ def surfaceMultiAttach(slaves, surface, attach=0, uParams=None, vParams=None, ev
 	# This is a custom command part of the Harbie Plugin
 	length = cmds.surfaceInfo(surface, length=True)
 
-	cmaNode = cmds.createNode("SurfaceMultiAttach", name="SrfMAttch")
+	cmaNode = cmds.createNode("SurfaceMultiAttach", name=name.format(node="SrfMAttch"))
 
 	cmds.connectAttr(shape+".local", cmaNode+".surface")
 	cmds.connectAttr(surface+".worldMatrix[0]", cmaNode+".surfaceMatrix")
@@ -440,7 +446,7 @@ def surfaceMultiAttach(slaves, surface, attach=0, uParams=None, vParams=None, ev
 			cmds.connectAttr(cmaNode+".output[%s].rotate"%index, slave+".rotate")
 
 
-def meshMultiAttach(slave, mesh, attach=0, index=-1, orient=False):
+def meshMultiAttach(name, slave, mesh, attach=0, index=-1, orient=False):
 	'''
 	Args:
 		slave(): 
@@ -460,6 +466,8 @@ def meshMultiAttach(slave, mesh, attach=0, index=-1, orient=False):
 
 	# We're not creating a new node if there is already one available using the correct attach method
 	mmaNode = _getExistingNode(shape, attach)
+	if mmaNode is None:
+		mmaNode = cmds.createNode("MeshMultiAttach", name=name.format(node="MshMAttch"))
 	attrIndex = _getNextAvailableIndex(mmaNode)
 
 	cmds.connectAttr(shape+".outMesh", mmaNode+".mesh", force=True)
@@ -480,8 +488,6 @@ def _getExistingNode(shape, attach):
 		for node in nodes:
 			if cmds.getAttr(node+".attach") == attach:
 				return node
-
-	return cmds.createNode("MeshMultiAttach", name="MshMAttch")
 
 def _getNextAvailableIndex(node):
 	indices = cmds.getAttr(node+".component", mi=True)
@@ -579,29 +585,3 @@ def _getClosestUV(surface, point, globalSpace=True):
 	closestPointU = utilA.getDouble(closestPointU)
 	closestPointV = utilB.getDouble(closestPointV)
 	return [closestPointU, closestPointV]
-
-
-# def _getMFnMesh(shapePath):
-# 	mobj = om.MObject()
-# 	selectionList = om.MSelectionList()
-# 	selectionList.add(str(shapePath))
-# 	selectionList.getDependNode(0,mobj)
-# 	return om.MFnMesh(mobj)
-
-# def _getMFnNurbsSurface(path):
-# 	mobj = om.MObject()
-# 	dagPath = om.MDagPath()
-# 	selectionList = om.MSelectionList()
-# 	selectionList.add(str(path))
-# 	selectionList.getDependNode(0,mobj)
-# 	selectionList.getDagPath(0, dagPath)
-# 	return om.MFnNurbsSurface(dagPath)
-
-# def _getMFnNurbsCurve(path):
-# 	mobj = om.MObject()
-# 	dagPath = om.MDagPath()
-# 	selectionList = om.MSelectionList()
-# 	selectionList.add(str(path))
-# 	selectionList.getDependNode(0,mobj)
-# 	selectionList.getDagPath(0, dagPath)
-# 	return om.MFnNurbsCurve(dagPath)

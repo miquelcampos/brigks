@@ -72,12 +72,12 @@ class PsdSystemBuilder(SystemBuilder):
 
 		for i,(drv,inner,outer,drvAttr) in enumerate(izip(self._drvs, self._inners, self._outers, self.driverValues), start=1):
 			label = drvAttr.split("_")[-1]
-			solver = self._createNode("eccentricConePSD", name="%sCone"%label)
+			solver = self.addNode("eccentricConePSD", name="%sCone"%label)
 			cmds.connectAttr(inner+".worldMatrix[0]", solver+".innerMatrix")
 			cmds.connectAttr(outer+".worldMatrix[0]", solver+".outerMatrix")
 			cmds.connectAttr(drv+".worldInverseMatrix[0]", solver+".referenceInverseMatrix")
 
-			point = self._createNode("pointMatrixMult", name="%sPointPosition"%label)
+			point = self.addNode("pointMatrixMult", name="%sPointPosition"%label)
 			cmds.connectAttr(self._sample+".worldMatrix[0]", point+".inMatrix")
 			cmds.connectAttr(point+".output", solver+".point")
 
@@ -87,7 +87,7 @@ class PsdSystemBuilder(SystemBuilder):
 			if interpType == "Linear":
 				cmds.connectAttr(solver+".value", drvAttr)
 			else:
-				interpNode = self._createNode("remapValue", name="%sRemap"%label)
+				interpNode = self.addNode("remapValue", name="%sRemap"%label)
 				cmds.connectAttr(solver+".value", interpNode+".inputValue")
 				cmds.connectAttr(interpNode+".outValue", drvAttr)
 
@@ -103,12 +103,12 @@ class PsdSystemBuilder(SystemBuilder):
 		interpType = ["None","Linear","Smooth","Spline"].index(self.settings("twistInterp"))
 		twistAxis = "XYZ".index(self.settings("twistAxis"))
 		twistAttr = self.outrotAttr+str(twistAxis)
-		remapNeg_Node = self._createNode("remapValue", name="remapTwistNeg")
+		remapNeg_Node = self.addNode("remapValue", name="remapTwistNeg")
 		cmds.connectAttr(self.twistMin, remapNeg_Node+".inputMax")
 		cmds.connectAttr(twistAttr, remapNeg_Node+".inputValue")
 		cmds.setAttr(remapNeg_Node+".value[0].value_Interp", interpType)
 
-		remapPos_Node = self._createNode("remapValue", name="remapTwistPos")
+		remapPos_Node = self.addNode("remapValue", name="remapTwistPos")
 		cmds.connectAttr(self.twistMax, remapPos_Node+".inputMax")
 		cmds.connectAttr(twistAttr, remapPos_Node+".inputValue")
 		cmds.setAttr(remapPos_Node+".value[0].value_Interp", interpType)
@@ -117,7 +117,7 @@ class PsdSystemBuilder(SystemBuilder):
 			cmds.connectAttr(remapNeg_Node+".outValue", self.twistValue[0])
 			cmds.connectAttr(remapPos_Node+".outValue", self.twistValue[1])
 		else:
-			add_Node = self._createNode("plusMinusAverage", name="addTwist")
+			add_Node = self.addNode("plusMinusAverage", name="addTwist")
 			cmds.setAttr(remapNeg_Node+".outputMax", -10)
 			cmds.connectAttr(remapNeg_Node+".outValue", add_Node+".input1D[0]")
 			cmds.connectAttr(remapPos_Node+".outValue", add_Node+".input1D[1]")

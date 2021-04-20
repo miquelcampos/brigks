@@ -209,11 +209,12 @@ class SystemBuilder():
 		return self.addTransform(parent, part, config.USE_RIG, tfm, icon, size, po, ro, so, color)
 
 	def addJnt(self, parent, part, reference=None):
-		color = [1,0,0]
-		parent = parent if parent is not None else self.nodes("local")
 		name = self.getObjectName(config.USE_JNT, part)
+		parent = parent if parent is not None else self.nodes("local")
+		matrix = cmds.xform(parent, q=True, matrix=True, worldSpace=True)
+		color = [1,0,0]
 
-		jnt = create.joint(name, parent, tfm=None, color=color)
+		jnt = create.joint(name, parent, matrix, color)
 
 		# Bind Pose reference
 		if reference:
@@ -234,6 +235,12 @@ class SystemBuilder():
 
 		return jnt
 
+	def addCamera(self, parent, part, tfm=None, color=None):
+		name = self.getObjectName(config.USE_CTL, part)
+		parent = parent if parent is not None else self.nodes("local")
+
+		return create.camera(name, parent, matrix=tfm, color=color)
+
 	def createSurfaceJoints(self, surface, count, part="Strap"):
 		parent = surface
 		joints = [self.addJnt(parent, "{}{}".format(part,i)) for i in xrange(1, count+1)]
@@ -247,8 +254,7 @@ class SystemBuilder():
 					cmds.delete(srfAttach)
 
 		# 0 Parametric, 1 Percentage, 2 Fixed Length
-		name = self.getObjectName(config.USE_RIG, "Srf")
-		compounds.surfaceMultiAttach([joints], surface, attach=0, evenly=True)
+		self.addCompound("surfaceMultiAttach", "JntSrf", [joints], surface, attach=0, evenly=True)
 
 		for jnt in joints:
 			cmds.connectAttr(self.nodes("local")+".sx" ,jnt+".sx")
@@ -283,9 +289,14 @@ class SystemBuilder():
 					minValue, maxValue, keyable, writable)
 		return a
 
-	def _createNode(self, nodeType, name):
+	def addNode(self, nodeType, name):
 		name = self.getObjectName(config.USE_NDE, name)
 		return cmds.createNode(nodeType, name=name)
+
+	def addCompound(self, compoundType, name, *args, **kwargs):
+		method = compounds.__dict__[compoundType]
+		name = self.getObjectName(config.USE_NDE, name+"{node}")
+		return method(name, *args, **kwargs)
 
 	# ----------------------------------------------------------------------------------
 	# GET OBJECTS and NAMES

@@ -4,7 +4,6 @@ from maya import cmds
 from math3d.transformation import Transformation
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import compounds
 
 class PistonSystemBuilder(SystemBuilder):
 
@@ -57,15 +56,15 @@ class PistonSystemBuilder(SystemBuilder):
 	#---------------------------------------------------------------------------
 	# OPERATORS
 	def createOperators(self):
-		aimCns = compounds.aimConstraint("AimStart", self.startRig, self.endParent, 
+		aimCns = self.addCompound("aimConstraint", "AimStart", self.startRig, self.endParent, 
 			axis="xz", upMaster=self.startParent, upVector=(0,0,1), maintainOffset=False)
 
-		aimCns = compounds.aimConstraint("AimEnd", self.endRig, self.startParent, 
+		aimCns = self.addCompound("aimConstraint", "AimEnd", self.endRig, self.startParent, 
 			axis="-xz", upMaster=self.endParent, upVector=(0,0,1), maintainOffset=False)
 
 		count = len(self.interDiv) + 1.0
 		for i, interDiv in enumerate(self.interDiv, start=1):
-			poseCns = compounds.blendMatrix(interDiv, [self.startRig, self.endRig])
+			poseCns = self.addCompound("blendMatrix", "Inter", interDiv, [self.startRig, self.endRig])
 			cmds.setAttr(cns+".target[1].weight", i / count)
 
 	#---------------------------------------------------------------------------

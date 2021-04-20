@@ -1,6 +1,5 @@
 from maya import cmds
 
-from brigks.utils import compounds
 from brigks.connections.systemConnection import SystemConnection
 
 class RotationTrackerSystemConnection(SystemConnection):
@@ -24,7 +23,7 @@ class RotationTrackerSystemConnection(SystemConnection):
 		if not reference or not tracker:
 			return
 
-		cns = compounds.rotationTracker(attr, reference, tracker)
+		cns = self.addCompound("rotationTracker", "CnxTrk", attr, reference, tracker)
 
 	def getTargetSystems(self):
 		keys = []

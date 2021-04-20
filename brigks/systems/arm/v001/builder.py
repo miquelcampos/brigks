@@ -7,7 +7,7 @@ from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 class ArmSystemBuilder(SystemBuilder):
@@ -193,8 +193,8 @@ class ArmSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		# Visibility
-		fkCompare = compounds.compare(self.blendAttr, 1, "<")
-		ikCompare = compounds.compare(self.blendAttr, 0, ">")
+		fkCompare = self.addCompound("compare", "FkVis", self.blendAttr, 1, "<")
+		ikCompare = self.addCompound("compare", "IkVis", self.blendAttr, 0, ">")
 
 		cmds.connectAttr(self.showCtrlAttr, fkCompare+".colorIfFalseR")
 		cmds.connectAttr(self.showCtrlAttr, ikCompare+".colorIfFalseR")
@@ -213,16 +213,16 @@ class ArmSystemBuilder(SystemBuilder):
 
 		# Center
 		attributes.inheritsTransform(self.ctrBfr, False)
-		node = self._createNode("decomposeMatrix", "CtrDM")
+		node = self.addNode("decomposeMatrix", "CtrDM")
 		cmds.connectAttr(self.bones[1]+".worldMatrix[0]", node+".inputMatrix")
 		cmds.connectAttr(node+".outputTranslate", self.ctrBfr+".translate")
-		cns = compounds.blendMatrix(self.ctrBfr, self.bones[:2], maintainOffset=False, translate=False, rotate=True, scale=False)
+		cns = self.addCompound("blendMatrix", "Center", self.ctrBfr, self.bones[:2], maintainOffset=False, translate=False, rotate=True, scale=False)
 		cmds.setAttr(cns+".target[1].weight", .5)
 		cmds.connectAttr(self.nodes("local")+".scale", self.ctrBfr+".scale")
 		
 		# Fk Ik Solver
 		iks = [self.rootCtl, self.ikRef, self.upvCtl]
-		ikfkNode = compounds.fkik2Bones(iks, self.fkCtl, self.bones, self.lengths[0], self.lengths[1], self.negate())
+		ikfkNode = self.addCompound("fkik2Bones", "Arm", iks, self.fkCtl, self.bones, self.lengths[0], self.lengths[1], self.negate())
 		cmds.connectAttr(self.blendAttr, ikfkNode+".blend")
 		cmds.connectAttr(self.rollAttr, ikfkNode+".roll")
 		cmds.connectAttr(self.scaleAAttr, ikfkNode+".scaleA")
@@ -243,37 +243,37 @@ class ArmSystemBuilder(SystemBuilder):
 		# # Inter
 		for p in self.twp:
 			cmds.pointConstraint(self.twisters[p], self.inters[p])
-			cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), self.inters[p], self.twisters[p][1], axis="x-z")
-			compounds.spinePointAt(cns, self.twisters[p][0], self.twisters[p][1], blend=.5, solver=1) 
+			cns = self.addCompound("aimConstraint", "Aim"+p, self.inters[p], self.twisters[p][1], axis="x-z")
+			self.addCompound("spinePointAt", "SpPtAt"+p, cns, self.twisters[p][0], self.twisters[p][1], blend=.5, solver=1) 
 		
 	
 	def _twisterCns(self, tws, pos, aim, pntAt, pntAtRef, axis, distance, pntAtDouble=True, scaleComp=False):
 		attributes.inheritsTransform(tws, False)
 
 		# Position
-		node = self._createNode("decomposeMatrix", "TwsDM")
+		node = self.addNode("decomposeMatrix", "TwsDM")
 		cmds.connectAttr(pos+".worldMatrix[0]", node+".inputMatrix")
 		cmds.connectAttr(node+".outputTranslate", tws+".translate")
 
 		# Rotation 
 		if pntAtDouble:
-			cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), tws, aim, axis=axis, upMaster=None, upVector=(0,0,1))
-			compounds.pointAtDoubleAxis(cns, pntAtRef, pntAt, axis="z")
+			cns = self.addCompound("aimConstraint", "Aim", tws, aim, axis=axis, upMaster=None, upVector=(0,0,1))
+			self.addCompound("pointAtDoubleAxis", "SpPtAt", cns, pntAtRef, pntAt, axis="z")
 		else:
-			cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), tws, aim, axis=axis, upMaster=pntAt, upVector=(0,1,0))
+			cns = self.addCompound("aimConstraint", "Aim", tws, aim, axis=axis, upMaster=pntAt, upVector=(0,1,0))
 			
 		# Scaling
-		dist_Node = self._createNode("distanceBetween", "twsScaleDist")
+		dist_Node = self.addNode("distanceBetween", "twsScaleDist")
 		cmds.connectAttr(pos+".worldMatrix[0]", dist_Node+".inMatrix1")
 		cmds.connectAttr(aim+".worldMatrix[0]", dist_Node+".inMatrix2")
-		div_Node = self._createNode("multiplyDivide", "twsScaleRatio")
+		div_Node = self.addNode("multiplyDivide", "twsScaleRatio")
 		cmds.setAttr(div_Node+".operation", 2) # Division
 		cmds.connectAttr(dist_Node+".distance", div_Node+".input1X")
 		cmds.setAttr(div_Node+".input2X", distance)
 		cmds.connectAttr(div_Node+".outputX", tws+".scaleX")
 
 		if scaleComp:
-			divNode = self._createNode("multiplyDivide", "Div")
+			divNode = self.addNode("multiplyDivide", "Div")
 			cmds.setAttr(divNode+".operation", 1)  # Multiply
 			cmds.connectAttr(pos+".scale", divNode+".input1")
 			cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2X")

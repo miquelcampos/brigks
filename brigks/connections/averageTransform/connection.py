@@ -1,7 +1,6 @@
 from maya import cmds
 from brigks.connections.systemConnection import SystemConnection
 
-
 class AverageTransformSystemConnection(SystemConnection):
 
 	def __init__(self):
@@ -31,7 +30,7 @@ class AverageTransformSystemConnection(SystemConnection):
 		if not masterA or not masterB:
 			return
 
-		compounds.blendMatrix(child, [masterA, masterB], maintainOffset=True,
+		self.addCompound("blendMatrix", "AvgCnx", child, [masterA, masterB], maintainOffset=True,
 													translate=self.settings("position"),
 		 											rotate=self.settings("rotation"),
 		 											scale=self.settings("scaling"))

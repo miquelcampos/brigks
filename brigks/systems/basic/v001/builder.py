@@ -4,7 +4,7 @@ from maya import cmds
 
 from math3d.transformation import Transformation
 
-from brigks.utils import constants, attributes, compounds
+from brigks.utils import constants, attributes
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks import config
 
@@ -85,8 +85,8 @@ class BasicSystemBuilder(SystemBuilder):
 
 				name = self.getObjectName(i, "Jnt")
 
-				mm = self._createNode("multMatrix", "MulMatrix{}".format(i))
-				dm = self._createNode("decomposeMatrix", "DecomposeMatrix{}".format(i))
+				mm = self.addNode("multMatrix", "MulMatrix{}".format(i))
+				dm = self.addNode("decomposeMatrix", "DecomposeMatrix{}".format(i))
 
 				cmds.connectAttr(bfr+".worldMatrix[0]", mm+".matrixIn[0]")
 				cmds.connectAttr(rig+".parentInverseMatrix[0]", mm+".matrixIn[1]")
@@ -96,9 +96,8 @@ class BasicSystemBuilder(SystemBuilder):
 							
 		if self.settings("dynamic"):
 			for i, harmonic in enumerate(self.jntparent):
-				nodeName = self.getObjectName(config.USE_NDE, "Harmonic{}".format(i))
 				parent = cmds.listRelatives(harmonic, parent=True)[0]
-				cns = compounds.harmonic(nodeName, harmonic, parent, 
+				cns = self.addCommpound("harmonic", "Dyn{i}".format(i), harmonic, parent, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
 					frequency=self.settings("frequency"), 
@@ -106,8 +105,8 @@ class BasicSystemBuilder(SystemBuilder):
 					amplitudeAxis=(self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
 
 				if i%3 == 0:
-					mulNode = self._createNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
-					activeNode = self._createNode("multiplyDivide", name="Active{}".format(i))
+					mulNode = self.addNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
+					activeNode = self.addNode("multiplyDivide", name="Active{}".format(i))
 					cmds.connectAttr(mulNode+".output", activeNode+".input1")
 
 					# Connect to Attributes

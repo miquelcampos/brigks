@@ -2,7 +2,6 @@ import json
 import xml.etree.cElementTree as etree
 from maya import cmds
 
-from brigks.utils import compounds
 from brigks import config
 
 class SystemConnection(object):
@@ -67,7 +66,7 @@ class SystemConnection(object):
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)
 
-		compounds.meshMultiAttach(attach, mesh, componentType, componentIndex, useOrientation)
+		self.addCompound("meshMultiAttach", "MeshCnx", attach, mesh, componentType, componentIndex, useOrientation)
 		return attach
 
 	def getParentFromSurface(self, surface, useClosest, u, v, key, slot, position):
@@ -84,7 +83,7 @@ class SystemConnection(object):
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)
 
-		compounds.surfaceAttach(attach, surface, u, v)
+		self.addCompound("surfaceAttach", "SrfCnx", attach, surface, u, v)
 		return attach
 
 	def getParentFromName(self, name):
@@ -96,6 +95,9 @@ class SystemConnection(object):
 	# ----------------------------------------------------------------------------------
 	# CONNECTION HELPERS
 	# ----------------------------------------------------------------------------------
+	def addCompound(self, name, compoundType, *args, **kwargs):
+		return self._builder.addCompound(name, compoundType, *args, **kwargs)
+
 	def _parent(self, child, parent):
 		if not parent:
 			return
@@ -109,7 +111,7 @@ class SystemConnection(object):
 
 	def _parentConstraint(self, slave, masters, translate=True, rotation=True, scale=True):
 		name = "MultiParent"
-		return compounds.blendMatrix(slave, masters, maintainOffset=True, translate=translate, rotate=rotation, scale=scale)
+		return self.addCompound("blendMatrix", "CnsCnx", slave, masters, maintainOffset=True, translate=translate, rotate=rotation, scale=scale)
 
 	# ----------------------------------------------------------------------------------
 	# XML IO

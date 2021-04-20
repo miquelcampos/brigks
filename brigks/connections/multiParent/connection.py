@@ -1,6 +1,6 @@
 from maya import cmds
 
-from brigks.utils import attributes, compounds
+from brigks.utils import attributes
 
 from brigks.connections.systemConnection import SystemConnection
 
@@ -53,7 +53,7 @@ class MultiParentSystemConnection(SystemConnection):
 			cmds.connectAttr(attr, bmNode+".target[1].weight")
 		elif len(masters) > 2:
 			for i in range(len(masters)):
-				cond = compounds.compare(attr, i, "==")
+				cond = self.addCompound("compare", "CnxSwitch", attr, i, "==")
 				cmds.connectAttr(cond+".outColorR", bmNode+".target[{}].weight".format(i))
 
 	def getTargetSystems(self):

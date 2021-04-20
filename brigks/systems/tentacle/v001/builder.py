@@ -437,17 +437,17 @@ class TentacleSystemBuilder(SystemBuilder):
 
 		# Connect the pin params after we know the full length of the curve
 		curveLength = self._getValueAttr((self.curve,"splineLength"))
-		scalingMult = self._createNode("multDoubleLinear", "ScaleMult")
+		scalingMult = self.addNode("multDoubleLinear", "ScaleMult")
 		self._setValueAttr((scalingMult, "input1"), curveLength)
 		self._connectAttr(self.scaleAttr(), (scalingMult, "input2"))
-		lengthMult = self._createNode("multDoubleLinear", "LengthMult")
+		lengthMult = self.addNode("multDoubleLinear", "LengthMult")
 		self._connectAttr(self.lengthAttr, (lengthMult, "input1"))
 		self._connectAttr((scalingMult, "output"), (lengthMult, "input2"))
 
 		for i, (pinAttr,rollAttr) in enumerate(izip(self.pinAttrs, self.useRollAttr)):
 			vertexAttr = "vertexData[%i]"%i
 			self._connectAttr(pinAttr["paramWeight"], (self.curve,"%s.paramWeight"%vertexAttr))
-			multNode = self._createNode("multDoubleLinear", "PinMult%i"%(i+1))
+			multNode = self.addNode("multDoubleLinear", "PinMult%i"%(i+1))
 			self._connectAttr((lengthMult, "output"), (multNode, "input1"))
 			self._connectAttr(pinAttr["paramValue"], (multNode, "input2"))
 			self._connectAttr((multNode,"output"), (self.curve,"%s.paramValue"%vertexAttr))
@@ -457,7 +457,7 @@ class TentacleSystemBuilder(SystemBuilder):
 
 		# Deformers --------------------------------
 		for res,dfmList,count in izip(["Seg","Skin"], [self.segDfm,self.dfm], [self.segDfmCount,self.dfmCount]):
-			riderCns = self._createNode("riderConstraint", "rider%s"%res)
+			riderCns = self.addNode("riderConstraint", "rider%s"%res)
 			self._connectAttr((self.curve,"outputSpline"), (riderCns,"inputSplines[0].spline"))
 			self._connectAttr(self.slideAttr, (riderCns,"globalOffset"))
 			self._setValueAttr((riderCns,"useGlobalMin"), True)
@@ -497,7 +497,7 @@ class TentacleSystemBuilder(SystemBuilder):
 				aimCns = self._createCompound("AimConstraint", rollBfr, aimTar, axis=aimAxis, upMaster=aimUp, upVector=om.MVector(0,1,0))
 
 				# Flip the effect of the rotation
-				multNode = self._createNode("multDoubleLinear", "%sRollFlip"%prefix)
+				multNode = self.addNode("multDoubleLinear", "%sRollFlip"%prefix)
 				self._connectAttr((rollCtl, "rotateX"), (multNode, "input1"))
 				self._setValueAttr((multNode, "input2"), -1)
 				self._connectAttr((multNode, "output"), (self.curve, "%s.twistValue"%vertexAttr))
@@ -507,7 +507,7 @@ class TentacleSystemBuilder(SystemBuilder):
 			self._connectAttr((rollCtl, "rotateX"), (self.curve, "%s.twistValue"%vertexAttr))
 
 			# Connect the twist tangent to the roll buffer
-			decomp = self._createNode("decomposeMatrix", "TwistDecomp%i"%(i+1))
+			decomp = self.addNode("decomposeMatrix", "TwistDecomp%i"%(i+1))
 			self._connectAttr((tangentSet[0], "outTwistMat"), (decomp, "inputMatrix"))
 			self._connectAttr((decomp, "outputRotate"), (rollBfr, "rotate"))
 		
@@ -522,12 +522,12 @@ class TentacleSystemBuilder(SystemBuilder):
 					amplitudeAxis=(self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")) )
 
 				if i%3 == 0:
-					mulNode = self._createNode("multiplyDivide", "amplitudeGlobal{}".format(i))
+					mulNode = self.addNode("multiplyDivide", "amplitudeGlobal{}".format(i))
 					self._connectAttr(self.globalAmplitudeAttr, (mulNode, "input1X"))
 					self._connectAttr(self.globalAmplitudeAttr, (mulNode, "input1Y"))
 					self._connectAttr(self.globalAmplitudeAttr, (mulNode, "input1Z"))
 
-					activeNode = self._createNode("multiplyDivide", "active{}".format(i))
+					activeNode = self.addNode("multiplyDivide", "active{}".format(i))
 					self._connectAttr((mulNode, "output"), (activeNode, "input1"))
 					self._connectAttr(self.dynamicAttr, (activeNode, "input2X"))
 					self._connectAttr(self.dynamicAttr, (activeNode, "input2Y"))
@@ -551,7 +551,7 @@ class TentacleSystemBuilder(SystemBuilder):
 		twistNodes = []
 		for i,(tangent, prefix, verts, attrSet) in enumerate(izip(tangents, ["in","out"], [centers, centers[::-1]], tanAttrs)):
 			if tangent:
-				twistTan = self._createNode("twistTangent", "%sTwistTan%i"%(prefix, idx))
+				twistTan = self.addNode("twistTangent", "%sTwistTan%i"%(prefix, idx))
 				self._connectAttr((verts[1], "worldMatrix"), (twistTan, "currentVertex"))
 				if verts[0]:
 					self._connectAttr((verts[0], "worldMatrix"), (twistTan, "nextVertex"))
@@ -581,12 +581,12 @@ class TentacleSystemBuilder(SystemBuilder):
 				for attrName, attr in attrSet.iteritems():
 					# Special connections to convert in tangents into endpoints based on specified number of controllers
 					if prefix == "in" and attrName == "smooth" and compareNode:
-						smoothMult = self._createNode("multDoubleLinear", "SmoothTanMult%i"%idx)
+						smoothMult = self.addNode("multDoubleLinear", "SmoothTanMult%i"%idx)
 						self._connectAttr(attr, (smoothMult, "input1"))
 						compareNode.connectResult((smoothMult, "input2"))
 						self._connectAttr((smoothMult, "output"), (twistTan, attrName))
 
-						smoothInvert = self._createNode("plusMinusAverage", "EndPointSwitch%i"%idx)
+						smoothInvert = self.addNode("plusMinusAverage", "EndPointSwitch%i"%idx)
 						self._setValueAttr((smoothInvert, "operation"), 2)
 						self._setValueAttr((smoothInvert, "input1D[0]"), 1)
 						compareNode.connectResult((smoothInvert, "input1D[1]"))

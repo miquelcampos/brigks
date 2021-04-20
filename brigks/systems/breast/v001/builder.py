@@ -3,7 +3,7 @@ from itertools import izip
 from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 from math3d.transformation import Transformation, TransformationArray
@@ -62,14 +62,14 @@ class BreastSystemBuilder(SystemBuilder):
 	#-------------------------------------------------------------------------------
 	# OPERATORS
 	def createOperators(self):
-		cns = compounds.harmonic(self.getObjectName(config.USE_NDE, "Harmonic"), self.harmonic, self.posCtl, 
+		cns = self.addCompound("harmonic", "Dyn", self.harmonic, self.posCtl, 
 			amplitude=1.0, 
 			decay=self.settings("decay"), 
 			frequency=self.settings("frequency"), 
 			termination=self.settings("termination"), 
 			amplitudeAxis=(self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
 
-		activeNode = self._createNode("multiplyDivide", name="active")
+		activeNode = self.addNode("multiplyDivide", name="active")
 		cmds.connectAttr(self.amplitudeAttr, activeNode+".input1X")
 		cmds.connectAttr(self.dynamicAttr, activeNode+".input2X")
 
@@ -82,7 +82,7 @@ class BreastSystemBuilder(SystemBuilder):
 			cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 		
 		# Vertical controller
-		compounds.blendMatrix(self.posBfr, [self.dynCtl], maintainOffset=True, rotate=False, scale=False)
+		self.addCompound("blendMatrix", "Breast", self.posBfr, [self.dynCtl], maintainOffset=True, rotate=False, scale=False)
 					
 
 	#-------------------------------------------------------------------------------

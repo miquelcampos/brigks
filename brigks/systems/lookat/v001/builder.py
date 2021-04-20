@@ -5,7 +5,7 @@ from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 class LookatSystemBuilder(SystemBuilder):
@@ -92,7 +92,7 @@ class LookatSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		target = self.targetCtl if self.settings("addTargetController") else self.targetBfr
-		compounds.aimConstraint("AIM", self.dirRig, target, axis=self.sign()+"xz", upMaster=self.parentUpv)
+		self.addCompound("aimConstraint", "Aim", self.dirRig, target, axis=self.sign()+"xz", upMaster=self.parentUpv)
 		
 		if not self.settings("addLocalController"):
 			return
@@ -109,21 +109,22 @@ class LookatSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------
 	# CONNECTION
 	def createConnection(self):
-		dirRig = self.getObject("Direction")
-		upvBfr = self.getObject("Upv", usage="Hbfr")
-		targetBfr = self.getObject("Target", usage="Hbfr")
+		if "Root" in self.connections():
+			obj = self.getObject(config.USE_RIG, "Direction")
+			self.connections("Root").connect(obj)
 
-		# For backward compatibility we make sure that if the upv connection hasn't been defined, we use the root cnx
-		parents, slots = self.connectionObjects("UpVector")
-		upvRef = "UpVector" if parents else "Root"
-		
-		self.connect_parenting(dirRig, "Root")
-		self.connect_parenting(upvBfr, upvRef)
-		self.connect_parenting(targetBfr, "Target")
+		if "Eff" in self.connections():
+			obj = self.getObject(config.USE_BFR, "Target")
+			self.connections("Eff").connect(obj)
+
+		if "UpVector" in self.connections():
+			obj = self.getObject(config.USE_BFR, "Upv")
+			self.connections("UpVector").connect(obj)
 
 		if not self.settings("addLocalController"):
 			return
 
-		localBfr = self.getObject("Local", usage="Hbfr")
-		self.connect_parenting(localBfr, "Root")
+		if "Local" in self.connections():
+			obj = self.getObject(config.USE_BFR, "Local")
+			self.connections("Local").connect(obj)
 		

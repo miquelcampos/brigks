@@ -4,7 +4,7 @@ from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 class TwistSystemBuilder(SystemBuilder):
@@ -141,18 +141,18 @@ class TwistSystemBuilder(SystemBuilder):
 	def createOperators(self):
 		# Curve
 		if self.settings("scaleWithCurve") or self.settings("preserveLength"):
-			ciNode = self._createNode("curveInfo", "CurveInfo")
+			ciNode = self.addNode("curveInfo", "CurveInfo")
 			shape = cmds.listRelatives(self.crv, shapes=True)[0]
 			cmds.connectAttr(shape+".worldSpace[0]", ciNode+".inputCurve")
 
 		align = self.axis[0]+"-z"
 
 		if self.settings("scaleWithCurve") or self.settings("preserveLength"):
-			scaleNode = self._createNode("multDoubleLinear", "LengthRescale")
+			scaleNode = self.addNode("multDoubleLinear", "LengthRescale")
 			cmds.setAttr(scaleNode+".input1", self.length)
 			cmds.connectAttr(self.nodes("local")+".sx", scaleNode+".input2")
 
-			lengthRatioNode = self._createNode("multiplyDivide", "LengthRatio")
+			lengthRatioNode = self.addNode("multiplyDivide", "LengthRatio")
 			cmds.setAttr(lengthRatioNode+".operation", 2) # Division
 
 			cmds.connectAttr(ciNode+".arcLength", lengthRatioNode+".input1X")
@@ -168,11 +168,11 @@ class TwistSystemBuilder(SystemBuilder):
 
 			# Position
 			if self.settings("parametric"):
-				cns = compounds.curveConstraints(div, self.crv, axis=align, parametric=True, u=u, percentageToU=True)
+				cns = self.addCompound("curveConstraints", "CrvCns", div, self.crv, axis=align, parametric=True, u=u, percentageToU=True)
 			else:
-				cns = compounds.curveConstraints(div, self.crv, axis=align, parametric=False, u=u)
+				cns = self.addCompound("curveConstraints", "CrvCns", div, self.crv, axis=align, parametric=False, u=u)
 				if self.settings("preserveLength"):
-					mulNode = self._createNode("multiplyDivide", "Mul")
+					mulNode = self.addNode("multiplyDivide", "Mul")
 					cmds.setAttr(mulNode+".operation", 1) # Multiply
 					cmds.setAttr(mulNode+".input1X", u)
 					cmds.connectAttr(lengthRatioNode+".outputY", mulNode+".input2X")
@@ -180,14 +180,14 @@ class TwistSystemBuilder(SystemBuilder):
 
 			# Rotation
 			if self.settings("twistMethod") == "spinePointAt":
-				compounds.spinePointAt(cns, self._centers[0], self._centers[-1], blend=u, solver=1)
+				self.addCompound("spinePointAt", "Twist", cns, self._centers[0], self._centers[-1], blend=u, solver=1)
 			else:
-				compounds.pointAtBlendedAxis(cns, self._centers[0], self._centers[-1], blend=u)
+				self.addCompound("pointAtBlendedAxis", "Twist", cns, self._centers[0], self._centers[-1], blend=u)
 
 			# Scaling
 			if self.settings("scaleWithCurve"):
 				if self.settings("negate"):
-					negNode = self._createNode("multiplyDivide", "Neg")
+					negNode = self.addNode("multiplyDivide", "Neg")
 					cmds.setAttr(negNode+".operation", 1) # Multiply
 					cmds.connectAttr(lengthRatioNode+".outputX", negNode+".input1X")
 					cmds.setAttr(negNode+".input2X", -1)
@@ -210,11 +210,11 @@ class TwistSystemBuilder(SystemBuilder):
 					refA = self._centers[refA]
 					refB = self._centers[refB]
 
-					refADmNode = self._createNode("decomposeMatrix", "DM")
+					refADmNode = self.addNode("decomposeMatrix", "DM")
 					cmds.connectAttr(refA+".worldMatrix[0]", refADmNode+".inputMatrix")
 
 					if sortedLengths[0] < 1E-6:
-						divNode = self._createNode("multiplyDivide", "Div")
+						divNode = self.addNode("multiplyDivide", "Div")
 						cmds.setAttr(divNode+".operation", 2) # Divide
 						cmds.connectAttr(refADmNode+".outputScale", divNode+".input1")
 						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2X")
@@ -225,15 +225,15 @@ class TwistSystemBuilder(SystemBuilder):
 					else:
 						blend = sortedLengths[1] / sum(sortedLengths[:2])
 
-						refBDmNode = self._createNode("decomposeMatrix", "DM")
+						refBDmNode = self.addNode("decomposeMatrix", "DM")
 						cmds.connectAttr(refB+".worldMatrix[0]", refBDmNode+".inputMatrix")
 
-						blendNode = self._createNode("blendColors", "Blend")
+						blendNode = self.addNode("blendColors", "Blend")
 						cmds.connectAttr(self.scaleAttrs[i], blendNode+".blender")
 						cmds.connectAttr(refADmNode+".outputScale", blendNode+".color1")
 						cmds.connectAttr(refBDmNode+".outputScale", blendNode+".color2")
 
-						divNode = self._createNode("multiplyDivide", "Div")
+						divNode = self.addNode("multiplyDivide", "Div")
 						cmds.setAttr(divNode+".operation", 2) # Divide
 						cmds.connectAttr(blendNode+".output", divNode+".input1")
 						cmds.connectAttr(self.nodes("local")+".sx", divNode+".input2X")
@@ -243,17 +243,17 @@ class TwistSystemBuilder(SystemBuilder):
 						output = divNode
 
 				else:
-					refADmNode = self._createNode("decomposeMatrix", "DM")
+					refADmNode = self.addNode("decomposeMatrix", "DM")
 					cmds.connectAttr(self._centers[0]+".matrix", refADmNode+".inputMatrix")
-					refBDmNode = self._createNode("decomposeMatrix", "DM")
+					refBDmNode = self.addNode("decomposeMatrix", "DM")
 					cmds.connectAttr(self._centers[-1]+".matrix", refBDmNode+".inputMatrix")
 
-					blendNode = self._createNode("blendColors", "Blend")
+					blendNode = self.addNode("blendColors", "Blend")
 					cmds.connectAttr(self.scaleAttrs[i], blendNode+".blender")
 					cmds.connectAttr(refADmNode+".outputScale", blendNode+".color1")
 					cmds.connectAttr(refBDmNode+".outputScale", blendNode+".color2")
 
-					divNode = self._createNode("multiplyDivide", "Div")
+					divNode = self.addNode("multiplyDivide", "Div")
 					cmds.setAttr(divNode+".operation", 1) # Multiply
 					cmds.connectAttr(blendNode+".output", divNode+".input1")
 					cmds.setAttr(divNode+".input2X", 1)
@@ -279,7 +279,7 @@ class TwistSystemBuilder(SystemBuilder):
 			for div,untwist in izip(masters, slaves):
 				poseCnsCompound = self._createCompound("poseConstraint2", untwist, [div])
 
-				negNode = self._createNode("unitConversion", "Negate")
+				negNode = self.addNode("unitConversion", "Negate")
 				cmds.setAttr(negNode+".conversionFactor", -1)
 				cmds.connectAttr(div+".rotate%s"%self.axis.title(), negNode+".input")
 

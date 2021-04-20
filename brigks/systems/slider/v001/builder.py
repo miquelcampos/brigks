@@ -4,7 +4,7 @@ from maya import cmds
 
 from math3d.transformation import Transformation
 
-from brigks.utils import attributes, compounds
+from brigks.utils import attributes
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks import config
 
@@ -74,7 +74,7 @@ class SliderSystemBuilder(SystemBuilder):
 		axis = ["XYZ".index(self.settings("axis{}".format(i))) for i in xrange(1, self.count("Rail")+1)]
 		for rail, pos, neg, slider, limits, rot, a in izip(self._rails, self._psts, self._ngts, self._slds, self._lmts, rots, axis):
 			
-			cns = compounds.rotationToSlider(slider+".tx", rotMin=rot[0], rotMax=rot[1], 
+			cns = self.addCompound("rotationToSlider", "Trk", slider+".tx", rotMin=rot[0], rotMax=rot[1], 
 										slideMin=limits[0], slideMax=limits[1])
 
 			cmds.connectAttr(self.outrotAttr+str(a), cns+".angle")

@@ -38,10 +38,7 @@ def joint(name, parent=None, matrix=None, color=None, useJointOrient=False):
 
 	# Transform
 	if matrix is None:
-		# If no Transform is passed, we match the parent position
-		matrix = cmds.xform(parent, q=True, matrix=True, worldSpace=True)
-	
-	attributes.setMatrix(node, matrix, worldSpace=True)
+		attributes.setMatrix(node, matrix, worldSpace=True)
 	
 	if useJointOrient:
 		# Because Joints are fun, you actually want the orientation  
@@ -101,16 +98,18 @@ def camera(name, parent=None, matrix=None, color=None, **kwargs):
 		)
 	options.update(kwargs)
 
-	node = cmds.camera(name=name, **options)
+	camera = cmds.camera(name=name, **options)[0]
 
-
+	if parent:
+		camera = cmds.parent(camera, parent)[0]
+		
 	# Setting the global/world Transformation 
 	if matrix is not None:
-		attributes.setMatrix(node, matrix, worldSpace=True)
+		attributes.setMatrix(camera, matrix, worldSpace=True)
 
-	attributes.setColor(node, color)
+	attributes.setColor(camera, color)
 
-	return tfmNode
+	return camera
 
 def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
 	if not cmds.pluginInfo("harbieLocator.mll", q=True, loaded=True): 
@@ -375,7 +374,7 @@ def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
 	crv = curve(name, points, closed, degree, centers[0], color)
 
 	for i, center in enumerate(centers):
-		compounds.curvePointCenters(crv, center, i)
+		compounds.curvePointCenters(name, crv, center, i)
 
 	return crv
 

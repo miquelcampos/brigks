@@ -71,7 +71,7 @@ class SystemGuide(object):
 		system._settings["name"] = name
 
 		# Create Markers
-		system.createMarkers()
+		system.createMarkers(matrices)
 		system.loadMarkers(force=True)
 		system.addSettings()
 
@@ -254,21 +254,20 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
-	def createMarkers(self):
-		parent =self.model()
+	def createMarkers(self, matrices):
+		parent = self.model()
 		markers = []
 		for part, matrix in checkMarkersMinMax(matrices, self.markerNames, self.markerMinMax):
 			if matrix is None:
-				position = cls.markerPositions[part]
-				transform = Transformation.fromParts(translation=position)
-				matrix = transform.asMatrix().tolist()
-				matrix = [j for sub in matrix for j in sub]
+				position = self.markerPositions[part]
+				matrix = Transformation.fromParts(translation=position)
 			name = self.getMarkerName(part)
-			marker = SystemMarker.create(name, system, parent, matrix)
+			marker = SystemMarker.create(name, self, parent, matrix)
 			parent = marker
 			markers.append(marker.name())
+
 		if len(markers) > 1:
-			curve = create.cnsCurve(system.getMarkerName("DispCrv"), markers, degree=1)
+			curve = create.cnsCurve(self.getMarkerName("DispCrv"), markers, degree=1)
 			cmds.setAttr(curve+".template", True)
 
 	def deleteMarkers(self):

@@ -3,7 +3,7 @@ from itertools import izip
 from maya import cmds
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 from math3d.transformation import Transformation, TransformationArray
@@ -193,8 +193,8 @@ class ChainSystemBuilder(SystemBuilder):
 	def createOperators(self):
 		# Visibilities
 		if self.isFkIk:
-			fkCompare = compounds.compare(self.blendAttr, 1, "<")
-			ikCompare = compounds.compare(self.blendAttr, 0, ">")
+			fkCompare = self.addCompounds("compare", "FkViz", self.blendAttr, 1, "<")
+			ikCompare = self.addCompounds("compare", "IkViz", self.blendAttr, 0, ">")
 
 			cmds.connectAttr(self.showCtrlAttr, fkCompare+".colorIfFalseR")
 			cmds.connectAttr(self.showCtrlAttr, ikCompare+".colorIfFalseR")
@@ -228,8 +228,7 @@ class ChainSystemBuilder(SystemBuilder):
 				else:
 					master = self._tip
 					
-				name = self.getObjectName(config.USE_NDE, "FkAim")
-				compounds.aimConstraint(name, fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
+				self.addCompounds("aimConstraint", "FkAim", fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
 				
 		# # Bones -----------------------------------------
 		if self.isFkIk:# or (self.isFk and self.settings("dynamic")):
@@ -237,14 +236,13 @@ class ChainSystemBuilder(SystemBuilder):
 				slave = bone
 				masters = [fkDir, ikBone]
 
-				bmNode = compounds.blendMatrix(slave, masters, maintainOffset=False)
+				bmNode = self.addCompounds("blendMatrix", "FkIk", slave, masters, maintainOffset=False)
 				cmds.connectAttr(self.blendAttr, bmNode+".target[1].weight")
 
 					
 		if self.settings("dynamic"):
 			for i, (harmonic, target, dynCns, dynBone, bone) in enumerate(izip(self.harmonic, self.target, self.dynCns, self.dynBone, self.bones)):
-				nodeName = self.getObjectName(config.USE_NDE, "Harmonic{}".format(i))
-				cns = compounds.harmonic(nodeName, harmonic, target, 
+				cns = self.addCompounds("harmonic", "Dyn{i}".format(i), harmonic, target, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
 					frequency=self.settings("frequency"), 
@@ -252,7 +250,7 @@ class ChainSystemBuilder(SystemBuilder):
 					amplitudeAxis=(self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
 
 				if i%3 == 0:
-					mulNode = self._createNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
+					mulNode = self.addNode("multiplyDivide", name="AmplitudeGlobal{}".format(i))
 
 					# Connect to Attributes
 					mulNode = self.getObjectName(config.USE_NDE, "AmplitudeGlobal{}".format(i))
@@ -260,7 +258,7 @@ class ChainSystemBuilder(SystemBuilder):
 					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Y")
 					cmds.connectAttr(self.globalAmplAttr, mulNode+".input1Z")
 
-					activeNode = self._createNode("multiplyDivide", name="Active{}".format(i))
+					activeNode = self.addNode("multiplyDivide", name="Active{}".format(i))
 					cmds.connectAttr(mulNode+".output", activeNode+".input1")
 					cmds.connectAttr(self.dynamicAttr, activeNode+".input2X")
 					cmds.connectAttr(self.dynamicAttr, activeNode+".input2Y")
@@ -276,14 +274,12 @@ class ChainSystemBuilder(SystemBuilder):
 					cmds.connectAttr(self.terminationAttr, cns+".termination")
 					cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 
-				name = self.getObjectName(config.USE_NDE, "DynAim")
-				cns = compounds.aimConstraint(name, dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
-				compounds.blendMatrix(dynCns, [bone], translate=False, rotate=True, scale=False)
+				cns = self.addCompounds("aimConstraint", "DynAim", dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
+				self.addCompounds("blendMatrix", "DynCns", dynCns, [bone], translate=False, rotate=True, scale=False)
 
 	#----------------------------------------------------------------------------
 	# CONNECTION
 	def createConnections(self):
-
 		if "Root" in self._connections:
 			cnx = self._connections["Root"]
 			root = self.getObject(config.USE_RIG, "Root")	

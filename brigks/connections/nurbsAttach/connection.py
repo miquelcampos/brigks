@@ -1,7 +1,5 @@
 from maya import cmds
-from maya import OpenMaya as om
 
-from brigks.utils import compounds
 from brigks.connections.systemConnection import SystemConnection
 
 class NurbsAttachSystemConnection(SystemConnection):

@@ -60,25 +60,25 @@ class MetaSystemBuilder(SystemBuilder):
 			self._createBlendTransformOperators(drv, sRef, eRef, "scale", d)
 
 	def _createBlendTransformOperators(self, drv, sRef, eRef, transform, blend):
-		eNode = self._createNode("multiplyDivide", "endMul")
+		eNode = self.addNode("multiplyDivide", "endMul")
 		cmds.connectAttr(eRef+"."+transform, eNode+".input1")
 		cmds.setAttr(eNode+".input2X", blend)
 		cmds.setAttr(eNode+".input2Y", blend)
 		cmds.setAttr(eNode+".input2Z", blend)
 
-		sNode = self._createNode("multiplyDivide", "startMul")
+		sNode = self.addNode("multiplyDivide", "startMul")
 		cmds.connectAttr(sRef+"."+transform, sNode+".input1")
 		cmds.setAttr(sNode+".input2X", 1-blend)
 		cmds.setAttr(sNode+".input2Y", 1-blend)
 		cmds.setAttr(sNode+".input2Z", 1-blend)
 
-		addNodeX = self._createNode("addDoubleLinear", "addX")
+		addNodeX = self.addNode("addDoubleLinear", "addX")
 		cmds.connectAttr(eNode+".outputX", addNodeX+".input1")
 		cmds.connectAttr(sNode+".outputX", addNodeX+".input2")
-		addNodeY = self._createNode("addDoubleLinear", "addY")
+		addNodeY = self.addNode("addDoubleLinear", "addY")
 		cmds.connectAttr(eNode+".outputY", addNodeY+".input1")
 		cmds.connectAttr(sNode+".outputY", addNodeY+".input2")
-		addNodeZ = self._createNode("addDoubleLinear", "addZ")
+		addNodeZ = self.addNode("addDoubleLinear", "addZ")
 		cmds.connectAttr(eNode+".outputZ", addNodeZ+".input1")
 		cmds.connectAttr(sNode+".outputZ", addNodeZ+".input2")
 

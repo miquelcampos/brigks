@@ -6,7 +6,7 @@ from math3d.transformation import Transformation, TransformationArray
 from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
-from brigks.utils import constants, attributes, create, compounds, umath
+from brigks.utils import constants, attributes, create, umath
 from brigks import config
 
 class NeckSystemBuilder(SystemBuilder):
@@ -148,8 +148,8 @@ class NeckSystemBuilder(SystemBuilder):
 	# OPERATORS
 	def createOperators(self):
 		# Visibilities
-		fkCompare = compounds.compare(self.blendAttr, 1, "<")
-		ikCompare = compounds.compare(self.blendAttr, 0, ">")
+		fkCompare = self.addCompound("compare", "FkViz", self.blendAttr, 1, "<")
+		ikCompare = self.addCompound("compare", "IkViz", self.blendAttr, 0, ">")
 
 		for ctl in self.fkCtl:
 			for shp in cmds.listRelatives(ctl, shapes=True):
@@ -166,29 +166,29 @@ class NeckSystemBuilder(SystemBuilder):
 				cmds.connectAttr(ikCompare+".outColorR", shp+".visibility")
 
 		# Cluster Centers
-		compounds.curvePointCenters(self.crv, self.rootRig, 0)
-		compounds.curvePointCenters(self.crv, self.tan0, 1)
-		compounds.curvePointCenters(self.crv, self.tan1, 2)
-		compounds.curvePointCenters(self.crv, self.lastIkCtl, 3)
+		self.addCompound("curvePointCenters", "CPC0", self.crv, self.rootRig, 0)
+		self.addCompound("curvePointCenters", "CPC1", self.crv, self.tan0, 1)
+		self.addCompound("curvePointCenters", "CPC2", self.crv, self.tan1, 2)
+		self.addCompound("curvePointCenters", "CPC3", self.crv, self.lastIkCtl, 3)
 
 		# Direction
-		cns = compounds.aimConstraint(self.getObjectName(config.USE_NDE, "Aim"), self.baseBfr, self.midCtl, 
+		cns = self.addCompound("aimConstraint", "Aim", self.baseBfr, self.midCtl, 
 								axis=self.sign()+"yx", upMaster=self.rootRig, upVector=(1,0,0))
 
 		# Stretch
 		outStretch = self._createStretchOperator()
 		
 		# Curve Cns
-		crvCns = compounds.curveConstraints(self.midBfr, self.crv, axis=self.sign()+"y-z", parametric=False, u=.5)
-		condANode = self._createNode("condition", name="Condition")
+		crvCns = self.addCompound("curveConstraints", "Mid", self.midBfr, self.crv, axis=self.sign()+"y-z", parametric=False, u=.5)
+		condANode = self.addNode("condition", name="Condition")
 		cmds.connectAttr(outStretch, condANode+".colorIfTrueR")
 		cmds.setAttr(condANode+".colorIfFalseR", 1)
-		mulNode = self._createNode("multiplyDivide", name="050Perc")
+		mulNode = self.addNode("multiplyDivide", name="050Perc")
 		cmds.connectAttr(condANode+".outColorR", mulNode+".input1X")
 		cmds.setAttr(mulNode+".input2X", .5)
 		cmds.connectAttr(mulNode+".outputX", crvCns+".uValue")
-		compounds.spinePointAt(crvCns, self.rootRig, self.lastIkCtl, blend=.5, solver=1) 
-		crvCns = compounds.curveConstraints(self.headBfr, self.crv, axis=self.sign()+"y-z", parametric=False, u=1)
+		self.addCompound("spinePointAt", "SpPtAt", crvCns, self.rootRig, self.lastIkCtl, blend=.5, solver=1) 
+		crvCns = self.addCompound("curveConstraints", "Head", self.headBfr, self.crv, axis=self.sign()+"y-z", parametric=False, u=1)
 		cmds.connectAttr(outStretch, crvCns+".uValue")
 
 		cmds.parentConstraint([self.lastIkCtl], self.headBfr, maintainOffset=True, name=self.getObjectName(config.USE_NDE, "Orient"))
@@ -203,37 +203,37 @@ class NeckSystemBuilder(SystemBuilder):
 				fkCtl = self.fkCtl
 
 			for ikm, fkm, hook, in izip(self.ikParents, fkCtl, self.hooks):
-				cns = compounds.blendMatrix(hook, [ikm, fkm], maintainOffset=True)
+				cns = self.addCompound("blendMatrix", "Hook", hook, [ikm, fkm], maintainOffset=True)
 				cmds.connectAttr(self.blendAttr, cns+".target[1].weight")
 
 	def _createStretchOperator(self):
-		ciNode = self._createNode("curveInfo", "CurveInfo")
+		ciNode = self.addNode("curveInfo", "CurveInfo")
 		shape = cmds.listRelatives(self.crv, shapes=True)[0]
 		cmds.connectAttr(shape+".worldSpace[0]", ciNode+".inputCurve")
 
-		scaleNode = self._createNode("multiplyDivide", "LengthRescale")
+		scaleNode = self.addNode("multiplyDivide", "LengthRescale")
 		cmds.setAttr(scaleNode+".operation", 2) # Division
 		cmds.connectAttr(ciNode+".arcLength", scaleNode+".input1X")
 		cmds.connectAttr(self.nodes("local")+".sx", scaleNode+".input2X")
 
-		divNode = self._createNode("multiplyDivide", "DivLengthRatio")
+		divNode = self.addNode("multiplyDivide", "DivLengthRatio")
 		cmds.setAttr(divNode+".operation", 2) # Division
 		cmds.setAttr(divNode+".input1X", self.neckLength)
 		cmds.connectAttr(scaleNode+".outputX", divNode+".input2X")
 
-		negNode = self._createNode("multiplyDivide", "Neg")
+		negNode = self.addNode("multiplyDivide", "Neg")
 		cmds.connectAttr(self.stretchAttr, negNode+".input1X")
 		cmds.setAttr(negNode+".input2X", -1)
 
-		addNodeA = self._createNode("addDoubleLinear", "AddA")
+		addNodeA = self.addNode("addDoubleLinear", "AddA")
 		cmds.setAttr(addNodeA+".input1", 1)
 		cmds.connectAttr(negNode+".outputX", addNodeA+".input2")
 
-		mulNode = self._createNode("multiplyDivide", "Mul")
+		mulNode = self.addNode("multiplyDivide", "Mul")
 		cmds.connectAttr(divNode+".outputX", mulNode+".input1X")
 		cmds.connectAttr(addNodeA+".output", mulNode+".input2X")
 
-		addNodeB = self._createNode("addDoubleLinear", "AddB")
+		addNodeB = self.addNode("addDoubleLinear", "AddB")
 		cmds.connectAttr(mulNode+".outputX", addNodeB+".input1")
 		cmds.connectAttr(self.stretchAttr, addNodeB+".input2")
 
