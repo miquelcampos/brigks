@@ -71,22 +71,7 @@ class SystemGuide(object):
 		system._settings["name"] = name
 
 		# Create Markers
-		parent = system.model()
-		markers = []
-		for part, matrix in checkMarkersMinMax(matrices, system.markerNames, system.markerMinMax):
-			if matrix is None:
-				position = cls.markerPositions[part]
-				transform = Transformation.fromParts(translation=position)
-				matrix = transform.asMatrix().tolist()
-				matrix = [j for sub in matrix for j in sub]
-			name = system.getMarkerName(part)
-			marker = SystemMarker.create(name, system, parent, matrix)
-			parent = marker
-			markers.append(marker.name())
-		if len(markers) > 1:
-			curve = create.cnsCurve(system.getMarkerName("DispCrv"), markers, degree=1)
-			cmds.setAttr(curve+".template", True)
-
+		system.createMarkers()
 		system.loadMarkers(force=True)
 		system.addSettings()
 
@@ -269,6 +254,34 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
+	def createMarkers(self):
+		parent =self.model()
+		markers = []
+		for part, matrix in checkMarkersMinMax(matrices, self.markerNames, self.markerMinMax):
+			if matrix is None:
+				position = cls.markerPositions[part]
+				transform = Transformation.fromParts(translation=position)
+				matrix = transform.asMatrix().tolist()
+				matrix = [j for sub in matrix for j in sub]
+			name = self.getMarkerName(part)
+			marker = SystemMarker.create(name, system, parent, matrix)
+			parent = marker
+			markers.append(marker.name())
+		if len(markers) > 1:
+			curve = create.cnsCurve(system.getMarkerName("DispCrv"), markers, degree=1)
+			cmds.setAttr(curve+".template", True)
+
+	def deleteMarkers(self):
+		self.loadMarkers(force=True)
+		markers = [m.name() for m in self._markers.values()]
+		if markers:
+			cmds.delete(markers)
+
+	def getMarkerName(self, part, location=None, name=None):
+		location = location if location is not None else self._settings["location"]
+		name = name if name is not None else self._settings["name"]
+		return naming.getObjectName(config.USE_GDE, location, name, part)
+
 	def rename(self, location, name):
 		self.loadMarkers(force=True)
 
@@ -373,23 +386,6 @@ class SystemGuide(object):
 			raise RuntimeError("Can't count single Markers")
 		return len(self.markers(name))
 
-	# def createMarker(self, name, matrix=None):
-	# 	name = self.getMarkerName(name)
-	# 	node = cmds.spaceLocator(name=name)
-	# 	if matrix:
-	# 		cmds.xform(node, matrix=matrix, worldSpace=True)
-	# 	cmds.parent(node, self.model())
-
-	def getMarkerName(self, part, location=None, name=None):
-		location = location if location is not None else self._settings["location"]
-		name = name if name is not None else self._settings["name"]
-		return naming.getObjectName(config.USE_GDE, location, name, part)
-
-	def deleteMarkers(self):
-		self.loadMarkers(force=True)
-		markers = [m.name() for m in self._markers.values()]
-		if markers:
-			cmds.delete(markers)
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT

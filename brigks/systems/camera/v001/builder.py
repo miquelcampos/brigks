@@ -13,6 +13,7 @@ class CameraSystemBuilder(SystemBuilder):
 		
 		# OBJECTS
 		bfr = self.addBfr(None, "Camera", tfm)
+		camera = create.camera(self.getObjectName(config.USE_CTL, "Camera"), bfr, matrix=tfm)
 		# camera = self.addCamera(bfr, "Camera", tfm=tfm, isController=True)
 		# shape = cmds.listRelatives(camera, shapes=True)[0]
 

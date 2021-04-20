@@ -10,6 +10,9 @@ class StretchSystemGuide(SystemGuide):
 		Root=Vector3([20,0,0]),
 		Eff=Vector3([20,10,0]),
 		)
+	markerCompatibility = dict(
+		piston={},
+		)
 	
 	def addSettings(self):
 		self._settings["addControllers"] = False

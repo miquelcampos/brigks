@@ -1,5 +1,9 @@
 from maya import cmds
 
+from math3d.transformation import TransformationArray, Transformation
+from math3d.vectorN import Vector3
+from math3d.matrixN import Matrix4
+
 from brigks.utils import constants
 
 # ----------------------------------------------------------------------------------
@@ -146,3 +150,11 @@ def setColor(node, color):
 		cmds.setAttr(node+".overrideColorR", color[0])
 		cmds.setAttr(node+".overrideColorG", color[1])
 		cmds.setAttr(node+".overrideColorB", color[2])
+
+def setMatrix(node, matrix, worldSpace=True):
+	if isinstance(matrix, Transformation):
+		matrix = matrix.asMatrix().flattened()
+	elif isinstance(matrix, Matrix4):
+		matrix = matrix.flattened()
+
+	cmds.xform(node, matrix=matrix, worldSpace=worldSpace)

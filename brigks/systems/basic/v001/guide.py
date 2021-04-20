@@ -16,6 +16,7 @@ class BasicSystemGuide(SystemGuide):
 		)
 	markerCompatibility = dict(
 		chain={},
+		tentacle={},
 		#chain=dict(Part="Bone"), # This is how it should be formated if you had to rename markers
 		)
 

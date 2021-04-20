@@ -16,34 +16,32 @@ ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "c
 	"cylinder", "diamond", "flower", "jaw", "null", "pyramid", "sphere", "spine", "square",
 	 "lookat", "bendedarrow", "rotatearrow", "gear", "lung"]
 
-def transform(parent, name, matrix=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+def transform(name, parent=None, matrix=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 	node = cmds.createNode("transform", name=name)
+	if parent:
+		node = cmds.parent(node, parent)[0]
+
 	attributes.setColor(node, color)
-	node = cmds.parent(node, parent)[0]
 
 	# Transform
 	if matrix is not None:
-		if isinstance(matrix, Transformation):
-			matrix = matrix.asMatrix().flattened()
-		elif isinstance(matrix, Matrix4):
-			matrix = matrix.flattened()
-
-		cmds.xform(node, matrix=matrix, worldSpace=True)
+		attributes.setMatrix(node, matrix, worldSpace=True)
 
 	return node
 
-def joint(parent, name, tfm=None, color=None, useJointOrient=False):
+def joint(name, parent=None, matrix=None, color=None, useJointOrient=False):
 	node = cmds.createNode("joint", name=name)
+	if parent:
+		node = cmds.parent(node, parent)[0]
+
 	attributes.setColor(node, color)
-	node = cmds.parent(node, parent)[0]
 
 	# Transform
-	if tfm is None:
+	if matrix is None:
 		# If no Transform is passed, we match the parent position
 		matrix = cmds.xform(parent, q=True, matrix=True, worldSpace=True)
-	else:
-		matrix = tfm.asMatrix().flattened()
-	cmds.xform(node, matrix=matrix, worldSpace=True)
+	
+	attributes.setMatrix(node, matrix, worldSpace=True)
 	
 	if useJointOrient:
 		# Because Joints are fun, you actually want the orientation  
@@ -66,6 +64,53 @@ def joint(parent, name, tfm=None, color=None, useJointOrient=False):
 			pass
 
 	return node
+
+def camera(name, parent=None, matrix=None, color=None, **kwargs):
+	'''Creates a Transform Node with a camera shape node.
+
+	Args:
+		name(str): Name of the newly created Node
+		parent(): Parent of the node. None if no parent. Automatically casted when possible.
+		matrix(): Transform or position of the node
+		color(int|float triplet): color as index or rgb(0-1)
+
+	Returns:
+		MFnTransform
+	'''
+	options=dict(
+		centerOfInterest=5.0, 
+		focalLength=35.0, 
+		lensSqueezeRatio=1.0, 
+		cameraScale=1.0, 
+		horizontalFilmAperture=1.41732, 
+		horizontalFilmOffset=0.0, 
+		verticalFilmAperture=0.94488, 
+		verticalFilmOffset=0.0, 
+		filmFit="Fill", 
+		overscan=1.0, 
+		motionBlur=False, 
+		shutterAngle=144.0, 
+		nearClipPlane=0.1, 
+		farClipPlane=10000.0, 
+		orthographic=False, 
+		orthographicWidth=30.0, 
+		panZoomEnabled=False, 
+		horizontalPan=0.0, 
+		verticalPan=0.0, 
+		zoom=1.0
+		)
+	options.update(kwargs)
+
+	node = cmds.camera(name=name, **options)
+
+
+	# Setting the global/world Transformation 
+	if matrix is not None:
+		attributes.setMatrix(node, matrix, worldSpace=True)
+
+	attributes.setColor(node, color)
+
+	return tfmNode
 
 def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
 	if not cmds.pluginInfo("harbieLocator.mll", q=True, loaded=True): 
@@ -157,12 +202,7 @@ def text(name="curve", parent=None, matrix=None, text="Text", font="Arial", size
 
 	# Transform
 	if matrix is not None:
-		if isinstance(matrix, Transformation):
-			matrix = matrix.asMatrix().flattened()
-		elif isinstance(matrix, Matrix4):
-			matrix = matrix.flattened()
-
-		cmds.xform(text, matrix=matrix, worldSpace=True)
+		attributes.setMatrix(text, matrix, worldSpace=True)
 
 	return text
 
@@ -185,7 +225,7 @@ def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1,
 	joints = []
 	jointParent = parent
 	for i, tfm in enumerate(transforms, start=1):
-		jnt = joint(jointParent, name+"%02d"%i, tfm, color, useJointOrient=True)
+		jnt = joint(name+"%02d"%i, jointParent, tfm, color, useJointOrient=True)
 
 		jointParent = jnt
 		joints.append(jnt)
@@ -401,7 +441,7 @@ def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=
 	# cmds is not create to bind to transform, so we bind to temp joints
 	tmpJnts = []
 	for center in centers:	
-		tmpJnt = joint(center, center+"_TEMPJNT")
+		tmpJnt = joint(center+"_TEMPJNT", center)
 		tmpJnts.append(tmpJnt)
 	skinCluster = cmds.skinCluster(tmpJnts, surface, maximumInfluences=1, toSelectedBones=True, bindMethod=0)[0]
 	for center, tmpJnt in izip(centers, tmpJnts):

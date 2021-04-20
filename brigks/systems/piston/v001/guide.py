@@ -10,6 +10,9 @@ class PistonSystemGuide(SystemGuide):
 		Root=Vector3([10,0,0]),
 		Eff=Vector3([10,10,0]),
 		)
+	markerCompatibility = dict(
+		stretch={},
+		)
 
 	def addSettings(self):
 		self._settings["addControllers"] = False

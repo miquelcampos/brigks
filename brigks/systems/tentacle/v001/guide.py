@@ -5,9 +5,17 @@ from brigks.systems.systemGuide import SystemGuide
 
 class TentacleSystemGuide(SystemGuide):
 
-	markerNames = ("Root",)
+	markerNames = ("Part",)
+	markerMinMax = dict(
+		Part=(2,-1)
+		)
 	markerPositions = dict(
-		Root=Vector3([0,175,60]),
+		Part1=Vector3([0,0,0]),
+		Part2=Vector3([0,0,-10]),
+		)
+	markerCompatibility = dict(
+		basic=dict(),
+		chain=dict(),
 		)
 
 	def addSettings(self):

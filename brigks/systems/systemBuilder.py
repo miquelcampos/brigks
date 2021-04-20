@@ -186,34 +186,34 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	#  HELPERS to CREATE OBJECTS / ATTRIBUTES
 	# ----------------------------------------------------------------------------------
-	def createTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+	def addTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		parent = parent if parent is not None else self.nodes("local")
 		name = self.getObjectName(usage, part)
-		node = create.transform(parent, name, tfm, color=color)
+		node = create.transform(name, parent, tfm, color=color)
 		if icon:
 			create.icon(icon, node, size, po, ro, so)
 		return node
 
 	def addCtl(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		color = [0,0,1]
-		return self.createTransform(parent, part, config.USE_CTL, tfm, icon, size, po, ro, so, color)
+		return self.addTransform(parent, part, config.USE_CTL, tfm, icon, size, po, ro, so, color)
 
 	def addBfr(self, parent, part, tfm=None):
 		icon = "cube"
 		size = .2
 		color = [0,0,0]
-		return self.createTransform(parent, part, config.USE_BFR, tfm, icon, size, color=color)
+		return self.addTransform(parent, part, config.USE_BFR, tfm, icon, size, color=color)
 
 	def addRig(self, parent, part, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		color = [0,0,0]
-		return self.createTransform(parent, part, config.USE_RIG, tfm, icon, size, po, ro, so, color)
+		return self.addTransform(parent, part, config.USE_RIG, tfm, icon, size, po, ro, so, color)
 
 	def addJnt(self, parent, part, reference=None):
 		color = [1,0,0]
 		parent = parent if parent is not None else self.nodes("local")
 		name = self.getObjectName(config.USE_JNT, part)
 
-		jnt = create.joint(parent, name, tfm=None, color=color)
+		jnt = create.joint(name, parent, tfm=None, color=color)
 
 		# Bind Pose reference
 		if reference:

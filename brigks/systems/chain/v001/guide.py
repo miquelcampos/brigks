@@ -15,7 +15,8 @@ class ChainSystemGuide(SystemGuide):
 		Part2=Vector3([10,10,0]),
 		)
 	markerCompatibility = dict(
-		basic=dict(),
+		basic={},
+		tentacle={},
 		# basic=dict(Bone="Part")
 		)
 
