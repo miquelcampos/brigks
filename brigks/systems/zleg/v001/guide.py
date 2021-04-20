@@ -20,6 +20,9 @@ class ZlegSystemGuide(SystemGuide):
 		self._settings["stretchDefault"] = 1.5
 		self._settings["reverseDefault"] = 0.0
 
+		self._settings["lockKneeRotation"] = False
+		self._settings["rollUpVController"] = False
+
 	def connectionPorts(self):
 		super(ZlegSystemGuide, self).connectionPorts()
 

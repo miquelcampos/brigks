@@ -30,7 +30,8 @@ HARBIE_TYPES = dict(
 		transformAverage01="average",
 		transformDriven01="driven",
 		transformMulti01="multi",
-		twistSpline01="twist"
+		twistSpline01="twist",
+		tentacle01="tentacle"
 	)
 
 MARKER_NAMES = dict(
@@ -55,6 +56,10 @@ SETTINGS_NAMES = dict(
 	params01=dict(
 		paramDefOrder="order",
 		paramDefs="definitions",
+		),
+	tentacle01=dict(
+		deformers="jointsCount",
+		segDeformers="lowJointsCount",
 		),
 	)
 

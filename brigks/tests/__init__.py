@@ -172,7 +172,7 @@ def createGuideDuplicateAndBuild(showWindow=False):
 
 
 
-def createGuidesAndBuild(showWindow=False):
+def createGuidesAndBuild(location="M", showWindow=False):
 	# Building Matrix for guide positions
 
 	# Create Guide, add a layer and a couple Systems
@@ -181,31 +181,31 @@ def createGuidesAndBuild(showWindow=False):
 	g.setSettings(hideJoints=False)
 
 	layer = g.addLayer("MyFirstLayer")
-	slider = layer.addSystem("slider", "L", "Basic")
-	stretch = layer.addSystem("stretch", "L", "Chain")
-	twist = layer.addSystem("twist", "L", "Twist")
-	spine = layer.addSystem("spine", "M", "Spine")
-	arm = layer.addSystem("arm", "M", "Arm")
-	leg = layer.addSystem("leg", "M", "Leg")
-	neck = layer.addSystem("neck", "M", "Neck")
-	average = layer.addSystem("average", "M", "Average")
-	breast = layer.addSystem("breast", "M", "Breast")
-	camera = layer.addSystem("camera", "M", "Camera")
-	driven = layer.addSystem("driven", "M", "Driven")
-	foot = layer.addSystem("foot", "M", "Foot")
-	lookat = layer.addSystem("lookat", "M", "LookAt")
-	meta = layer.addSystem("meta", "M", "Meta")
-	piston = layer.addSystem("piston", "M", "Piston")
-	quadrant = layer.addSystem("quadrant", "M", "Quadrant")
-	tracker = layer.addSystem("tracker", "M", "Tracker")
-	attribute = layer.addSystem("attribute", "M", "Attribute")
-	zleg = layer.addSystem("zleg", "M", "ZLeg")
-	psd = layer.addSystem("psd", "M", "PSD")
+	slider = layer.addSystem("slider", location, "Basic")
+	stretch = layer.addSystem("stretch", location, "Chain")
+	twist = layer.addSystem("twist", location, "Twist")
+	spine = layer.addSystem("spine", location, "Spine")
+	arm = layer.addSystem("arm", location, "Arm")
+	leg = layer.addSystem("leg", location, "Leg")
+	neck = layer.addSystem("neck", location, "Neck")
+	average = layer.addSystem("average", location, "Average")
+	breast = layer.addSystem("breast", location, "Breast")
+	camera = layer.addSystem("camera", location, "Camera")
+	driven = layer.addSystem("driven", location, "Driven")
+	foot = layer.addSystem("foot", location, "Foot")
+	lookat = layer.addSystem("lookat", location, "LookAt")
+	meta = layer.addSystem("meta", location, "Meta")
+	piston = layer.addSystem("piston", location, "Piston")
+	quadrant = layer.addSystem("quadrant", location, "Quadrant")
+	tracker = layer.addSystem("tracker", location, "Tracker")
+	attribute = layer.addSystem("attribute", location, "Attribute")
+	zleg = layer.addSystem("zleg", location, "ZLeg")
+	psd = layer.addSystem("psd", location, "PSD")
+	tentacle = layer.addSystem("tentacle", location, "Tentacle")
 
 	# System Settings
 	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	# stretch.setSettings(squash=True)
-
 
 	# Save edit
 	g.commit()

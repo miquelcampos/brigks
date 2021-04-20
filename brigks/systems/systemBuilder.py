@@ -22,6 +22,7 @@ class SystemBuilder():
 
 		self.key = self.guide.key
 		self.type = self.guide.type
+		self.markers = self.guide.markers
 		self.transforms = self.guide.transforms
 		self.translations = self.guide.translations
 		self.directions = self.guide.directions
@@ -127,6 +128,12 @@ class SystemBuilder():
 				cmds.parent(children, self.nodes("local"))
 
 			# Delete objects
+			cmds.delete(toDelete)
+
+		# Delete Utility Nodes
+		search = self.getObjectName(config.USE_NDE, "*")
+		toDelete = cmds.ls(search, long=True)
+		if toDelete:
 			cmds.delete(toDelete)
 
 	def createObjects(self):
@@ -235,11 +242,11 @@ class SystemBuilder():
 
 		return jnt
 
-	def addCamera(self, parent, part, tfm=None, color=None):
+	def addCamera(self, parent, part, tfm=None, color=None, **kwargs):
 		name = self.getObjectName(config.USE_CTL, part)
 		parent = parent if parent is not None else self.nodes("local")
 
-		return create.camera(name, parent, matrix=tfm, color=color)
+		return create.camera(name, parent, matrix=tfm, color=color, **kwargs)
 
 	def createSurfaceJoints(self, surface, count, part="Strap"):
 		parent = surface

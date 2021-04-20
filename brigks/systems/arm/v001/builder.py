@@ -243,8 +243,8 @@ class ArmSystemBuilder(SystemBuilder):
 		# # Inter
 		for p in self.twp:
 			cmds.pointConstraint(self.twisters[p], self.inters[p])
-			cns = self.addCompound("aimConstraint", "Aim"+p, self.inters[p], self.twisters[p][1], axis="x-z")
-			self.addCompound("spinePointAt", "SpPtAt"+p, cns, self.twisters[p][0], self.twisters[p][1], blend=.5, solver=1) 
+			cns = self.addCompound("aimConstraint", p+"InterAim", self.inters[p], self.twisters[p][1], axis="x-z")
+			self.addCompound("spinePointAt", p+"InterPtAt", cns, self.twisters[p][0], self.twisters[p][1], blend=.5, solver=1) 
 		
 	
 	def _twisterCns(self, tws, pos, aim, pntAt, pntAtRef, axis, distance, pntAtDouble=True, scaleComp=False):
@@ -257,10 +257,10 @@ class ArmSystemBuilder(SystemBuilder):
 
 		# Rotation 
 		if pntAtDouble:
-			cns = self.addCompound("aimConstraint", "Aim", tws, aim, axis=axis, upMaster=None, upVector=(0,0,1))
-			self.addCompound("pointAtDoubleAxis", "SpPtAt", cns, pntAtRef, pntAt, axis="z")
+			cns = self.addCompound("aimConstraint", "TwsAim", tws, aim, axis=axis, upMaster=None, upVector=(0,0,1))
+			self.addCompound("pointAtDoubleAxis", "TwsPtAt", cns, pntAtRef, pntAt, axis="z")
 		else:
-			cns = self.addCompound("aimConstraint", "Aim", tws, aim, axis=axis, upMaster=pntAt, upVector=(0,1,0))
+			cns = self.addCompound("aimConstraint", "TwsAim", tws, aim, axis=axis, upMaster=pntAt, upVector=(0,1,0))
 			
 		# Scaling
 		dist_Node = self.addNode("distanceBetween", "twsScaleDist")

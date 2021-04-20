@@ -282,7 +282,7 @@ class ChainSystemBuilder(SystemBuilder):
 	def createConnections(self):
 		if "Root" in self._connections:
 			cnx = self._connections["Root"]
-			root = self.getObject(config.USE_RIG, "Root")	
-			cnx.connect(root)
+			obj = self.getObject(config.USE_RIG, "Root")	
+			cnx.connect(obj)
 
 

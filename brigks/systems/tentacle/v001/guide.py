@@ -25,8 +25,8 @@ class TentacleSystemGuide(SystemGuide):
 		self._settings["setNeutralPose"] = True
 		self._settings["defaultRotationOrder"] = "XYZ"
 
-		self._settings["deformers"] = 20
-		self._settings["segDeformers"] = 10
+		self._settings["jointsCount"] = 20
+		self._settings["lowJointsCount"] = 10
 
 		self._settings["minimumLength"] = 0.0
 		
@@ -64,20 +64,20 @@ class TentacleSystemGuide(SystemGuide):
 		super(TentacleSystemGuide, self).connectionSlots()
 
 		if self.settings("dynamic"):
-			usage = "Rig"
+			use = config.USE_RIG
 			name = "Dynamic-{}-Bone1"
 		elif self.settings("kinematic") == "FK/IK":
 			name = "Bone{}"
-			usage = "Rig"
+			use = config.USE_RIG
 		elif self.settings("kinematic") == "FK":
 			name = "Fk{}"
-			usage = "Ctrl"
+			use = config.USE_CTL
 		else:
 			name = "Ik-Bone{}"
-			usage = "Rig"
+			use = config.USE_RIG
 		
 		slots = {}
 		for i in xrange(1, self.count("Part")+1):
-			slots["Bone{}".format(i)] = (usage, name.format(i))
+			slots["Bone{}".format(i)] = (use, name.format(i))
 
 		return slots

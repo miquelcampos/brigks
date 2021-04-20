@@ -148,6 +148,10 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, 
 
 	return cns
 
+def orientConstraint(name, slave, masters, maintainOffset=False):
+	cns = cmds.parentConstraint(masters, slave, maintainOffset=maintainOffset, skipTranslate=["x", "y", "z"], name=name.format(node="OriCns"))[0]
+	return cns
+
 def pointAtDoubleAxis(name, cns, masterA, masterB, axis="z"):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
