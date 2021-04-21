@@ -44,7 +44,7 @@ class TwistSystemGuide(SystemGuide):
 		
 		ports = {}
 		for i in xrange(1, self.count("Part")+1):
-			ports["Control%s"%i] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
+			ports["Control{}".format(i)] = ["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"]
 
 		ports["UI"] = ["uiHost"]
 

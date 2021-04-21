@@ -19,13 +19,13 @@ class StretchSystemBuilder(SystemBuilder):
 
 		# CONTROLLERS
 		startBfr = self.addBfr(None, "Start", ctlTfm[0])
-		endBfr = self.addBfr(None, "Eff", ctlTfm[1])
+		endBfr = self.addBfr(None, "End", ctlTfm[1])
 		
 		if self.settings("addControllers"):
 			startCtl = self.addCtl(startBfr, "Start", ctlTfm[0], "cube", color=self.colorIk())
 			attributes.setKeyables(startCtl, constants.tr_attrs)
 			
-			endCtl = self.addCtl(endBfr, "Eff", ctlTfm[1], "cube", color=self.colorIk())
+			endCtl = self.addCtl(endBfr, "End", ctlTfm[1], "cube", color=self.colorIk())
 			attributes.setKeyables(endCtl, constants.tr_attrs)
 			
 			self.centers = [startCtl, endCtl]
@@ -119,7 +119,7 @@ class StretchSystemBuilder(SystemBuilder):
 			
 	#----------------------------------------------------------------------------
 	# CONNECTION
-	def createConnection(self):
+	def createConnections(self):
 		if "Start" in self.connections():
 			child = self.getObject(config.USE_BFR, "Start")
 			self.connections("Start").connect(child)

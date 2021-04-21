@@ -102,8 +102,11 @@ class Guide():
 	def setSettings(self, **settings):
 		self._settings.update(settings)
 
-	def layers(self):
-		return {layer.name():layer for layer in self._layers}
+	def layers(self, name=None):
+		layers = {layer.name():layer for layer in self._layers}
+		if name is None:
+			return layers
+		return layers[name]
 
 	def addLayer(self, name):
 		layer = Layer(self, name)

@@ -70,7 +70,6 @@ class BasicSystemGuide(SystemGuide):
 
 		slots = {}
 		for part in self.markers().keys():
-			# slot = marker.split("_")[-1]
 			slots[part] = (config.USE_CTL, part)
 
 		return slots

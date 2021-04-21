@@ -289,12 +289,16 @@ class TwistSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------
 	# CONNECTION
 	def createConnections(self):
-		pass
-		# sbfr = self.getObject("Start", use="Hbfr")
-		# bfrs = [self.getObject("Part%s"%i, use="Hbfr") for i in xrange(1, self.count("Part")-1)]
-		# ebfr = self.getObject("End", use="Hbfr")
+		sbfr = self.getObject(config.USE_BFR, "Start")
+		bfrs = [self.getObject(config.USE_BFR, "Part{}".format(i)) for i in xrange(1, self.count("Part")-1)]
+		ebfr = self.getObject(config.USE_BFR, "End")
+		buffers = [sbfr] + bfrs + [ebfr]
 
-		# buffers = [sbfr] + bfrs + [ebfr]
-		# for i, bfr in enumerate(buffers):
-		# 	self.connect_parenting(bfr, "Control1")
-		# 	self.connect_constraining(bfr, "Control%s"%(i+1))
+		for i, bfr in enumerate(buffers):
+			port = "Control{}".format(i+1)
+			if port in self.connections():
+				self.connections(port).connect(bfr)
+
+			# TODO: Twists must all be under the same parent for SpinePoint At to work properly
+			# self.connect_parenting(bfr, "Control1")
+			# self.connect_constraining(bfr, )

@@ -1,5 +1,7 @@
 import json
 import xml.etree.cElementTree as etree
+import logging
+
 from maya import cmds
 
 from brigks import config
@@ -52,6 +54,9 @@ class SystemConnection(object):
 			system = self._builder.coreBuilder.systems(key)
 			parent = system.getObjectFromSlot(slot)
 		if parent is None and useDefault:
+			tokens = dict(k=key, s=slot, sk=self._builder.key(), t=self._builder.type())
+			msg = "Couldnt find slot {k}:{s} when connecting {sk} ({t})".format(**tokens)
+			logging.warning(msg)
 			parent = self._builder.nodes("local")
 		return parent
 

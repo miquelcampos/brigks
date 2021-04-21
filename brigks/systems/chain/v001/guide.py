@@ -68,7 +68,7 @@ class ChainSystemGuide(SystemGuide):
 			use = config.USE_RIG
 			name = "Part{}"
 		elif self._settings["kinematic"] == "FK":
-			use = "Ctrl"
+			use = config.USE_CTL
 			name = "Fk{}"
 		else:
 			use = config.USE_RIG
@@ -76,6 +76,6 @@ class ChainSystemGuide(SystemGuide):
 
 		slots = dict()
 		for i in xrange(1, self.count("Part")):
-			slots["Part{}".format(i)] = (use, name.format(i))
+			slots["Bone{}".format(i)] = (use, name.format(i))
 
 		return slots

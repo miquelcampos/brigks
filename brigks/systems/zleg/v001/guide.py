@@ -48,6 +48,7 @@ class ZlegSystemGuide(SystemGuide):
 			TwLwrEnd=(config.USE_RIG, "TwLwrEnd"),
 			Foot=(config.USE_RIG, "Bone3"),
 			Center=(config.USE_CTL, "Center"),
+			IK=(config.USE_CTL, "Ik"),
 			)
 
 		return slots

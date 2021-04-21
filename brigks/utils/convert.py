@@ -181,7 +181,7 @@ def _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems):
 	connectionData = settings.pop("connections")
 	xmlSystem.set("settings", json.dumps(settings))
 
-	xmlConnections = _convertXmlConnection(connectionType, connectionData, systemType)
+	xmlConnections = _convertXmlConnection(connectionType, connectionData, systemType, useSymmetrySystems)
 	xmlSystem.extend(xmlConnections)
 
 	xmlHarbieMarkers = xmlHarbieSystem.find("Markers")
@@ -197,7 +197,7 @@ def _convertXmLSystem(xmlHarbieSystem, useSymmetrySystems):
 # ----------------------------------------------------------------------------------
 # CONNECTIONS
 # ----------------------------------------------------------------------------------
-def _convertXmlConnection(connectionType, connectionData, systemType):
+def _convertXmlConnection(connectionType, connectionData, systemType, useSymmetrySystems):
 	xmlConnections = []
 	if connectionType == "standard":
 		rotationTracker = {}
@@ -218,10 +218,10 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 
 			if systemType == "foot01" and port == "Root":
 				# Foot Attach
-				xmlConnection = _convertXmlConnectionFootAttach(port, data)
+				xmlConnection = _convertXmlConnectionFootAttach(port, data, useSymmetrySystems)
 				xmlConnections.append(xmlConnection)
 			elif port == "UI":
-				xmlConnection = _convertXmlConnectionUI(port, data)
+				xmlConnection = _convertXmlConnectionUI(port, data, useSymmetrySystems)
 				xmlConnections.append(xmlConnection)
 			elif systemType in ["transformDriven01", "slider01", "rotationalSlider01", "tracker01"]\
 				and port in ["Reference", "Tracker"]:
@@ -230,15 +230,15 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 				and port in ["Parent", "MasterA", "MasterB"]:
 				average[port] = data["keyslots"][0]
 			else:
-				xmlConnection = _convertXmlConnectionStandard(port, data)
+				xmlConnection = _convertXmlConnectionStandard(port, data, useSymmetrySystems)
 				xmlConnections.append(xmlConnection)
 
 		if rotationTracker:
-			xmlConnection = _convertXmlConnectionRotationTracker(rotationTracker)
+			xmlConnection = _convertXmlConnectionRotationTracker(rotationTracker, useSymmetrySystems)
 			xmlConnections.append(xmlConnection)
 
 		if average:
-			xmlConnection = _convertXmlConnectionAverage(average)
+			xmlConnection = _convertXmlConnectionAverage(average, useSymmetrySystems)
 			xmlConnections.append(xmlConnection)
 
 	elif connectionType == "obj2cls":
@@ -258,13 +258,14 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 							port = port.replace(xport, nport)
 							break
 
-			xmlConnection = _convertXmlConnectionObj2Cls(port, data)
+			xmlConnection = _convertXmlConnectionObj2Cls(port, data, useSymmetrySystems)
 			xmlConnections.append(xmlConnection)
 
 	return xmlConnections
 
-def _convertXmlConnectionStandard(port, data):
-	keyslots = data["keyslots"]
+def _convertXmlConnectionStandard(port, data, useSymmetrySystems):
+	keyslots = _renamePorts(data["keyslots"])
+
 	if port in ["FK", "Orient"]:
 		cnxType = "multiOrient"
 
@@ -272,7 +273,7 @@ def _convertXmlConnectionStandard(port, data):
 		for key, slot in keyslots:
 			definition = dict(
 				type="slot",
-				key=key,
+				key=_renameKey(key, useSymmetrySystems),
 				slot=slot)
 			definitions.append(definition)
 
@@ -282,7 +283,7 @@ def _convertXmlConnectionStandard(port, data):
 		key, slot = keyslots[0]
 
 		settings = dict(
-				key=key,
+				key=_renameKey(key, useSymmetrySystems),
 				slot=slot)
 	else:
 		cnxType = "multiParent"
@@ -291,7 +292,7 @@ def _convertXmlConnectionStandard(port, data):
 		for key, slot in keyslots:
 			definition = dict(
 				type="slot",
-				key=key,
+				key=_renameKey(key, useSymmetrySystems),
 				slot=slot)
 			definitions.append(definition)
 
@@ -308,11 +309,12 @@ def _convertXmlConnectionStandard(port, data):
 	return xmlConnection
 
 
-def _convertXmlConnectionUI(port, data):
-	keyslots = data["keyslots"]
+def _convertXmlConnectionUI(port, data, useSymmetrySystems):
+	keyslots = _renamePorts(data["keyslots"])
+
 	key, slot = keyslots[0]
 	settings = dict(
-		key=key,
+		key=_renameKey(key, useSymmetrySystems),
 		slot=slot)
 
 	xmlConnection = etree.Element("Connection")
@@ -323,11 +325,11 @@ def _convertXmlConnectionUI(port, data):
 	return xmlConnection
 
 
-def _convertXmlConnectionFootAttach(port, data):
+def _convertXmlConnectionFootAttach(port, data, useSymmetrySystems):
 	keyslots = data["keyslots"]
 	key, slot = keyslots[0]
 	settings = dict(
-		key=key,
+		key=_renameKey(key, useSymmetrySystems),
 		slot=slot)
 
 	xmlConnection = etree.Element("Connection")
@@ -337,13 +339,13 @@ def _convertXmlConnectionFootAttach(port, data):
 
 	return xmlConnection
 
-def _convertXmlConnectionRotationTracker(data):
+def _convertXmlConnectionRotationTracker(data, useSymmetrySystems):
 	refKey, refSlot = data["Reference"]
 	trkKey, trkSlot = data["Tracker"]
 	settings = dict(
-		referenceKey=refKey,
+		referenceKey=_renameKey(refKey, useSymmetrySystems),
 		referenceSlot=refSlot,
-		trackerKey=trkKey,
+		trackerKey=_renameKey(trkKey, useSymmetrySystems),
 		trackerSlot=trkSlot)
 
 	xmlConnection = etree.Element("Connection")
@@ -353,14 +355,14 @@ def _convertXmlConnectionRotationTracker(data):
 
 	return xmlConnection
 
-def _convertXmlConnectionAverage(data):
+def _convertXmlConnectionAverage(data, useSymmetrySystems):
 	parentKey, parentSlot = data.get("Parent", (None, None))
 	masterAKey, masterASlot = data["MasterA"]
 	masterBKey, masterBSlot = data["MasterB"]
 	settings = dict(
-		parentKey=parentKey, parentSlot=parentSlot,
-		masterAkey=masterAKey, masterASlot=masterASlot,
-		masterBkey=masterBKey, masterBSlot=masterBSlot )
+		parentKey=_renameKey(parentKey, useSymmetrySystems), parentSlot=parentSlot,
+		masterAkey=_renameKey(masterAKey, useSymmetrySystems), masterASlot=masterASlot,
+		masterBkey=_renameKey(masterBKey, useSymmetrySystems), masterBSlot=masterBSlot )
 
 	xmlConnection = etree.Element("Connection")
 	xmlConnection.set("port", "Average")
@@ -369,13 +371,16 @@ def _convertXmlConnectionAverage(data):
 
 	return xmlConnection
 
-def _convertXmlConnectionObj2Cls(port, data):
+def _convertXmlConnectionObj2Cls(port, data, useSymmetrySystems):
+
+	keyslots = _renamePorts([data["oriReference"]])
+
 	settings = dict(
 		mesh=data["geometry"].replace("-", ""),
 		componentType=COMPONENT_TYPES[data["clusterType"]],
 		componentIndex=data["componentIndex"],
-		key=data["oriReference"][0],
-		slot=data["oriReference"][1],
+		key=_renameKey(keyslots[0][0], useSymmetrySystems),
+		slot=keyslots[0][1],
 		useOrientation=data["useClusterOrientation"],
 		useClosest=data["componentIndex"] == "" or data["componentIndex"] is None
 	)
@@ -386,6 +391,53 @@ def _convertXmlConnectionObj2Cls(port, data):
 	xmlConnection.set("settings", json.dumps(settings))
 
 	return xmlConnection
+
+def _renameKey(key, useSymmetrySystems):
+	if key is None:
+		return
+	if key == "self":
+		return key
+
+	key = key.replace("-", "")
+
+	if key.endswith("_X"):
+		return key[:-2]+"_M"
+
+	name, loc = key.split("_")
+	if loc > 1:
+		suffix = loc[1:]
+		loc = loc[0]
+		name = name + suffix
+		key = "_".join([name, loc])
+
+	if key.endswith("_L") and useSymmetrySystems:
+		key = key[:-2] + "_X"
+
+	return key
+
+def _renamePorts(keyslots):
+	# Renaming Slots
+	for i, (key, slot) in enumerate(keyslots):
+		if "-" in slot:
+			slot = slot.replace("-", "")
+
+		if slot.startswith("Ctrl"):
+			slot = slot.replace("Ctrl", "Part")
+		elif slot == "IkCtrl":
+			slot = "IK"
+		elif slot == "01Pelvis":
+			slot = "Pelvis"
+		elif slot == "02Lower":
+			slot = "Lower"
+		elif slot == "03Middle":
+			slot = "Middle"
+		elif slot == "04Upper":
+			slot = "Upper"
+		elif slot == "05Chest":
+			slot = "Chest"
+
+		keyslots[i] = (key, slot)
+	return keyslots
 
 # ----------------------------------------------------------------------------------
 # MARKERS

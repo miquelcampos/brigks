@@ -314,18 +314,18 @@ class ZlegSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnections(self):
 		if "Root" in self.connections():
-			root = self.getObject(config.USE_BFR, "Root")
-			self.connections("Root").connect(root, attrName="RootParent")
+			obj = self.getObject(config.USE_BFR, "Root")
+			self.connections("Root").connect(obj, attrName="RootParent")
 
 		if "IK" in self.connections():
-			ik = self.getObject(config.USE_BFR, "Ik")
-			self.connections("IK").connect(root, attrName="IKParent")
+			obj = self.getObject(config.USE_BFR, "Ik")
+			self.connections("IK").connect(obj, attrName="IKParent")
 
 		if "UpVector" in self.connections():
-			upv = self.getObject(config.USE_BFR, "Upv")
-			self.connections("UpVector").connect(upv, attrName="UpVParent")
+			obj = self.getObject(config.USE_BFR, "Upv")
+			self.connections("UpVector").connect(obj, attrName="UpVParent")
 		
 		# Fk Orient
 		if "FK" in self.connections():
-			fk = self.getObject(config.USE_BFR, "Fk1")
-			self.connections("FK").connect(fk, attrName="FKOrient")
+			obj = self.getObject(config.USE_BFR, "Fk1")
+			self.connections("FK").connect(obj, attrName="FKOrient")

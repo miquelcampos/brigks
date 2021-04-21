@@ -19,7 +19,10 @@ class MultiParentSystemConnection(SystemConnection):
 			cnxType = definition["type"]
 
 			if cnxType == "slot":
-				master = self.getParentFromSlot(definition["key"], definition["slot"])
+				if "{key}:{slot}".format(**definition) == "self:Parent":
+					master = cmds.listRelatives(child, parent=True, path=True)[0]
+				else:
+					master = self.getParentFromSlot(definition["key"], definition["slot"])
 			elif cnxType == "custom":
 				master = self.getParentFromName(definition["name"])
 			elif cnxType == "mesh":
