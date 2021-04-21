@@ -221,7 +221,7 @@ class SystemBuilder():
 		matrix = cmds.xform(parent, q=True, matrix=True, worldSpace=True)
 		color = [1,0,0]
 
-		jnt = create.joint(name, parent, matrix, color)
+		jnt = create.joint(name, parent, matrix, color, radius=.5)
 
 		# Bind Pose reference
 		if reference:
@@ -248,7 +248,7 @@ class SystemBuilder():
 
 		return create.camera(name, parent, matrix=tfm, color=color, **kwargs)
 
-	def createSurfaceJoints(self, surface, count, part="Strap"):
+	def addSurfaceJnts(self, surface, count, part="Strap"):
 		parent = surface
 		joints = [self.addJnt(parent, "{}{}".format(part,i)) for i in xrange(1, count+1)]
 		

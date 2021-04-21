@@ -155,7 +155,7 @@ class SystemGuide(object):
 			if location not in "LR":
 				raise RuntimeError("Can't Mirror Central Guide")
 
-			matrices = {part:marker.transformWithScale().mirrored() for part, marker in self.markers().iteritems()}
+			matrices = {p:m.mirrored() for p, m in matrices.iteritems()}
 			location = "R" if location == "L" else "L"
 
 		name = self.guide().findNextSystemName(name, location)
@@ -258,7 +258,7 @@ class SystemGuide(object):
 		parent = None
 		markers = []
 		for part, matrix in checkMarkersMinMax(matrices, self.markerNames, self.markerMinMax):
-			marker = self.addMarker(part, parent, matrix=None)
+			marker = self.addMarker(part, parent, matrix)
 			parent = marker
 			markers.append(marker.name())
 

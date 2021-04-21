@@ -45,7 +45,7 @@ class NeckSystemBuilder(SystemBuilder):
 		tan1Tfm = ikTfm.copy(translation=crvPos[-2])
 		
 		bonePos = refPos.appended(self.translations("Eff"))
-		boneTfm = TransformationArray.chain(bonePos, normal, axis="yx", negativeSide=self.negate())
+		boneTfm = TransformationArray.chain(bonePos, normal, axis="yx", negativeSide=self.negate(), endTransform=False)
 
 
 		# CONTROLLERS

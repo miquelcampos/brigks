@@ -29,23 +29,24 @@ def transform(name, parent=None, matrix=None, icon=None, size=1, po=None, ro=Non
 
 	return node
 
-def joint(name, parent=None, matrix=None, color=None, useJointOrient=False):
-	node = cmds.createNode("joint", name=name)
+def joint(name, parent=None, matrix=None, color=None, radius=1, useJointOrient=False):
+	jnt = cmds.createNode("joint", name=name)
+	cmds.setAttr(jnt+".radius", radius)
 	if parent:
-		node = cmds.parent(node, parent)[0]
+		jnt = cmds.parent(jnt, parent)[0]
 
-	attributes.setColor(node, color)
+	attributes.setColor(jnt, color)
 
 	# Transform
-	if matrix is None:
-		attributes.setMatrix(node, matrix, worldSpace=True)
+	if matrix is not None:
+		attributes.setMatrix(jnt, matrix, worldSpace=True)
 	
 	if useJointOrient:
 		# Because Joints are fun, you actually want the orientation  
 		# to be on the JointOrientation and not the Rotation
 		# It only really matters when you use a ikhandle, but better safe than sorry
-		rot = cmds.getAttr(node+".rotate")[0]
-		ori = cmds.getAttr(node+".jointOrient")[0]
+		rot = cmds.getAttr(jnt+".rotate")[0]
+		ori = cmds.getAttr(jnt+".jointOrient")[0]
 		eRot = om.MEulerRotation(math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]), om.MEulerRotation.kXYZ)
 		eOri = om.MEulerRotation(math.radians(ori[0]), math.radians(ori[1]), math.radians(ori[2]), om.MEulerRotation.kXYZ)
 		qRot = eRot.asQuaternion()
@@ -55,12 +56,12 @@ def joint(name, parent=None, matrix=None, color=None, useJointOrient=False):
 		e = (math.degrees(e.x), math.degrees(e.y), math.degrees(e.z))
 		try:
 			# The joint might be locked or connected, int that case we don't do anything.
-			cmds.setAttr(node+".rotate", 0,0,0)
-			cmds.setAttr(node+".jointOrient", *e)
+			cmds.setAttr(jnt+".rotate", 0,0,0)
+			cmds.setAttr(jnt+".jointOrient", *e)
 		except:
 			pass
 
-	return node
+	return jnt
 
 def camera(name, parent=None, matrix=None, color=None, **kwargs):
 	'''Creates a Transform Node with a camera shape node.

@@ -12,7 +12,7 @@ class BasicSystemGuide(SystemGuide):
 		Part=(1,-1),
 		)
 	markerPositions = dict(
-		Part1=Vector3([0,10,0]),
+		Part1=Vector3([3,10,0]),
 		)
 	markerCompatibility = dict(
 		chain={},

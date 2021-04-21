@@ -50,7 +50,7 @@ class ChainSystemGuide(SystemGuide):
 
 		ports = dict(
 			Root=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
-			FkRef=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
+			FK=["multiOrient"],
 			IK=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
 			UpVector=["slotParent", "meshAttach", "nurbsParent", "multiParent", "customParent"],
 			UI=["uiHost"],

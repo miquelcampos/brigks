@@ -31,6 +31,10 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			normal = self.directions("Part1", "z")
 
+		print "NORMAL BRIGKS", self.transforms("Part1").rotation
+		print "NORMAL BRIGKS", self.transforms("Part1").rotation.asMatrix()
+		print "NORMAL BRIGKS", self.key(), normal
+
 		boneTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		d = [(positions[i],positions[i+1]) for i in range(self.count("Part")-1)]
 		boneLen = [Vector3.distance(a,b) for a,b in d]
@@ -40,22 +44,21 @@ class ChainSystemBuilder(SystemBuilder):
 		if self.settings("setNeutralPose"):
 			bfrTfm = boneTfm
 		else:
-			bfrTfm = [Transformation.fromParts(tfm.translation, boneTfm[max(i-1,0)].rotation) for i, tfm in enumerate(boneTfm)]
+			bfrTfm = [tfm.copy(rotation=boneTfm[max(i-1,0)].rotation) for i, tfm in enumerate(boneTfm)]
 		
 		if self.isIk:
-			ikTfm = Transformation.fromParts(positions[-1], boneTfm[-1].rotation)
+			ikTfm = boneTfm[-1].copy(translation=positions[-1])
 			
 			# Up Vector
 			if self.count("Part") > 2:
-				translation = umath.upVector(positions[0], positions[2], normal, ratio=1, negate=self.negate())
+				upvTfm = Transformation.fromParts(translation=umath.upVector(positions[0], positions[2], normal, ratio=1, negate=self.negate()))
 			else:
-				translation = umath.upVector(positions[0], positions[1], normal, ratio=1, negate=self.negate())
-			upvTfm = Transformation.fromParts(translation=translation)
+				upvTfm = Transformation.fromParts(translation=umath.upVector(positions[0], positions[1], normal, ratio=1, negate=self.negate()))
 			
+
 		if self.settings("dynamic"):
 			tgtTfm = boneTfm[1:]
-			tfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
-			tgtTfm = tgtTfm.appended(tfm)
+			tgtTfm.append(boneTfm[-1].copy(translation=positions[-1]))
 			
 
 		# OBJECTS
@@ -72,7 +75,9 @@ class ChainSystemBuilder(SystemBuilder):
 			for i, (tfm, btfm, dist) in enumerate(izip(boneTfm, bfrTfm, boneLen), start=1):
 				
 				fkBfr = self.addBfr(parent, "Fk{}".format(i), tfm=btfm)
-				fkCtl = self.addCtl(fkBfr, "Fk{}".format(i), tfm, "sphere", so=[0,1,1], color=self.settings("colorFk"))
+				fkCtl = self.addCtl(fkBfr, "Fk{}".format(i), tfm, "sphere", so=[0,1,1], color=self.colorFk())
+										  
+				# self.setInversedsettings(fkCtl, middle=["posz", "rotx", "roty"])
 				attributes.setRotOrder(fkCtl, self.settings("defaultRotationOrder"))
 
 				parent = fkCtl
@@ -85,25 +90,26 @@ class ChainSystemBuilder(SystemBuilder):
 				self.fkDir.append(bone)
 
 			# Add the end reference for ikfk matching
-			tfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
+			tfm = boneTfm[-1].copy(translation=positions[-1])
 			self._tip = self.addRig(self.fkCtl[-1], "Tip", tfm)
 				
 		# IK Controllers --------------------------------------
 		if self.isIk:
 			# Ik Controller
 			self.ikBfr = self.addBfr(self._root, "Ik", tfm=ikTfm)
-			self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.settings("colorIk"))
+			self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.colorIk())
 			attributes.setKeyables(self.ikCtl, constants.tr_attrs)
 
 			# UpVector Controller
 			self.upvBfr = self.addBfr(self._root, "UpV", upvTfm)
-			self.upvCtl = self.addCtl(self.upvBfr, "upv", upvTfm, "diamond", color=self.settings("colorIk"))
+			self.upvCtl = self.addCtl(self.upvBfr, "UpV", upvTfm, "diamond", color=self.colorIk())
 			attributes.setKeyables(self.upvCtl, constants.t_attrs)
 
 			# Ik Chain
 			self.ikBones, self.effector, self.handle = create.chain(self.getObjectName(config.USE_RIG, "Ik"), self._root, positions, normal, negate=self.negate())
 			
-			# self.upvCrv = self.addCnsCurve([self.ikChn.root(), self.upvCtl, self.ikChn.effector()], "UpvCrv")
+			self.upvCrv = create.cnsCurve([self.ikChn.root(), self.upvCtl, self.ikChn.effector()], "UpvCrv")
+			cmds.setAttr(self.upvCrv+".template", True)
 
 		# Bones -------------------------------
 		if self.isFkIk:# or (self.isFk and self.settings("dynamic")):
@@ -111,7 +117,7 @@ class ChainSystemBuilder(SystemBuilder):
 			parent = self._root
 			for i, (tfm, dist) in enumerate(izip(boneTfm, boneLen), start=1):
 				bone = self.addRig(parent, "Bone{}".format(i), tfm, "cube", size=1, po=[self.factor()*dist*.5,0,0], so=[dist,.5,.5])
-	
+
 				self.bones.append(bone)
 				parent = bone
 
@@ -144,9 +150,10 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			self.dfmHost = self.bones
 
+
 		# Strap ----------------------------
 		if self.settings("strap"):
-			endTfm = Transformation.fromParts(translation=positions[-1], rotation=boneTfm[-1].rotation)
+			endTfm = boneTfm[-1].copy(translation=positions[-1])
 			self.end = self.addRig(self.dfmHost[-1], "End", endTfm)
 
 	def createJoints(self):
@@ -158,7 +165,7 @@ class ChainSystemBuilder(SystemBuilder):
 
 			name = self.getObjectName(config.USE_RIG, "Strap")
 			surface = create.cnsSurface(name, self._root, centers, width=1.0, tangent=.25)
-		 	self.createSurfaceJoints(surface, self.settings("strapDeformers"))
+		 	self.addSurfaceJnts(surface, self.settings("strapDeformers"))
 
 	#----------------------------------------------------------------------------
 	# PROPERTIES 
@@ -173,14 +180,14 @@ class ChainSystemBuilder(SystemBuilder):
 			self.showCtrlAttr = self.addAnimAttr("showCtrl", "bool", False) 
 
 			self.addSetupAttr("Count", "short", len(self.fkCtl))
-
+		
 		if self.isIk:
 			self.rollAttr = self.addAnimAttr("Roll", "float", 0, -180, 180)
 
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.addAnimAttr("Dynamic", "bool", self.settings("dynActive"))
-			self.globalAmplAttr = self.addAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplAttr = [self.addAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
+			self.globalAmplitudeAttr = self.addAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
+			self.localAmplitudeAttr = [self.addAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
 			
 			if self.settings("dynamicAnimatable"):
 				self.axisAttr = self.addAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
@@ -203,7 +210,7 @@ class ChainSystemBuilder(SystemBuilder):
 				for shp in cmds.listRelatives(ctl, shapes=True):
 					cmds.connectAttr(fkCompare+".outColorR", shp+".visibility", force=True)
 
-			for ctl in [self.ikCtl, self.upvCtl]:#, self.upvCrv]:
+			for ctl in [self.ikCtl, self.upvCtl, self.upvCrv]:
 				for shp in cmds.listRelatives(ctl, shapes=True):
 					cmds.connectAttr(ikCompare+".outColorR", shp+".visibility", force=True)
 
@@ -281,8 +288,19 @@ class ChainSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnections(self):
 		if "Root" in self._connections:
-			cnx = self._connections["Root"]
 			obj = self.getObject(config.USE_RIG, "Root")	
-			cnx.connect(obj)
+			self.connections("Root").connect(obj)
+
+		if "IK" in self._connections:
+			obj = self.getObject(config.USE_BFR, "Ik")	
+			self.connections("IK").connect(obj)
+
+		if "UpVector" in self._connections:
+			obj = self.getObject(config.USE_BFR, "UpV")	
+			self.connections("UpVector").connect(obj)
+
+		if "FK" in self._connections:
+			obj = self.getObject(config.USE_BFR, "Fk1")	
+			self.connections("FK").connect(obj)
 
 

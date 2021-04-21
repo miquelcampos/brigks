@@ -35,7 +35,7 @@ class TentacleSystemBuilder(SystemBuilder):
 			direction = self.directions("Part1", "x")
 			normal = self.directions("Part1", "z")
 
-		boneTfm = TransformationArray.chain(self.translations("Part"), normal, negativeSide=self.negate())
+		boneTfm = TransformationArray.chain(self.translations("Part"), normal, negativeSide=self.negate(), endTransform=False)
 
 		d = [(self.translations("Part")[i],self.translations("Part")[i+1]) for i in range(self.count("Part")-1)]
 		self.distances = [Vector3.distance(a,b) for a,b in d]

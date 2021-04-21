@@ -35,8 +35,8 @@ class StretchSystemBuilder(SystemBuilder):
 		# Stretch
 		self.bone = self.addRig(self.centers[0], "Bone", ctlTfm[0], "cube", po=(self.length*.5,0,0), so=(self.length,1,1))
 
-	def createDeformers(self):
-		self.addJoint(self.bone, "Bone")
+	def createJoints(self):
+		self.addJnt(self.bone, "Bone")
 
 	#----------------------------------------------------------------------------
 	# PROPERTIES 
