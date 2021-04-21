@@ -13,28 +13,21 @@ class SliderSystemBuilder(SystemBuilder):
 	def createObjects(self):
 		# TRANSFORMATION
 		rootTfm = self.transforms("Rail")
-		# posTfm = [tfm.copy(translation=pos) for tfm, pos in izip(rootTfm, self.translations("Pos"))]
-		# negTfm = [tfm.copy(translation=pos) for tfm, pos in izip(rootTfm, self.translations("Neg"))]
+		posTfm = [tfm.copy(translation=pos) for tfm, pos in izip(rootTfm, self.translations("Pos"))]
+		negTfm = [tfm.copy(translation=pos) for tfm, pos in izip(rootTfm, self.translations("Neg"))]
 		
 		# CONTROLLERS
 		self._lmts = []
-		self._rails = []
-		self._psts = []
-		self._ngts = []
 		self._slds = []
 		self._ctls = []
 		
-		# for i, (rtfm, ptfm, ntfm) in enumerate(izip(rootTfm, posTfm, negTfm), start=1):
-		for i, (rtfm, ppos, npos) in enumerate(izip(self.transforms("Rail"), self.translations("Pos"), self.translations("Neg")), start=1):
-			# irtfm = rtfm.asMatrix().inverse()
-			# irtfm = irtfm.asTransform()
-			# p = ptfm * irtfm
-			# limit_max = p.translation.x
-			# p = ntfm * irtfm
-			# limit_min = p.translation.x
-
-			limit_max = rtfm.translation.distance(ppos)
-			limit_min = -rtfm.translation.distance(npos)
+		for i, (rtfm, ptfm, ntfm) in enumerate(izip(rootTfm, posTfm, negTfm), start=1):
+			irtfm = rtfm.asMatrix().inverse()
+			irtfm = irtfm.asTransform()
+			p = ptfm * irtfm
+			limit_max = p.translation.x
+			p = ntfm * irtfm
+			limit_min = p.translation.x
 			
 			length = limit_max - limit_min
 			offset = length *.5 + limit_min
@@ -51,11 +44,6 @@ class SliderSystemBuilder(SystemBuilder):
 				self._ctls.append(ctl)
 
 			attributes.setKeyables(slider)
-			
-			# self._psts.append(None)
-			# self._ngts.append(None)
-
-			# self._rails.append(rail)
 			self._slds.append(slider)
 
 	def createJoints(self):

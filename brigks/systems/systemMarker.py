@@ -21,9 +21,6 @@ class SystemMarker(object):
 		self._translation = None
 		self._scale = None
 
-	def name(self):
-		return self._marker
-
 	def setMirrored(self, mirrored):
 		self._mirrored = mirrored
 		# Makes sure that the transform wasn't stored
@@ -33,6 +30,9 @@ class SystemMarker(object):
 		self._translation = None
 		self._scale = None
 
+	# ----------------------------------------------------------------------------------
+	#  CREATE
+	# ----------------------------------------------------------------------------------
 	@classmethod
 	def create(cls, name, system, parent, matrix=None):
 		parent = parent._marker if isinstance(parent, SystemMarker) else parent
@@ -46,18 +46,31 @@ class SystemMarker(object):
 		node = create.camera(name, parent, matrix, color=[1,1,0])
 		return cls(node, system)
 
+	# ----------------------------------------------------------------------------------
+	#  NAME / PARENT
+	# ----------------------------------------------------------------------------------
+	def name(self):
+		return self._marker
+
 	def rename(self, newName):
-		modelName = self._marker.split("|")[1]
-		shortName = self._marker.split("|")[-1]
-		self._marker = [m for m in cmds.ls(shortName, long=True) if m.startswith("|"+modelName)][0]
+		self._marker = self._find()
 		self._marker = cmds.rename(self._marker, newName)
 
 	def setParent(self, parent):
+		self._marker = self._find()
 		parent = parent._marker if isinstance(parent, SystemMarker) else parent
 		if self._marker.split("|")[-1] in (cmds.listRelatives(parent, children=True) or []):
 			return
 		self._marker = cmds.parent(self._marker, parent)[0]
 
+	def _find(self):
+		modelName = self._marker.split("|")[1]
+		shortName = self._marker.split("|")[-1]
+		return [m for m in cmds.ls(shortName, long=True) if m.startswith("|"+modelName)][0]
+
+	# ----------------------------------------------------------------------------------
+	#  TRANSFORM
+	# ----------------------------------------------------------------------------------
 	def setTransform(self, transform):
 		matrix = transform.asMatrix().flattened()
 		cmds.xform(self._marker, matrix=matrix, worldSpace=True)

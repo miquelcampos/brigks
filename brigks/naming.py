@@ -14,11 +14,3 @@ def getObjectName(use, location, name, part):
 					loc=location,
 					name=name,
 					part=part)
-
-
-# def getMarkerName(self, part):
-# 	return getObjectName()
-# 	return "Gde_{loc}_{name}_{part}".format(
-# 			loc=self.settings["location"],
-# 			name=self.settings["name"],
-# 			part=part)

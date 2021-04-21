@@ -104,10 +104,10 @@ class SystemConnection(object):
 
 		# Making sure the object is not already a child of the parent
 		# Otherwise Maya throws an error
-		if child in (cmds.listRelatives(parent, children=True) or []):
+		if child.split("|")[-1] in (cmds.listRelatives(parent, children=True) or []):
 			return
 
-		cmds.parent(child, parent)
+		return cmds.parent(child, parent)[0]
 
 	def _parentConstraint(self, slave, masters, translate=True, rotation=True, scale=True):
 		name = "MultiParent"

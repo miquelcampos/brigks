@@ -15,26 +15,27 @@ class FootLegAttachSystemConnection(SystemConnection):
 		if parentSystem is None:
 			return
 
-		parent_ikoffCtl = parentSystem.getObject(config.USE_CTL, "IkOffset")
-		parent_footRef = parentSystem.getObject("FootRef")
-		parent_blendAttr = parentSystem.attributes("Blend")
 		if parentSystem.type() in ["leg"]:
-			parent_footHook = parentSystem.getObject("Bone3")
+			parent_footRef = "IkRef"
+			parent_footHook = "Bone3"
 		elif parentSystem.type() in ["zleg"]:
-			parent_footHook = parentSystem.getObject("Bone4")
+			parent_footRef = "FootRef"
+			parent_footHook = "Bone4"
 
-		# Not sure why Maya MPlug don't like being compared to None in a list
-		if None in [root, lastbkCtl, fkRef] or blendAttr is None:
-			return 
-
-		root = self._builder.getObject("Root")
-		lastbkCtl = self._builder.getObject(config.USE_CTL ,"Bk{}".format(self._builder.count("Part")))
-		fkRef = self._builder.getObject("FkRef")
-		blendAttr = self.attributes("Blend", "setup")
-		
+		root = self._builder.getObject(config.USE_RIG, "Root")
+		parent_ikoffCtl = parentSystem.getObject(config.USE_CTL, "IkOffset")
 		self._parent(root, parent_ikoffCtl)
-		self._parent(parent_ikRef, lastbkCtl)
+
+		lastbkCtl = self._builder.getObject(config.USE_CTL ,"Bk{}".format(self._builder.count("Part")))
+		parent_footRef = parentSystem.getObject(config.USE_RIG, parent_footRef)
+		self._parent(parent_footRef, lastbkCtl)
+
+		fkRef = self._builder.getObject(config.USE_RIG, "FkRef")
+		parent_footHook = parentSystem.getObject(config.USE_RIG, parent_footHook)
 		self._parent(fkRef, parent_footHook)
+
+		parent_blendAttr = parentSystem.getAttribute("Blend")
+		blendAttr = self._builder.getAttribute("Blend")
 		cmds.connectAttr(parent_blendAttr, blendAttr)
 
 	def getTargetSystems(self):

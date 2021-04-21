@@ -56,5 +56,5 @@ class TrackerSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnection(self):
 		if "Tracker" in self.connections():
-			outrotAttr = self.attributes("OutRot", "setup")
+			outrotAttr = self.getAttributes("OutRot")
 			cnx.connect(self.outrotAttr)

@@ -32,10 +32,10 @@ class MetaSystemBuilder(SystemBuilder):
 		self.bones = []
 		self.drivers = []
 		for i, tfm in enumerate(boneTfm, start=1):
-			bfr = self.addBfr(root, i, tfm)
-			drv = self.addRig(bfr, i, tfm)
+			bfr = self.addBfr(root, "Part{}".format(i), tfm)
+			drv = self.addRig(bfr, "Part{}".format(i), tfm)
 			if i in buildController:
-				bone = self.addCtl(drv, i, tfm, "pyramid", po=(0,2.5,0), color=self.colorFk())
+				bone = self.addCtl(drv, "Part{}".format(i), tfm, "pyramid", po=(0,2.5,0), color=self.colorFk())
 				self.bones.append(bone)
 			else:
 				self.bones.append(drv)
@@ -45,7 +45,7 @@ class MetaSystemBuilder(SystemBuilder):
 			
 	def createJoints(self):
 		for i, bone in enumerate(self.bones, start=1):
-			self.addJnt(bone, i)
+			self.addJnt(bone, "Part{}".format(i))
 						
 	#----------------------------------------------------------------------------
 	# OPERATORS

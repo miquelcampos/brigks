@@ -17,10 +17,10 @@ def upVector(posA, posB, normal, ratio, negate=False):
 	pos = posB - posA
 	length = pos.length()
 	pos = n.cross(pos)
-	pos.normal()
-	
+	pos.normalize()
+
 	pos *= length
 
 	pos += posA.lerp(posB, ratio)
-	
+
 	return pos 

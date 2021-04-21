@@ -182,15 +182,15 @@ def createGuidesAndBuild(location="M", mirror=False, showWindow=False):
 	# g.setSettings(stopAfter="Create Objects")
 
 	layer = g.addLayer("MyFirstLayer")
-	basicA = layer.addSystem("basic", location, "BasicA")
-	basicB = layer.addSystem("basic", location, "BasicB")
+	# basicA = layer.addSystem("basic", location, "BasicA")
+	# basicB = layer.addSystem("basic", location, "BasicB")
 	# chain = layer.addSystem("chain", location, "Chain")
 	# stretch = layer.addSystem("stretch", location, "Stretch")
-	slider = layer.addSystem("slider", location, "Slider")
-	twist = layer.addSystem("twist", location, "Twist")
+	# slider = layer.addSystem("slider", location, "Slider")
+	# twist = layer.addSystem("twist", location, "Twist")
 	# spine = layer.addSystem("spine", location, "Spine")
 	# arm = layer.addSystem("arm", location, "Arm")
-	# leg = layer.addSystem("leg", location, "Leg")
+	leg = layer.addSystem("leg", location, "Leg")
 	# neck = layer.addSystem("neck", location, "Neck")
 	# average = layer.addSystem("average", location, "Average")
 	# breast = layer.addSystem("breast", location, "Breast")
@@ -210,11 +210,13 @@ def createGuidesAndBuild(location="M", mirror=False, showWindow=False):
 	# System Settings
 	# slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	# stretch.setSettings(squash=True)
-	slider.addConnection("Tracker", "rotationTracker", 
-			referenceKey="BasicA_{}".format(location),
-			referenceSlot="Part1",
-			trackerKey="BasicB_{}".format(location),
-			trackerSlot="Part1",)
+
+	# Connections
+	# slider.addConnection("Tracker", "rotationTracker", 
+	# 		referenceKey="BasicA_{}".format(location),
+	# 		referenceSlot="Part1",
+	# 		trackerKey="BasicB_{}".format(location),
+	# 		trackerSlot="Part1",)
 
 	if location != "X" and mirror:
 		for system in layer.systems():

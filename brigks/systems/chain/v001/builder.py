@@ -31,10 +31,6 @@ class ChainSystemBuilder(SystemBuilder):
 		else:
 			normal = self.directions("Part1", "z")
 
-		print "NORMAL BRIGKS", self.transforms("Part1").rotation
-		print "NORMAL BRIGKS", self.transforms("Part1").rotation.asMatrix()
-		print "NORMAL BRIGKS", self.key(), normal
-
 		boneTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		d = [(positions[i],positions[i+1]) for i in range(self.count("Part")-1)]
 		boneLen = [Vector3.distance(a,b) for a,b in d]
@@ -58,7 +54,7 @@ class ChainSystemBuilder(SystemBuilder):
 
 		if self.settings("dynamic"):
 			tgtTfm = boneTfm[1:]
-			tgtTfm.append(boneTfm[-1].copy(translation=positions[-1]))
+			tgtTfm = tgtTfm.appended(boneTfm[-1].copy(translation=positions[-1]))
 			
 
 		# OBJECTS
@@ -186,8 +182,8 @@ class ChainSystemBuilder(SystemBuilder):
 
 		if self.settings("dynamic"):
 			self.dynamicAttr = self.addAnimAttr("Dynamic", "bool", self.settings("dynActive"))
-			self.globalAmplitudeAttr = self.addAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
-			self.localAmplitudeAttr = [self.addAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
+			self.globalAmplAttr = self.addAnimAttr("GlobalAmplitude", "float", self.settings("amplitude"), 0, 5)
+			self.localAmplAttr = [self.addAnimAttr("LocalAmplitude{}".format(i), "float", 1, 0, 10) for i in xrange(1, self.count("Part"))]
 			
 			if self.settings("dynamicAnimatable"):
 				self.axisAttr = self.addAnimAttr("Axis", "double3", (self.settings("amplitudeX"), self.settings("amplitudeY"), self.settings("amplitudeZ")))
@@ -200,8 +196,8 @@ class ChainSystemBuilder(SystemBuilder):
 	def createOperators(self):
 		# Visibilities
 		if self.isFkIk:
-			fkCompare = self.addCompounds("compare", "FkViz", self.blendAttr, 1, "<")
-			ikCompare = self.addCompounds("compare", "IkViz", self.blendAttr, 0, ">")
+			fkCompare = self.addCompound("compare", "FkViz", self.blendAttr, 1, "<")
+			ikCompare = self.addCompound("compare", "IkViz", self.blendAttr, 0, ">")
 
 			cmds.connectAttr(self.showCtrlAttr, fkCompare+".colorIfFalseR")
 			cmds.connectAttr(self.showCtrlAttr, ikCompare+".colorIfFalseR")
@@ -243,13 +239,13 @@ class ChainSystemBuilder(SystemBuilder):
 				slave = bone
 				masters = [fkDir, ikBone]
 
-				bmNode = self.addCompounds("blendMatrix", "FkIk", slave, masters, maintainOffset=False)
+				bmNode = self.addCompound("blendMatrix", "FkIk", slave, masters, maintainOffset=False)
 				cmds.connectAttr(self.blendAttr, bmNode+".target[1].weight")
 
 					
 		if self.settings("dynamic"):
 			for i, (harmonic, target, dynCns, dynBone, bone) in enumerate(izip(self.harmonic, self.target, self.dynCns, self.dynBone, self.bones)):
-				cns = self.addCompounds("harmonic", "Dyn{i}".format(i), harmonic, target, 
+				cns = self.addCompound("harmonic", "Dyn{}".format(i), harmonic, target, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
 					frequency=self.settings("frequency"), 
@@ -281,26 +277,26 @@ class ChainSystemBuilder(SystemBuilder):
 					cmds.connectAttr(self.terminationAttr, cns+".termination")
 					cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 
-				cns = self.addCompounds("aimConstraint", "DynAim", dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
-				self.addCompounds("blendMatrix", "DynCns", dynCns, [bone], translate=False, rotate=True, scale=False)
+				cns = self.addCompound("aimConstraint", "DynAim", dynBone, harmonic, axis=self.sign()+"xy", upMaster=dynCns, upVector=(0,1,0))
+				self.addCompound("blendMatrix", "DynCns", dynCns, [bone], translate=False, rotate=True, scale=False)
 
 	#----------------------------------------------------------------------------
 	# CONNECTION
 	def createConnections(self):
 		if "Root" in self._connections:
 			obj = self.getObject(config.USE_RIG, "Root")	
-			self.connections("Root").connect(obj)
+			self.connections("Root").connect(obj, attrName="RootParent")
 
 		if "IK" in self._connections:
 			obj = self.getObject(config.USE_BFR, "Ik")	
-			self.connections("IK").connect(obj)
+			self.connections("IK").connect(obj, attrName="IKParent")
 
 		if "UpVector" in self._connections:
 			obj = self.getObject(config.USE_BFR, "UpV")	
-			self.connections("UpVector").connect(obj)
+			self.connections("UpVector").connect(obj, attrName="UpVParent")
 
 		if "FK" in self._connections:
-			obj = self.getObject(config.USE_BFR, "Fk1")	
-			self.connections("FK").connect(obj)
+			obj = self.getObject(config.USE_BFR, "Fk1")
+			self.connections("FK").connect(obj, attrName="FKOrient")
 
 

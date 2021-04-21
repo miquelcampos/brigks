@@ -8,7 +8,7 @@ class CustomParentSystemConnection(SystemConnection):
 		super(CustomParentSystemConnection, self).__init__()
 		self._settings = dict(name=None)
 
-	def connect(self, child):
+	def connect(self, child, attrName=None):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 

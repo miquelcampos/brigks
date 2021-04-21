@@ -141,5 +141,5 @@ class PsdSystemBuilder(SystemBuilder):
 		
 
 		if "Tracker" in self.connections():
-			outrotAttr = self.attributes("OutRot", "setup")
+			outrotAttr = self.getAttributes("OutRot")
 			cnx.connect(self.outrotAttr)

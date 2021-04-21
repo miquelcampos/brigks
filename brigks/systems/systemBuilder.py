@@ -282,18 +282,24 @@ class SystemBuilder():
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None, keyable=True):
 		# For now we only support one UIHost, but we could 
 		# pass an argument for which host to crete the attr to
-		host = self._uiHosts.get("UI", self.nodes("local"))
-		a = self.addAttr(host, name, attrType, value,
+
+		if "UI" not in self._uiHosts:
+			self._uiHosts["UI"] = self.addRig(self.nodes("setup"), "Anim")
+			attributes.setKeyables(self._uiHosts["UI"], [])
+
+		a = self.addAttr(self._uiHosts["UI"], name, attrType, value,
 					minValue, maxValue, keyable, writable=True)
 		return a
 
 	def addSetupAttr(self, name, attrType, value,
 			minValue=None, maxValue=None, sugMinimum=None, sugMaximum=None,
-			keyable=False, writable=True):
-		# For now we only support one UIHost, but we could 
-		# pass an argument for which host to crete the attr to
-		host = self._uiHosts.get("UI", self.nodes("local"))
-		a = self.addAttr(host, name, attrType, value,
+			keyable=True, writable=True):
+
+		if "Setup" not in self._uiHosts:
+			self._uiHosts["Setup"] = self.addRig(self.nodes("setup"), "Setup")
+			attributes.setKeyables(self._uiHosts["Setup"], [])
+
+		a = self.addAttr(self._uiHosts["Setup"], name, attrType, value,
 					minValue, maxValue, keyable, writable)
 		return a
 
@@ -340,4 +346,10 @@ class SystemBuilder():
 		if slot in slots:
 			use, part = slots[slot]
 			return self.getObject(use, part)
+
+	def getAttribute(self, shortName):
+		longName = self.getObjectName(config.USE_RIG, shortName)
+		attributes = [x for x in cmds.ls("*."+longName, long=True) if x.startswith("|"+self.model())]
+		if attributes:
+			return attributes[0]
 

@@ -47,8 +47,8 @@ class ArmSystemGuide(SystemGuide):
 			InterLwr=(config.USE_RIG, "InterLwr"),
 			TwLwrEnd=(config.USE_RIG, "TwLwrEnd"),
 			Hand=(config.USE_RIG, "Bone3"),
-			Center=(config._USE_CTL, "Center"),
-			Prop=(config._USE_CTL, "Prop")
+			Center=(config.USE_CTL, "Center"),
+			Prop=(config.USE_CTL, "Prop")
 			)
 
 		return slots

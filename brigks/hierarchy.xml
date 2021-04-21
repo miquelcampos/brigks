@@ -2,6 +2,7 @@
 	<controller key="global" part="Global">
 		<controller key="local" part="Local"/>
 	</controller>
+	<organizer key="setup" part="Setup"/>
 	<organizer key="mesh" part="Mesh"/>
 	<organizer key="joints" part="Joints"/>
 	<organizer key="user" part="User"/>

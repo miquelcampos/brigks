@@ -65,8 +65,15 @@ SETTINGS_NAMES = dict(
 
 
 PORT_NAMES = dict(
+	chain01=dict(
+		FkRef="FK",
+		),
 	lookAt01=dict(
 		Target="Eff",
+		),
+	neck01=dict(
+		IkRef="IK",
+		OriRef="Orient",
 		),
 	basic01=dict(
 		Control="Part"
@@ -194,6 +201,7 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 	xmlConnections = []
 	if connectionType == "standard":
 		rotationTracker = {}
+		average = {}
 		for port, data in connectionData.iteritems():
 			if "keyslots" not in data or not data["keyslots"]:
 				continue
@@ -218,12 +226,19 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 			elif systemType in ["transformDriven01", "slider01", "rotationalSlider01", "tracker01"]\
 				and port in ["Reference", "Tracker"]:
 				rotationTracker[port] = data["keyslots"][0]
+			elif systemType in ["transformAverage01"]\
+				and port in ["Parent", "MasterA", "MasterB"]:
+				average[port] = data["keyslots"][0]
 			else:
 				xmlConnection = _convertXmlConnectionStandard(port, data)
 				xmlConnections.append(xmlConnection)
 
 		if rotationTracker:
 			xmlConnection = _convertXmlConnectionRotationTracker(rotationTracker)
+			xmlConnections.append(xmlConnection)
+
+		if average:
+			xmlConnection = _convertXmlConnectionAverage(average)
 			xmlConnections.append(xmlConnection)
 
 	elif connectionType == "obj2cls":
@@ -250,7 +265,19 @@ def _convertXmlConnection(connectionType, connectionData, systemType):
 
 def _convertXmlConnectionStandard(port, data):
 	keyslots = data["keyslots"]
-	if len(keyslots) == 1:
+	if port in ["FK", "Orient"]:
+		cnxType = "multiOrient"
+
+		definitions = []
+		for key, slot in keyslots:
+			definition = dict(
+				type="slot",
+				key=key,
+				slot=slot)
+			definitions.append(definition)
+
+		settings = dict(definitions=definitions)
+	elif len(keyslots) == 1:
 		cnxType = "slotParent"
 		key, slot = keyslots[0]
 
@@ -305,7 +332,7 @@ def _convertXmlConnectionFootAttach(port, data):
 
 	xmlConnection = etree.Element("Connection")
 	xmlConnection.set("port", port)
-	xmlConnection.set("type", "legAttach")
+	xmlConnection.set("type", "footLegAttach")
 	xmlConnection.set("settings", json.dumps(settings))
 
 	return xmlConnection
@@ -322,6 +349,22 @@ def _convertXmlConnectionRotationTracker(data):
 	xmlConnection = etree.Element("Connection")
 	xmlConnection.set("port", "Tracker")
 	xmlConnection.set("type", "rotationTracker")
+	xmlConnection.set("settings", json.dumps(settings))
+
+	return xmlConnection
+
+def _convertXmlConnectionAverage(data):
+	parentKey, parentSlot = data.get("Parent", (None, None))
+	masterAKey, masterASlot = data["MasterA"]
+	masterBKey, masterBSlot = data["MasterB"]
+	settings = dict(
+		parentKey=parentKey, parentSlot=parentSlot,
+		masterAkey=masterAKey, masterASlot=masterASlot,
+		masterBkey=masterBKey, masterBSlot=masterBSlot )
+
+	xmlConnection = etree.Element("Connection")
+	xmlConnection.set("port", "Average")
+	xmlConnection.set("type", "averageTransform")
 	xmlConnection.set("settings", json.dumps(settings))
 
 	return xmlConnection

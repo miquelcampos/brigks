@@ -156,7 +156,7 @@ class SpineSystemBuilder(SystemBuilder):
 			if hookRig is None:
 				continue
 
-			cns = self.addCompound("blendMatrix", "Hook", hookRig, [ikCtl, fkCtl])
+			cns = self.addCompound("blendMatrix", "Hook", hookRig, [fkCtl, ikCtl])
 			cmds.connectAttr(self.blendAttr, cns+".target[1].weight")
 		
 		# Mid Ik Controller

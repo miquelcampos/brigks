@@ -10,7 +10,7 @@ class MultiParentSystemConnection(SystemConnection):
 		super(MultiParentSystemConnection, self).__init__()
 		self._settings = dict(definitions=[], default=0, key=None, slot=None)
 
-	def connect(self, child, attrName="Blend"):
+	def connect(self, child, attrName="ParentBlend"):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 

@@ -26,11 +26,11 @@ class AverageTransformSystemConnection(SystemConnection):
 		if parent is None:
 			parent = masterA
 		
-		self._parent(child, parent)
+		child = self._parent(child, parent)
 		if not masterA or not masterB:
 			return
 
-		self.addCompound("blendMatrix", "AvgCnx", child, [masterA, masterB], maintainOffset=True,
+		cns = self.addCompound("blendMatrix", "AvgCnx", child, [masterA, masterB], maintainOffset=True,
 													translate=self.settings("position"),
 		 											rotate=self.settings("rotation"),
 		 											scale=self.settings("scaling"))

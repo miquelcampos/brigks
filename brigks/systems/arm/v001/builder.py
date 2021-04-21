@@ -141,6 +141,7 @@ class ArmSystemBuilder(SystemBuilder):
 		attributes.setKeyables(self.ctrCtl, constants.trs_attrs)
 
 		self.upvCrv = create.cnsCurve(self.getObjectName(config.USE_RIG, "UpvCrv"), [self.upvCtl, self.ctrCtl])
+		cmds.setAttr(self.upvCrv+".template", True)
 	
 		# Twisters
 		self.twisters = defaultdict(list)
@@ -292,18 +293,20 @@ class ArmSystemBuilder(SystemBuilder):
 	def createConnections(self):
 		if "Root" in self.connections():
 			root = self.getObject(config.USE_BFR, "Root")
-			self.connections("Root").connect(root)
+			self.connections("Root").connect(root, attrName="RootParent")
 
 		if "IK" in self.connections():
 			ik = self.getObject(config.USE_BFR, "Ik")
-			self.connections("IK").connect(root)
+			self.connections("IK").connect(root, attrName="IKParent")
 
 		if "UpVector" in self.connections():
 			upv = self.getObject(config.USE_BFR, "Upv")
-			self.connections("UpVector").connect(upv)
+			self.connections("UpVector").connect(upv, attrName="UpVParent")
 		
 		# Fk Ref
 		if "FK" in self.connections():
 			part = "FkOff" if self.settings("gimbalControllers") else "Fk1"
 			fk = self.getObject(config.USE_BFR, part)
-			self.connections("FK").connect(fk)
+			self.connections("FK").connect(fk, attrName="FKOrient")
+
+

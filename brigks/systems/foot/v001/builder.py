@@ -253,4 +253,4 @@ class FootSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnections(self):
 		if "Root" in self.connections():
-			self.conections("Root").connect()
+			self.connections("Root").connect()

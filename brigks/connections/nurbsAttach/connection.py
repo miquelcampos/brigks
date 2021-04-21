@@ -16,7 +16,7 @@ class NurbsAttachSystemConnection(SystemConnection):
 			slot=None
 			)
 
-	def connect(self, child):
+	def connect(self, child, attrName=None):
 		if self._builder is None:
 			raise RuntimeError("Cannot execture a connection without a Builder")
 
