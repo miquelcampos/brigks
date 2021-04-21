@@ -193,9 +193,9 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	#  HELPERS to CREATE OBJECTS / ATTRIBUTES
 	# ----------------------------------------------------------------------------------
-	def addTransform(self, parent, part, usage, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+	def addTransform(self, parent, part, use, tfm=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		parent = parent if parent is not None else self.nodes("local")
-		name = self.getObjectName(usage, part)
+		name = self.getObjectName(use, part)
 		node = create.transform(name, parent, tfm, color=color)
 		if icon:
 			create.icon(icon, node, size, po, ro, so)
@@ -309,29 +309,35 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	# GET OBJECTS and NAMES
 	# ----------------------------------------------------------------------------------
-	def getObjectName(self, usage, part):
+	def getObjectName(self, use, part):
 		return naming.getObjectName(
-			usage=usage,
+			use=use,
 			location=self.settings("location"),
 			name=self.settings("name"),
 			part=part)
 
 	def getNodeName(self, part):
 		return naming.getObjectName(
-			usage=config.USE_NDE,
+			use=config.USE_NDE,
 			location=self.settings("location"),
 			name=self.settings("name"),
 			part=part)
 
-	def getObject(self, usage, part):
-		name = self.getObjectName(usage, part)
+	def getObject(self, use, part):
+		name = self.getObjectName(use, part)
 		objects = [x for x in cmds.ls(name, type="transform", long=True) if x.startswith("|"+self.model())]
 		if objects:
 			return objects[0]
 
+	def getNode(self, use, part):
+		name = self.getObjectName(config.USE_NDE, part)
+		nodes = cmds.ls(name)
+		if nodes:
+			return nodes[0]
+
 	def getObjectFromSlot(self, slot):
 		slots = self.guide.connectionSlots()
 		if slot in slots:
-			usage, part = slots[slot]
-			return self.getObject(usage, part)
+			use, part = slots[slot]
+			return self.getObject(use, part)
 

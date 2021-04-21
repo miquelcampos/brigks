@@ -130,7 +130,7 @@ class PsdSystemBuilder(SystemBuilder):
 			root = self.getObject(config.USE_RIG, "Root")
 			self.connections("Root").connect(root)
 
-		# sample = self.getObject("Sample", usage="Rig")
+		# sample = self.getObject("Sample", use="Rig")
 		# self.connect_parenting(sample, "Tracker")
 		
 		# orientation = self.connectionObject("Orientation")

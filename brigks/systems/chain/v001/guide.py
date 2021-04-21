@@ -62,20 +62,20 @@ class ChainSystemGuide(SystemGuide):
 		super(ChainSystemGuide, self).connectionSlots()
 
 		if self._settings["dynamic"]:
-			usage = config.USE_RIG
+			use = config.USE_RIG
 			name = "Dynamic{}"
 		elif self._settings["kinematic"] == "FK/IK":
-			usage = config.USE_RIG
+			use = config.USE_RIG
 			name = "Part{}"
 		elif self._settings["kinematic"] == "FK":
-			usage = "Ctrl"
+			use = "Ctrl"
 			name = "Fk{}"
 		else:
-			usage = config.USE_RIG
+			use = config.USE_RIG
 			name = "Ik{02d}"
 
 		slots = dict()
 		for i in xrange(1, self.count("Part")):
-			slots["Part{}".format(i)] = (usage, name.format(i))
+			slots["Part{}".format(i)] = (use, name.format(i))
 
 		return slots

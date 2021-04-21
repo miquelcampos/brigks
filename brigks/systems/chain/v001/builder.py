@@ -235,7 +235,7 @@ class ChainSystemBuilder(SystemBuilder):
 				else:
 					master = self._tip
 					
-				self.addCompounds("aimConstraint", "FkAim", fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
+				self.addCompound("aimConstraint", "FkAim", fkBone, master, axis=self.sign()+"xy", upMaster=fkCtl, upVector=(0,1,0))
 				
 		# # Bones -----------------------------------------
 		if self.isFkIk:# or (self.isFk and self.settings("dynamic")):

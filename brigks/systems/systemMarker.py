@@ -35,14 +35,14 @@ class SystemMarker(object):
 
 	@classmethod
 	def create(cls, name, system, parent, matrix=None):
-		parent = parent._marker if isinstance(parent, cls) else parent
+		parent = parent._marker if isinstance(parent, SystemMarker) else parent
 		node = create.transform(name, parent, matrix, color=[1,1,0])
 		create.icon("sphere", node, size=.5)
 		return cls(node, system)
 
 	@classmethod
 	def createCamera(cls, name, system, parent, matrix=None):
-		parent = parent._marker if isinstance(parent, cls) else parent
+		parent = parent._marker if isinstance(parent, SystemMarker) else parent
 		node = create.camera(name, parent, matrix, color=[1,1,0])
 		return cls(node, system)
 
@@ -51,6 +51,12 @@ class SystemMarker(object):
 		shortName = self._marker.split("|")[-1]
 		self._marker = [m for m in cmds.ls(shortName, long=True) if m.startswith("|"+modelName)][0]
 		self._marker = cmds.rename(self._marker, newName)
+
+	def setParent(self, parent):
+		parent = parent._marker if isinstance(parent, SystemMarker) else parent
+		if self._marker.split("|")[-1] in (cmds.listRelatives(parent, children=True) or []):
+			return
+		self._marker = cmds.parent(self._marker, parent)[0]
 
 	def setTransform(self, transform):
 		matrix = transform.asMatrix().flattened()

@@ -1,3 +1,7 @@
+from itertools import izip
+
+from maya import cmds
+
 from math3d.vectorN import Vector3
 
 from brigks.systems.systemGuide import SystemGuide
@@ -13,9 +17,21 @@ class SliderSystemGuide(SystemGuide):
 		)
 	markerPositions = dict(
 		Rail1=Vector3([0,0,0]),
-		Pos1=Vector3([0,0,2]),
-		Neg1=Vector3([0,0,-1]),
+		Pos1=Vector3([2,0,0]),
+		Neg1=Vector3([-1,0,0]),
 		)
+
+	def createMarkers(self, matrices):
+		super(SliderSystemGuide, self).createMarkers(matrices)
+
+		# Parenting the Ends to the Rail and making sure you can't translate them other than x
+		for rail, pos, neg in izip(self.markers("Rail"), self.markers("Pos"), self.markers("Neg")):
+			for end in [pos, neg]:
+				end.setParent(rail.name())
+				cmds.setAttr(end.name()+".ty", 0)
+				cmds.setAttr(end.name()+".tz", 0)
+				cmds.setAttr(end.name()+".ty", lock=True)
+				cmds.setAttr(end.name()+".tz", lock=True)
 
 	def addSettings(self):
 		self._settings["addControllers"] = False
@@ -40,10 +56,10 @@ class SliderSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(SliderSystemGuide, self).connectionSlots()
 
-		usage = config.USE_CTL if self.settings("addControllers") else config.USE_RIG
+		use = config.USE_CTL if self.settings("addControllers") else config.USE_RIG
 		slots = dict()
 		for i in xrange(1, self.count("Rail")+1):
-			slots["Slider{}".format(i)] = (usage, "Slider{}".format(i))
+			slots["Slider{}".format(i)] = (use, "Slider{}".format(i))
 
 		return slots
 

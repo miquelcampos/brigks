@@ -72,8 +72,6 @@ class SystemGuide(object):
 
 		# Create Markers
 		system.createMarkers(matrices)
-		system.loadMarkers(force=True)
-		system.addSettings()
 
 		return system
 
@@ -224,7 +222,7 @@ class SystemGuide(object):
 	def connections(self, key=None):
 		return self._connections if key is None else self._connections[key]
 
-	def addConnection(self, port, connectionType):
+	def addConnection(self, port, connectionType, **settings):
 		if port not in self.connectionPorts():
 			msg = "No such port ({p} - {x}) for this system ({k} - {t})"
 			raise ValueError(msg.format(p=port, x=connectionType, k=self.key(), t=self.type()))
@@ -234,6 +232,7 @@ class SystemGuide(object):
 
 		Connection = getSystemConnectionClass(connectionType)
 		connection = Connection()
+		connection.setSettings(**settings)
 		self._connections[port] = connection
 		return connection
 
@@ -247,7 +246,7 @@ class SystemGuide(object):
 		return {}
 
 	def connectionSlots(self):
-		# Returns the slots as a dictionary of slotName, objectUsage/objectPart
+		# Returns the slots as a dictionary of slotName, objectuse/objectPart
 		self.loadMarkers()
 		return {}
 
@@ -265,6 +264,9 @@ class SystemGuide(object):
 		if len(markers) > 1:
 			curve = create.cnsCurve(self.getMarkerName("DispCrv"), markers, degree=1)
 			cmds.setAttr(curve+".template", True)
+
+		self.loadMarkers(force=True)
+		self.addSettings()
 
 	def deleteMarkers(self):
 		self.loadMarkers(force=True)

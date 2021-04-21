@@ -172,21 +172,22 @@ def createGuideDuplicateAndBuild(showWindow=False):
 
 
 
-def createGuidesAndBuild(location="M", showWindow=False):
+def createGuidesAndBuild(location="M", mirror=False, showWindow=False):
 	# Building Matrix for guide positions
 
 	# Create Guide, add a layer and a couple Systems
 	g = Guide()
 	g.setSettings(hideRig=False)
 	g.setSettings(hideJoints=False)
-	g.setSettings(stopAfter="Create Objects")
+	# g.setSettings(stopAfter="Create Objects")
 
 	layer = g.addLayer("MyFirstLayer")
-	basic = layer.addSystem("basic", location, "Basic")
-	chain = layer.addSystem("chain", location, "Chain")
-	stretch = layer.addSystem("stretch", location, "Stretch")
-	# slider = layer.addSystem("slider", location, "Slider")
-	# twist = layer.addSystem("twist", location, "Twist")
+	basicA = layer.addSystem("basic", location, "BasicA")
+	basicB = layer.addSystem("basic", location, "BasicB")
+	# chain = layer.addSystem("chain", location, "Chain")
+	# stretch = layer.addSystem("stretch", location, "Stretch")
+	slider = layer.addSystem("slider", location, "Slider")
+	twist = layer.addSystem("twist", location, "Twist")
 	# spine = layer.addSystem("spine", location, "Spine")
 	# arm = layer.addSystem("arm", location, "Arm")
 	# leg = layer.addSystem("leg", location, "Leg")
@@ -207,13 +208,17 @@ def createGuidesAndBuild(location="M", showWindow=False):
 	# tentacle = layer.addSystem("tentacle", location, "Tentacle")
 
 	# System Settings
-	#slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
+	# slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	# stretch.setSettings(squash=True)
+	slider.addConnection("Tracker", "rotationTracker", 
+			referenceKey="BasicA_{}".format(location),
+			referenceSlot="Part1",
+			trackerKey="BasicB_{}".format(location),
+			trackerSlot="Part1",)
 
-
-	basic.duplicate(mirror=True)
-	chain.duplicate(mirror=True)
-	stretch.duplicate(mirror=True)
+	if location != "X" and mirror:
+		for system in layer.systems():
+			system.duplicate(mirror=True)
 
 	# Save edit
 	g.commit()

@@ -13,8 +13,8 @@ class SliderSystemBuilder(SystemBuilder):
 	def createObjects(self):
 		# TRANSFORMATION
 		rootTfm = self.transforms("Rail")
-		posTfm = [Transformation.fromParts(translation=pos, rotation=tfm.rotation) for tfm, pos in izip(rootTfm, self.translations("Pos"))]
-		negTfm = [Transformation.fromParts(translation=pos, rotation=tfm.rotation) for tfm, pos in izip(rootTfm, self.translations("Neg"))]
+		# posTfm = [tfm.copy(translation=pos) for tfm, pos in izip(rootTfm, self.translations("Pos"))]
+		# negTfm = [tfm.copy(translation=pos) for tfm, pos in izip(rootTfm, self.translations("Neg"))]
 		
 		# CONTROLLERS
 		self._lmts = []
@@ -24,19 +24,20 @@ class SliderSystemBuilder(SystemBuilder):
 		self._slds = []
 		self._ctls = []
 		
-		for i, (rtfm, ptfm, ntfm) in enumerate(izip(rootTfm, posTfm, negTfm), start=1):
-			irtfm = rtfm.asMatrix().inverse()
-			irtfm = irtfm.asTransform()
+		# for i, (rtfm, ptfm, ntfm) in enumerate(izip(rootTfm, posTfm, negTfm), start=1):
+		for i, (rtfm, ppos, npos) in enumerate(izip(self.transforms("Rail"), self.translations("Pos"), self.translations("Neg")), start=1):
+			# irtfm = rtfm.asMatrix().inverse()
+			# irtfm = irtfm.asTransform()
+			# p = ptfm * irtfm
+			# limit_max = p.translation.x
+			# p = ntfm * irtfm
+			# limit_min = p.translation.x
 
-			p = ptfm * irtfm
-			limit_max = p.translation.x
-
-			p = ntfm * irtfm
-			limit_min = p.translation.x
-
+			limit_max = rtfm.translation.distance(ppos)
+			limit_min = -rtfm.translation.distance(npos)
 			
 			length = limit_max - limit_min
-			offset = length*.5 + limit_min
+			offset = length *.5 + limit_min
 			
 			self._lmts.append([limit_min, limit_max])
 
@@ -51,13 +52,13 @@ class SliderSystemBuilder(SystemBuilder):
 
 			attributes.setKeyables(slider)
 			
-			self._psts.append(None)
-			self._ngts.append(None)
+			# self._psts.append(None)
+			# self._ngts.append(None)
 
-			self._rails.append(rail)
+			# self._rails.append(rail)
 			self._slds.append(slider)
 
-	def createDeformers(self):
+	def createJoints(self):
 		parents = self._ctls if self.settings("addControllers") else self._slds
 		for i, slider in enumerate(parents, start=1):
 			self.addJnt(slider, str(i))
@@ -72,12 +73,20 @@ class SliderSystemBuilder(SystemBuilder):
 	def createOperators(self):
 		rots = [(self.settings("minRot{}".format(i)), self.settings("maxRot{}".format(i))) for i in xrange(1, self.count("Rail")+1)]
 		axis = ["XYZ".index(self.settings("axis{}".format(i))) for i in xrange(1, self.count("Rail")+1)]
-		for rail, pos, neg, slider, limits, rot, a in izip(self._rails, self._psts, self._ngts, self._slds, self._lmts, rots, axis):
+		for slider, limits, rot, a in izip(self._slds, self._lmts, rots, axis):
 			
-			cns = self.addCompound("rotationToSlider", "Trk", slider+".tx", rotMin=rot[0], rotMax=rot[1], 
+			# TODO, Change the RotationToSlider Cpp Node to tak a float3angle as input and an enum to pick which axis is used.
+			# That would match the output from RotationTracker and would be much easier to connect
+			# After the compound creation you would just do 
+			# cmds.setAttr(rotSld+".axis", 2)
+			# Then in the connection part you would connect directly the RotationTracker output to rotationToSlider Input
+			# cmds.connectAttr(cnx+".output", rotSld+".input")
+			# Then you don't need the Setup Attr
+
+			rotSld = self.addCompound("rotationToSlider", "Slider{}".format(i), slider+".tx", rotMin=rot[0], rotMax=rot[1], 
 										slideMin=limits[0], slideMax=limits[1])
 
-			cmds.connectAttr(self.outrotAttr+str(a), cns+".angle")
+			cmds.connectAttr(self.outrotAttr+str(a), rotSld+".angle")
 
 	#----------------------------------------------------------------------------
 	# CONNECTION

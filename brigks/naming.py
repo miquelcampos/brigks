@@ -8,9 +8,9 @@ def getSystemKey(location, name):
 	return "{name}_{location}".format(location=location, name=name)
 
 
-def getObjectName(usage, location, name, part):
+def getObjectName(use, location, name, part):
 	return config.TOKENS.format(
-					use=usage,
+					use=use,
 					loc=location,
 					name=name,
 					part=part)

@@ -290,9 +290,9 @@ class TwistSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnections(self):
 		pass
-		# sbfr = self.getObject("Start", usage="Hbfr")
-		# bfrs = [self.getObject("Part%s"%i, usage="Hbfr") for i in xrange(1, self.count("Part")-1)]
-		# ebfr = self.getObject("End", usage="Hbfr")
+		# sbfr = self.getObject("Start", use="Hbfr")
+		# bfrs = [self.getObject("Part%s"%i, use="Hbfr") for i in xrange(1, self.count("Part")-1)]
+		# ebfr = self.getObject("End", use="Hbfr")
 
 		# buffers = [sbfr] + bfrs + [ebfr]
 		# for i, bfr in enumerate(buffers):

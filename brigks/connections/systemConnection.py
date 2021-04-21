@@ -61,7 +61,7 @@ class SystemConnection(object):
 		if not cmds.objExists(mesh):
 			return parent
 
-		attachName = self.getObjectName(usage=config.USE_RIG, part="MeshAttach")
+		attachName = self.getObjectName(use=config.USE_RIG, part="MeshAttach")
 		attach = cmds.createNode("transform", name=attachName)
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)
@@ -78,7 +78,7 @@ class SystemConnection(object):
 		if useClosest:
 			u, v = None, None
 
-		attachName = self.getObjectName(usage=config.USE_RIG, part="MeshAttach")
+		attachName = self.getObjectName(use=config.USE_RIG, part="MeshAttach")
 		attach = cmds.createNode("transform", name=attachName)
 		cmds.parent(attach, parent)
 		cmds.xform(attach, translation=position, worldSpace=True)

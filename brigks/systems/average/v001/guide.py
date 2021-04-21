@@ -33,9 +33,9 @@ class AverageSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(AverageSystemGuide, self).connectionSlots()
 
-		usage = config.USE_CTL if self.settings("addControllers") else config.USE_BFR
+		use = config.USE_CTL if self.settings("addControllers") else config.USE_BFR
 		slots = dict(
-			Average=(usage, "Average")
+			Average=(use, "Average")
 			)
 
 		return slots

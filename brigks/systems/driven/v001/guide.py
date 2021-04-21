@@ -44,9 +44,9 @@ class DrivenSystemGuide(SystemGuide):
 	def connectionSlots(self):
 		super(DrivenSystemGuide, self).connectionSlots()
 
-		usage = config.USE_CTL if self._settings("addControllers") else config.USE_RIG
+		use = config.USE_CTL if self._settings("addControllers") else config.USE_RIG
 		slots = dict()
 		for i in xrange(1, self.count("Rail")+1):
-			slots["Part%s"%i] = (usage, "Part%s"%i)
+			slots["Part%s"%i] = (use, "Part%s"%i)
 
 		return slots

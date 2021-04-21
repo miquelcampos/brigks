@@ -55,15 +55,15 @@ class TwistSystemGuide(SystemGuide):
 
 		slots = {}
 
-		start_usage = config.USE_CTL if self._settings["startController"] else config.USE_BFR
-		slots["Start"] = (start_usage, "Start")
+		start_use = config.USE_CTL if self._settings["startController"] else config.USE_BFR
+		slots["Start"] = (start_use, "Start")
 		
-		usage = config.USE_CTL if self._settings["interControllers"] else config.USE_BFR
+		use = config.USE_CTL if self._settings["interControllers"] else config.USE_BFR
 		for i in xrange(1, self.count("Part")-1):
-			slots["Part%s"%i] = (usage, "Part%s"%i)
+			slots["Part%s"%i] = (use, "Part%s"%i)
 				
-		end_usage = config.USE_CTL if self._settings["endController"] else config.USE_BFR
-		slots["End"] = (end_usage, "End")
+		end_use = config.USE_CTL if self._settings["endController"] else config.USE_BFR
+		slots["End"] = (end_use, "End")
 
 		if self._settings["tangent"] and self._settings["untwistDeformers"]:
 			slots["UntwistStart"] = (config.USE_RIG, "UntwistStart")
@@ -71,7 +71,7 @@ class TwistSystemGuide(SystemGuide):
 		# Divisions
 		if self._settings["startDeformer"]:
 			if self._settings["tangent"]: 
-				slots["Start"] = (start_usage, "Start")
+				slots["Start"] = (start_use, "Start")
 			else:
 				slots["Div0"] = ("Div0")
 				if self._settings["untwistDeformers"]:
@@ -84,7 +84,7 @@ class TwistSystemGuide(SystemGuide):
 			
 		if self._settings["endDeformer"]:
 			if self._settings["tangent"]: 
-				slots["End"] = (end_usage, "End")
+				slots["End"] = (end_use, "End")
 			else:
 				slots["Div%s"%(self._settings["interDeformers"]+1)] = (config.USE_RIG, "Div%s"%(self._settings["interDeformers"]+1))
 				if self._settings["untwistDeformers"]:
