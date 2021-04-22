@@ -14,6 +14,7 @@ from brigks.gui.scriptWidget import ScriptWidget
 class SystemSettingsWidget(QWidget):
 
 	systemChanged = Signal(object)
+	systemRenamed = Signal(str)
 
 	def __init__(self, system):
 		super(SystemSettingsWidget, self).__init__()
@@ -71,6 +72,7 @@ class SystemSettingsWidget(QWidget):
 		if self._settingsWidget:
 			self.uiSettingsTAB.layout().removeWidget(self._settingsWidget)
 			self._settingsWidget.setVisible(False)
+			#TODO sip delete?
 
 		if system.type() not in self._settingsWidgets:
 			WidgetClass = getSystemWidgetClass(system.type())
@@ -111,6 +113,8 @@ class SystemSettingsWidget(QWidget):
 		location = LOCATIONS.keys()[self.uiLocationCBOX.currentIndex()]
 		name = self.uiNameLINE.text()
 		self._system.rename(location, name)
+
+		self.systemRenamed.emit(self._system.key())
 
 	def swap(self):
 		systemType = self.uiTypeCBOX.currentText()

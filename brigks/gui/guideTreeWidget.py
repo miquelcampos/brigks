@@ -1,12 +1,11 @@
 
-
-from Qt.QtWidgets import QTreeWidget, QTreeWidgetItem, QHeaderView
-from Qt.QtGui import QBrush, QColor
 from Qt import QtCompat
+from Qt.QtWidgets import QTreeWidget, QTreeWidgetItem, QHeaderView, QShortcut, QMessageBox
+from Qt.QtGui import QKeySequence
+from Qt.QtCore import Qt, QPoint
 
-COLOR_DEFAULT = QColor(200,200,200)
-COLOR_BUILT = QColor(25,200,25)
-COLOR_ERROR = QColor(200,20,20)
+from brigks.gui.guideTreeWidgetItems import GuideTreeWidgetItem, LayerTreeWidgetItem, SystemTreeWidgetItem, SubSystemTreeWidgetItem
+from brigks.gui.guideActionsMenu import GuideActionsMenu
 
 class GuideTreeWidget(QTreeWidget):
 
@@ -26,6 +25,10 @@ class GuideTreeWidget(QTreeWidget):
 		QtCompat.QHeaderView.setSectionResizeMode(header, 1, QHeaderView.ResizeToContents)
 
 		self.itemExpanded.connect(self.saveExpandedItem)
+		self.itemCollapsed.connect(self.saveExpandedItem)
+
+		self._guide = None
+		self._menu = self.createRightClickMenu()
 
 		if guide:
 			self.setGuide(guide)
@@ -37,100 +40,154 @@ class GuideTreeWidget(QTreeWidget):
 		item = GuideTreeWidgetItem(self, guide)
 		item.setExpanded(True)
 
+	def selectedLayers(self):
+		layers = []
+		for item in self.selectedItems():
+			if isinstance(item, LayerTreeWidgetItem):
+				layers.extend(item.layer())
+		return layers
+
 	def selectedSystems(self):
 		systems = []
 		for item in self.selectedItems():
 			if isinstance(item, LayerTreeWidgetItem):
 				systems.extend(item.systems())
-			else:
-				systems.append(item.system)
+			elif isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
+				systems.append(item.system())
+
+		systems = set(systems)
 		return systems
 
 	def saveExpandedItem(self, item):
 		if isinstance(item, LayerTreeWidgetItem):
-			item.layer().settings()["expanded"] = True
+			item.layer().settings()["expanded"] = item.isExpanded()
 
-		self._guide.dumps()
+		self._guide.commit()
 
-class GuideTreeWidgetItem(QTreeWidgetItem):
+	#------------------------------------------------------
+	# MENU
+	#------------------------------------------------------
+	def createRightClickMenu(self):
+		menu = GuideActionsMenu(self)
+		menu.uiAddGuideACT.triggered.connect(self.addGuide)
+		menu.uiAddLayerACT.triggered.connect(self.addLayer)
+		menu.uiAddSystemACT.triggered.connect(self.addSystem)
+		menu.uiShowGdeACT.triggered.connect(lambda:self.show(show=True, gde=True))
+		menu.uiShowRigACT.triggered.connect(lambda:self.show(show=True, rig=True))
+		menu.uiShowJntACT.triggered.connect(lambda:self.show(show=True, jnt=True))
+		menu.uiShowCtlACT.triggered.connect(lambda:self.show(show=True, ctl=True))
+		menu.uiHideGdeACT.triggered.connect(lambda:self.show(show=False, gde=True))
+		menu.uiHideRigACT.triggered.connect(lambda:self.show(show=False, rig=True))
+		menu.uiHideJntACT.triggered.connect(lambda:self.show(show=False, jnt=True))
+		menu.uiHideCtlACT.triggered.connect(lambda:self.show(show=False, ctl=True))
+		menu.uiBuildACT.triggered.connect(self.build)
+		menu.uiDuplicateACT.triggered.connect(self.duplicate)
+		menu.uiMirrorACT.triggered.connect(self.mirror)
+		menu.uiMirrorL2RACT.triggered.connect(self.mirrorL2R)
+		# menu.uiMirrorR2LACT.triggered.connect(self.MirrorR2L)
+		# menu.uiSnapACT.triggered.connect(self.snapSystem)
+		menu.uiDeleteACT.triggered.connect(self.delete)
+		menu.uiToSceneACT.triggered.connect(self.toScene)
+		menu.uiFromSceneACT.triggered.connect(self.fromScene)
 
-	def __init__(self, parent, guide):
-		super(GuideTreeWidgetItem, self).__init__(parent, ["Guide"])
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_H), self, lambda:self.show(show=True, gde=True))
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_R), self, lambda:self.show(show=True, rig=True))
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_J), self, lambda:self.show(show=True, jnt=True))
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_C), self, lambda:self.show(show=True, ctl=True))
+		QShortcut(QKeySequence(Qt.Key_H), self, lambda:self.show(show=False, gde=True))
+		QShortcut(QKeySequence(Qt.Key_R), self, lambda:self.show(show=False, rig=True))
+		QShortcut(QKeySequence(Qt.Key_J), self, lambda:self.show(show=False, jnt=True))
+		QShortcut(QKeySequence(Qt.Key_C), self, lambda:self.show(show=False, ctl=True))
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_B), self, self.build)
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_D), self, self.duplicate)
+		QShortcut(QKeySequence(Qt.CTRL|Qt.ALT|Qt.Key_D), self, self.mirror)
+		QShortcut(QKeySequence.Delete, self, self.delete)
+		QShortcut(QKeySequence(Qt.Key_F), self, self.toScene)
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_F), self, self.fromScene)
 
-		self.guide = guide
+		return menu
 
-		sortedLayers = sorted(guide.layers().items(), key=lambda x: x[0])
-		for name, layer in sortedLayers:
-			LayerTreeWidgetItem(self, name, layer)
+	def mousePressEvent(self, event):
+		super(GuideTreeWidget, self).mousePressEvent(event)
 
-class LayerTreeWidgetItem(QTreeWidgetItem):
+		# if not self._allowMenu:
+		# 	event.accept()
+		# 	return
+		
+		if event.button() == Qt.RightButton:
+			if len(self.selectedItems()):
+				# We add a little offset, otherwise we might click the first action accidentally
+				pos = self.mapToGlobal(event.pos()+QPoint(-25,15))
+				self._menu.filterActions()
+				self._menu.exec_(pos)
+				
+		event.accept()
 
-	def __init__(self, parent, name, layer):
-		super(LayerTreeWidgetItem, self).__init__(parent, [name])
+	#-------------------------------------------------------------------------------
+	# ACTIONS
+	#-------------------------------------------------------------------------------
+	def addGuide(self):
+		print "addGuide"
 
-		self._layer = layer
-		self.setExpanded(self._layer.settings()["expanded"])
+	def addLayer(self):
+		parent = self._
+		print "addLayer"
 
-		sortedSubLayers = sorted(layer.layers().items(), key=lambda x: x[0])
-		for subName, subLayer in sortedSubLayers:
-			LayerTreeWidgetItem(self, subName, subLayer)
+	def addSystem(self):
+		layer = self.selectedLayers()[0]
+		print layer
+		print "addSystem"
 
-		sortedSystems = sorted(layer.systems().items(), key=lambda x: x[0])
-		for key, system in sortedSystems:
-			item = SystemTreeWidgetItem(self, key, system)
+	def show(self, show=True, gde=False, rig=False, jnt=False, ctl=False):
+		print "show/hide", show, gde, rig, jnt, ctl
 
-		color = COLOR_BUILT if self.isBuilt() else COLOR_DEFAULT
-		self.setForeground(0, QBrush(color))
+		for systemGuide in self.selectedSystems():
+			if gde:
+				systemGuide.show(show)
+			if rig or jnt or ctl:
+				builder = systemGuide.builder(self._guide.builder())
+				builder.show(show, rig, jnt, ctl)
 
-	def systems(self):
-		systems = []
-		for index in range(self.childCount()):
-			item = self.child(index)
-			if isinstance(item, LayerTreeWidgetItem):
-				systems.extend(item.systems())
-			else:
-				systems.append(item.system())
-		return systems
+	def build(self):
+		self._guide.build(self.selectedSystems())
+		self.setGuide(self._guide)
 
-	def isBuilt(self):
-		for system in self.systems():
-			if system.isBuilt():
-				return True
-		return False
+	def duplicate(self):
+		for systemGuide in self.selectedSystems():
+			systemGuide.duplicate(mirror=False)
+		self._guide.commit()
+		self.setGuide(self._guide)
 
-	def layer(self):
-		return self._layer
+	def mirror(self):
+		for systemGuide in self.selectedSystems():
+			systemGuide.mirror(duplicate=True)
+		self._guide.commit()
+		self.setGuide(self._guide)
 
-class SystemTreeWidgetItem(QTreeWidgetItem):
+	def mirrorL2R(self):
+		print "mirrorL2R"
+		print self.selectedSystems()
 
-	def __init__(self, parent, key, system):
-		super(SystemTreeWidgetItem, self).__init__(parent, [key, system.type()])
+	def delete(self):
+		msgBox = QMessageBox(QMessageBox.Question, "Delete", "Are you sure you want to delte those systems?", QMessageBox.Cancel, self)
+		rigBTN = msgBox.addButton("Delete Rig", QMessageBox.ActionRole)
+		GuideBTN = msgBox.addButton("Delete Rig and Guide", QMessageBox.ActionRole)
+		rtn = msgBox.exec_()
+		if rtn == QMessageBox.Cancel:
+			return
 
-		self._system = system
+		for systemGuide in self.selectedSystems():
+			print "delete", systemGuide.key(), msgBox.clickedButton()==GuideBTN
+			#systemGuide.delete(deleteGuide=(rtn==GuideBTN))
+		self._guide.commit()
+		self.setGuide(self._guide)
 
-		color = COLOR_BUILT if self._system.isBuilt() else COLOR_DEFAULT
-		self.setForeground(0, QBrush(color))
+	def toScene(self):
+		print "toScene"
+		print self.selectedSystems()
 
-		if system.settings()["location"] == "X":
-			SubSystemTreeWidgetItem(self, key.replace("X", "L"), system)
-			SubSystemTreeWidgetItem(self, key.replace("X", "R"), system)
+	def fromScene(self):
+		print "fromScene"
 
-	def system(self):
-		return self._system
-
-	def setSystem(self, system):
-		self._system = system
-
-
-class SubSystemTreeWidgetItem(QTreeWidgetItem):
-
-	def __init__(self, parent, key, system):
-		super(SubSystemTreeWidgetItem, self).__init__(parent, [key])
-
-		self._system = system
-
-	def system(self):
-		return self._system
-
-
+		
 

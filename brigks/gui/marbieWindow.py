@@ -20,9 +20,10 @@ class MarbieWindow(QDialog):
 
 		self._guide = None
 		self._settingsWidget = None
+		self._lastItem = None
 		self._guideSettingsWidget = GuideSettingsWidget(self._guide)
-		self._layerSettingsWidget = None
-		self._systemSettingsWidget = None
+		self._layerSettingsWidget = LayerSettingsWidget(None)
+		self._systemSettingsWidget = SystemSettingsWidget(None)
 
 		self.uiGuideTREE = GuideTreeWidget()
 		self.uiTreeWDG.layout().addWidget(self.uiGuideTREE)
@@ -49,21 +50,31 @@ class MarbieWindow(QDialog):
 			self._settingsWidget.setVisible(False)
 
 		items = self.uiGuideTREE.selectedItems()
-		if not items or isinstance(items[0], GuideTreeWidgetItem):
+		print items, not items or len(items)>1 or isinstance(items[0], GuideTreeWidgetItem)
+		if not items or len(items)>1 or isinstance(items[0], GuideTreeWidgetItem):
 			self._settingsWidget = self._guideSettingsWidget
-		elif isinstance(items[0], LayerTreeWidgetItem):
-			if not self._layerSettingsWidget:
-				self._layerSettingsWidget = LayerSettingsWidget(items[0].layer())
-			else:
-				self._layerSettingsWidget.setLayer(items[0].layer())
-			self._settingsWidget = self._layerSettingsWidget
-		elif isinstance(items[0], (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
-			if not self._systemSettingsWidget:
-				self._systemSettingsWidget = SystemSettingsWidget(items[0].system())
-				self._systemSettingsWidget.systemChanged.connect(items[0].setSystem)
-			else:
-				self._systemSettingsWidget.setSystem(items[0].system())
-			self._settingsWidget = self._systemSettingsWidget
+
+		else:
+			item = items[0]
+			# Disconnect Signals
+			if isinstance(self._lastItem, LayerTreeWidgetItem):
+				self._layerSettingsWidget.layerRenamed.disconnect(self._lastItem.setLayerName)
+			elif isinstance(self._lastItem, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
+				self._systemSettingsWidget.systemChanged.disconnect(self._lastItem.setSystem)
+				self._systemSettingsWidget.systemRenamed.disconnect(self._lastItem.setSystemName)
+
+			# Set Item and Connect
+			if isinstance(item, LayerTreeWidgetItem):
+				self._layerSettingsWidget.setLayer(item.layer())
+				self._layerSettingsWidget.layerRenamed.connect(item.setLayerName)
+				self._settingsWidget = self._layerSettingsWidget
+			elif isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
+				self._systemSettingsWidget.setSystem(item.system())
+				self._systemSettingsWidget.systemChanged.connect(item.setSystem)
+				self._systemSettingsWidget.systemRenamed.connect(item.setSystemName)
+				self._settingsWidget = self._systemSettingsWidget
+
+			self._lastItem = item
 
 		self.uiSettingsWDG.layout().addWidget(self._settingsWidget)
 		self._settingsWidget.setVisible(True)

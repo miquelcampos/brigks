@@ -2,12 +2,15 @@ import os.path
 import logging
 
 from Qt import QtCompat
+from Qt.QtCore import Signal
 from Qt.QtWidgets import QWidget
 from Qt.QtGui import QColor, QPalette
 
 from brigks.gui.pickColorDialog import PickColorDialog
 
 class LayerSettingsWidget(QWidget):
+
+	layerRenamed = Signal(str)
 
 	def __init__(self, layer):
 		super(LayerSettingsWidget, self).__init__()
@@ -28,7 +31,7 @@ class LayerSettingsWidget(QWidget):
 		self.settings = self._layer.settings
 
 		self._blocked = True
-		self.uiName.setText(self._layer.name())
+		self.uiNameLINE.setText(self._layer.name())
 
 		# Colors
 		self.uiUseLayerColor.setChecked(self.settings("useLayerColor"))
@@ -39,6 +42,8 @@ class LayerSettingsWidget(QWidget):
 
 	def connectWidgets(self):
 		self._blocked = True
+
+		self.uiNameLINE.editingFinished.connect(self.rename)
 
 		# Colors
 		self.uiUseLayerColor.clicked.connect(self.saveSettings)
@@ -72,6 +77,11 @@ class LayerSettingsWidget(QWidget):
 	# ----------------------------------------------------------------------------------
 	# FIRST TAB
 	# ----------------------------------------------------------------------------------
+	def rename(self):
+		name = self.uiNameLINE.text()
+		self._layer.setName(name)
+		self.layerRenamed.emit(name)
+
 	def loadColors(self):
 		self.setButtonColor(self.uiColor, self.settings("color"))
 		for key in ["RFk", "RIk", "MFk", "MIk", "LFk", "LIk"]:

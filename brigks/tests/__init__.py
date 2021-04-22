@@ -3,7 +3,10 @@ import xml.etree.cElementTree as etree
 from datetime import datetime as dt
 import logging
 
-from Qt.QtWidgets import QDialog, QVBoxLayout
+from Qt.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QHeaderView
+from Qt.QtGui import QBrush, QColor
+from Qt import QtCompat
+from Qt.QtCore import Qt
 
 from brigks import Guide
 from brigks.gui.systemSettingsWidget import SystemSettingsWidget
@@ -246,6 +249,47 @@ def showSystemSettings(system):
 
 	if not dialog.exec_():
 		return
+
+def DDTree():
+
+
+	tree = TreeWidget()
+
+	dialog = QDialog()
+	layout = QVBoxLayout()
+	layout.addWidget(tree)
+	dialog.setLayout(layout)
+
+	if not dialog.exec_():
+		return
+
+class TreeWidget(QTreeWidget):
+
+	def __init__(self, guide=None):
+		super(TreeWidget, self).__init__()
+
+		self.setColumnCount(1)
+		self.setSelectionMode(self.ExtendedSelection)
+		self.setDragDropMode(self.DragDrop)
+		self.setDefaultDropAction(Qt.MoveAction)
+		self.setHeaderHidden(True)
+		
+		for i in range(3):
+			item = QTreeWidgetItem(self, ["LAYER LAYER {}".format(i)])
+			for i in range(3):
+				QTreeWidgetItem(self, ["SYSTEM SYSTEM {}".format(i)])
+			
+		self.itemSelectionChanged.connect(self.allowDragNDrop)
+
+	def allowDragNDrop(self):
+		items = self.selectedItems()
+		if not items:
+			return 
+
+		if items[0].text(0).startswith("SYSTEM"):
+			self.setDragDropMode(self.NoDragDrop)
+		else:
+			self.setDragDropMode(self.DragDrop)
 
 
 

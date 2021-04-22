@@ -50,7 +50,6 @@ class SystemGuide(object):
 		self._connections = {}
 		self.addSettings()
 
-
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
 		"""Create System Guide
@@ -183,7 +182,10 @@ class SystemGuide(object):
 
 		return dupSystem
 
-	def mirror(self):
+	def mirror(self, duplicate=True):
+		if location not in "LR":
+			return 
+
 		self.loadMarkers(force=True)
 		location = self._settings["location"]
 		location = "R" if location == "L" else "L"
@@ -191,6 +193,8 @@ class SystemGuide(object):
 
 		mirrorGuide = self.guide().findSystem(naming.getSystemKey(location, name))
 		if not mirrorGuide:
+			if duplicate:
+				return self.duplicate(mirror=True)
 			return
 
 		mirrorGuide.loadMarkers(force=True)
@@ -231,6 +235,12 @@ class SystemGuide(object):
 		from brigks.systems import getSystemBuilderClass
 		SystemBuilder = getSystemBuilderClass(self.type())
 		return SystemBuilder(parentBuilder, self)
+
+	def show(self, show=True):
+		search = self.getMarkerName("*")
+		markers = cmds.ls(search, type="transform", long=True)
+		for shp in cmds.listRelatives(markers, shapes=True):
+			cmds.setAttr(shp+".visibility", show)
 
 	# ----------------------------------------------------------------------------------
 	# CONNECTIONS

@@ -6,7 +6,7 @@ import maya.OpenMayaUI as mui
 from maya import cmds
 
 from Qt import QtCompat
-from Qt.QtWidgets import QWidget, QInputDialog
+from Qt.QtWidgets import QWidget, QInputDialog, QPushButton
 from Qt.QtGui import QColor, QPalette
 
 from brigks.gui.scriptWidget import ScriptWidget
@@ -44,6 +44,7 @@ class GuideSettingsWidget(QWidget):
 
 		self.settings = self._guide.settings
 		self._blocked = True
+		self._visButtons = []
 
 		# Load Settings
 		for x in ["RFk", "RIk", "MFk", "MIk", "LFk", "LIk"]:
@@ -53,20 +54,22 @@ class GuideSettingsWidget(QWidget):
 
 		# TODO
 		# WHYS IS THIS NOT WORKING?
-		print "SetGuide"
-		print STEPS
-		print STEPS.index(self.settings("stopAfter")), self.settings("stopAfter")
-		print self.settings("hideRig")
-		print self.settings("hideJoints")
+		# print "SetGuide"
+		# print STEPS
+		# print STEPS.index(self.settings("stopAfter")), self.settings("stopAfter")
+		# print self.settings("hideRig")
+		# print self.settings("hideJoints")
 		self.uiStopAfter.clear()
 		self.uiStopAfter.addItems(STEPS)
 		self.uiStopAfter.setCurrentIndex(STEPS.index(self.settings("stopAfter")))
 		self.uiHideRig.setChecked(self.settings("hideRig"))
 		self.uiHideJoints.setChecked(self.settings("hideJoints"))
 
-		print self.uiStopAfter.currentText()
-		print self.uiHideRig.isChecked()
-		print self.uiHideJoints.isChecked()
+		# print self.uiStopAfter.currentText()
+		# print self.uiHideRig.isChecked()
+		# print self.uiHideJoints.isChecked()
+
+		self.loadVisibilities()
 
 		self.loadGroups()
 		self.uiPreScriptWDG.setObject(self._guide)
@@ -146,6 +149,24 @@ class GuideSettingsWidget(QWidget):
 			hideJoints=self.uiHideJoints.isChecked()
 			)
 		self.commit()
+
+	# ----------------------------------------------------------------------------------
+	# VISIBILITIES
+	# ----------------------------------------------------------------------------------
+	def loadVisibilities(self):
+		layout = self.uiVisibilityGRP.layout()
+
+		# Clear
+		for btn in self._visButtons:
+			layout.removeWidget(btn)
+			btn.setVisible(False)
+			#TODO sip delete?
+		self._visButtons = []
+
+		for i, layer in enumerate(sorted(self._guide.layers().values()), start=1):
+			btn = QPushButton(layer.name())
+			layout.addWidget(btn, i, 0)
+			self._visButtons.append(btn)
 
 	# ----------------------------------------------------------------------------------
 	# GROUPS

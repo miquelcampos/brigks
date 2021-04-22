@@ -76,7 +76,7 @@
            <number>3</number>
           </property>
           <item>
-           <widget class="QLineEdit" name="uiName">
+           <widget class="QLineEdit" name="uiNameLINE">
             <property name="inputMask">
              <string/>
             </property>

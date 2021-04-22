@@ -116,7 +116,7 @@ class Layer():
 
 	def color(self, key):
 		if self.settings("useLayerColor"):
-			return self.settings("color"+key)
+			return self.settings("color")
 		elif self.settings("inheritColors"):
 			return self._parent.color(key)
 		else:
