@@ -34,7 +34,6 @@ class SystemGuide(object):
 	def __init__(self, layer, name="Name", location="M"):
 		self._layer = layer
 		self._settings = dict(
-					version=[1,0,0],
 					preScriptPath="",
 					preScriptValue=scriptDefaultValue,
 					postScriptPath="",
@@ -133,6 +132,23 @@ class SystemGuide(object):
 		self._layer.popSystem(self)
 		layer._systems.append(self)
 		self._layer = layer
+
+	def isBuilt(self):
+		return self.guide().systemIsBuilt(self.key())
+
+	def colorIk(self):
+		if self.settings("inheritColors"):
+			side = "M" if self.settings("location") not in "LR" else self.settings("location")
+			return self._layer.color("{}Ik".format(side))
+		else:
+			return self.settings("colorIk")
+
+	def colorFk(self):
+		if self.settings("inheritColors"):
+			side = "M" if self.settings("location") not in "LR" else self.settings("location")
+			return self._layer.color("{}Fk".format(side))
+		else:
+			return self.settings("colorFk")
 
 	# ----------------------------------------------------------------------------------
 	# BUILD / DELETE / DUPLICATE

@@ -67,8 +67,6 @@ class LayerSettingsWidget(QWidget):
 	def commit(self):
 		if self._blocked:
 			return 
-		print "guide gui commit"
-		logging.debug("Save Guide Settings")
 		self._layer.commit()
 
 	# ----------------------------------------------------------------------------------

@@ -22,6 +22,8 @@ class SystemBuilder():
 
 		self.key = self.guide.key
 		self.type = self.guide.type
+		self.colorIk = self.guide.colorIk
+		self.colorFk = self.guide.colorFk
 		self.markers = self.guide.markers
 		self.transforms = self.guide.transforms
 		self.translations = self.guide.translations
@@ -57,12 +59,6 @@ class SystemBuilder():
 
 	def factor(self):
 		return -1 if self.negate() else 1
-
-	def colorIk(self):
-		return [0,0,1]
-
-	def colorFk(self):
-		return [0,0,1]
 
 	def connections(self, key=None, includeUIHosts=False):
 		if includeUIHosts:

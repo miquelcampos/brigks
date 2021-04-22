@@ -8,6 +8,7 @@ from maya import cmds
 
 from brigks import naming
 from brigks import config
+from brigks.utils import create
 
 HIERARCHY_XML_PATH = os.path.join(os.path.dirname(__file__),"hierarchy.xml")
 
@@ -19,6 +20,28 @@ class Builder():
 		self._systems = {}
 		self._settings = dict(systems={})
 		self._nodes = {}
+
+		# Load
+		self.load()
+
+
+	def load(self):
+		connections = cmds.listConnections(self.guide.model()+".model", destination=False, type="transform")
+		if not connections:
+			return 
+
+		self._model = connections[0]
+
+		# Loading the data from the model
+		data = cmds.getAttr(self._model+"."+config.DATA_ATTRIBUTE)
+		if data:
+			self._settings.update(json.loads(data))
+
+	# ----------------------------------------------------------------------------------
+	# 
+	# ----------------------------------------------------------------------------------
+	def model(self):
+		return self._model
 
 	def settings(self, key=None):
 		return self._settings if key is None else self._settings[key]
@@ -32,14 +55,11 @@ class Builder():
 	def builtSystems(self, key=None):	
 		return self._settings["systems"] if key is None else self._settings["systems"][key]
 
-	def model(self):
-		return self._model
-
 	# ----------------------------------------------------------------------------------
 	# BUILD / DELETE
 	# ----------------------------------------------------------------------------------
 	def build(self, systemGuides):
-		self._initCore()
+		self._buildCore()
 
 		start = dt.now()
 		superstart = dt.now()
@@ -84,8 +104,7 @@ class Builder():
 		logging.info("DONE {time}".format(time=dt.now() - superstart))
 
 	def delete(self, systemGuides):
-		self._initCore(create=False)
-		# If there is no model, thewre is nothing to delete
+		# If there is no model, there is nothing to delete
 		if not self._model:
 			return
 
@@ -104,28 +123,39 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	# BUILD HELPERS
 	# ----------------------------------------------------------------------------------
-	def _initCore(self, create=True):
-		self._model = self._createModel(create)
-		# self.globalCtl = self._addCtl(self._model, part="Global", create=create)
-		# self.localCtl = self._addCtl(self.globalCtl, part="Local", create=create)
+	def _buildCore(self, create=True):
+		self._model = self.addModel(create)
 
 		xmlHierarchy = etree.parse(HIERARCHY_XML_PATH).getroot()
 		for xmlNode in xmlHierarchy:
-			self._buildFromXml(xmlNode, parent=self._model, create=create)
+			self._createFromXml(xmlNode, parent=self._model)
 
-	def _buildFromXml(self, xmlNode, parent, create):
+	def _createFromXml(self, xmlNode, parent):
 		# Parse the XML tree and create the hierachy of nodes
 		key = xmlNode.get("key")
 		part = xmlNode.get("part")
+
 		if xmlNode.tag == "organizer":
-			node = self._createOrganizer(parent, part, create)
+			use = config.USE_ORG
 		elif xmlNode.tag == "controller":
-			node = self._addCtl(parent, part, create)
+			use = config.USE_CTL
+
+		name = naming.getObjectName(use, "M", "Root", part)
+
+		options = dict(
+			icon=xmlNode.get("icon", None))	
+		for x in ["size", "po", "ro", "so", "color"]:
+			value = xmlNode.get(x, None)
+			if value is not None:
+				options[x] = json.loads(value)
 		
-		self._nodes[key] = node
+		node = self.addTransform(name, parent, **options)
 
 		for xmlChild in xmlNode:
-			self._buildFromXml(xmlChild, node, create)
+			self._createFromXml(xmlChild, node)
+
+		self._nodes[key] = node
+		return node
 
 	def _initSystems(self):
 		builders = {}
@@ -229,62 +259,28 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	# CREATE
 	# ----------------------------------------------------------------------------------
-	def _createModel(self, create=True):
-		connections = cmds.listConnections(self.guide.model()+".model", type="transform", destination=False)
-		if connections:
-			model = connections[0]
-		elif not create:
-			return
-		else:
-			model = cmds.createNode("transform", name="Setup")
+	def addModel(self, create=True):
+		model = self.addTransform("Setup")
 	
-		if not cmds.ls(model+".model"):
-			cmds.addAttr(model, longName="model", attributeType="bool")
-		if not cmds.ls(model+"."+config.DATA_ATTRIBUTE):
-			cmds.addAttr(model, longName=config.DATA_ATTRIBUTE, dataType="string")
+		cmds.addAttr(model, longName="model", attributeType="bool")
+		cmds.addAttr(model, longName=config.DATA_ATTRIBUTE, dataType="string")
 
-		# Loading the data from the model
-		data = cmds.getAttr(model+"."+config.DATA_ATTRIBUTE)
-		if data:
-			self._settings.update(json.loads(data))
-	
 		# Connecting the Setup to the Guide. This is how we track which model is used to build the guide
 		cmds.connectAttr(model+".model", self.guide.model()+".model", force=True)
 		return model
 
-	def _addCtl(self, parent, part, create):
-		name = naming.getObjectName(config.USE_CTL, "M", "Root", part)
+	def addTransform(self, name, parent=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+		existing = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
+		if existing:
+			node = existing[0]
 
-		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
-		if exisiting:
-			controller = cmds.ls(exisiting)[0]
-		elif not create:
-			return
-		else:
-			controller = cmds.createNode("transform", name=name)
-	
-		currentParent = cmds.listRelatives(controller, parent=True, path=True)
-		if not currentParent or currentParent[0] != parent:
-			cmds.parent(controller, parent)
-		return controller
-
-	def _createOrganizer(self, parent, part, create):
-		name = naming.getObjectName(config.USE_ORG, "M", "Root", part)
-
-		exisiting = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
-		if exisiting:
-			organizer = cmds.ls(exisiting)[0]
-		elif not create:
-			return
-		else:
-			organizer = cmds.createNode("transform", name=name)
-	
-		currentParent = cmds.listRelatives(organizer, parent=True, path=True)
-		if not currentParent or currentParent[0] != parent:
-			cmds.parent(organizer, parent)
-		return organizer
+		node = create.transform(name, parent, color=color)
+		if icon:
+			if size is None:
+				size = 1
+			create.icon(icon, node, size, po, ro, so)
+		return node
 		
-
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------

@@ -1,7 +1,12 @@
 
 
 from Qt.QtWidgets import QTreeWidget, QTreeWidgetItem, QHeaderView
+from Qt.QtGui import QBrush, QColor
 from Qt import QtCompat
+
+COLOR_DEFAULT = QColor(200,200,200)
+COLOR_BUILT = QColor(25,200,25)
+COLOR_ERROR = QColor(200,20,20)
 
 class GuideTreeWidget(QTreeWidget):
 
@@ -72,7 +77,10 @@ class LayerTreeWidgetItem(QTreeWidgetItem):
 
 		sortedSystems = sorted(layer.systems().items(), key=lambda x: x[0])
 		for key, system in sortedSystems:
-			SystemTreeWidgetItem(self, key, system)
+			item = SystemTreeWidgetItem(self, key, system)
+
+		color = COLOR_BUILT if self.isBuilt() else COLOR_DEFAULT
+		self.setForeground(0, QBrush(color))
 
 	def systems(self):
 		systems = []
@@ -81,8 +89,14 @@ class LayerTreeWidgetItem(QTreeWidgetItem):
 			if isinstance(item, LayerTreeWidgetItem):
 				systems.extend(item.systems())
 			else:
-				systems.append(item.system)
+				systems.append(item.system())
 		return systems
+
+	def isBuilt(self):
+		for system in self.systems():
+			if system.isBuilt():
+				return True
+		return False
 
 	def layer(self):
 		return self._layer
@@ -93,6 +107,9 @@ class SystemTreeWidgetItem(QTreeWidgetItem):
 		super(SystemTreeWidgetItem, self).__init__(parent, [key, system.type()])
 
 		self._system = system
+
+		color = COLOR_BUILT if self._system.isBuilt() else COLOR_DEFAULT
+		self.setForeground(0, QBrush(color))
 
 		if system.settings()["location"] == "X":
 			SubSystemTreeWidgetItem(self, key.replace("X", "L"), system)

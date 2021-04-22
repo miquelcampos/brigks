@@ -3,6 +3,7 @@ import json
 import xml.etree.cElementTree as etree
 import getpass
 import datetime
+import logging
 
 from brigks.layer import Layer
 from brigks.builder import Builder
@@ -20,6 +21,7 @@ class Guide():
 
 	def __init__(self, model=None):
 		self._model = None
+		self._builder = None
 		self._layers = []
 		self._settings = dict(version=[1,0,0],
 							preScriptPath="",
@@ -59,19 +61,22 @@ class Guide():
 			layer = Layer(self, data["name"], data)
 			self._layers.append(layer)
 
+	def builder(self):
+		if self._builder is None:
+			self._builder = Builder(self)
+		return self._builder
+
 	def build(self, systemGuides=None):
 		if systemGuides is None:
 			systemGuides = self._getAllSystems()
 
-		builder = Builder(self)
-		builder.build(systemGuides)
+		self.builder().build(systemGuides)
 
 	def delete(self, systemGuides=None, deleteGuide=False):
 		if systemGuides is None:
 			systemGuides = self._getAllSystems()
 
-		builder = Builder(self)
-		builder.delete(systemGuides)
+		self.builder().delete(systemGuides)
 
 		if deleteGuide:
 			for systemGuide in systemGuides:
@@ -85,9 +90,9 @@ class Guide():
 					layers=[layer.dumps() for layer in self._layers])
 
 	def commit(self):
-		print "COMMITTTTTT"
 		# Saves settings to json in the model data attribute
 		cmds.setAttr(self._model+"."+DATA_ATTRIBUTE, json.dumps(self.dumps()), type="string")
+		logging.debug("Brigks: Guide Settings Saved")
 
 	# ----------------------------------------------------------------------------------
 	# LAYERS, SYSTEMS
@@ -96,7 +101,7 @@ class Guide():
 		return self._model
 
 	def setup(self):
-		connections = cmds.listConnections("Guide.model", destination=False, type="transform")
+		connections = cmds.listConnections(self._model+".model", destination=False, type="transform")
 		if connections:
 			return connections[0]
 
@@ -139,6 +144,9 @@ class Guide():
 			key = naming.getSystemKey(location, name)
 			i += 1
 		return name
+
+	def systemIsBuilt(self, key):
+		return key in self.builder().builtSystems().keys()
 
 	def _getAllSystems(self):	
 		systemGuides = []

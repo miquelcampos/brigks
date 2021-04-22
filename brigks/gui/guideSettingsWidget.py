@@ -113,9 +113,7 @@ class GuideSettingsWidget(QWidget):
 
 	def commit(self):
 		if self._blocked:
-			return 
-		print "guide gui commit"
-		logging.debug("Save Guide Settings")
+			return
 		self._guide.commit()
 
 	# ----------------------------------------------------------------------------------

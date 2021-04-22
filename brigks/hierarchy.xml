@@ -1,6 +1,6 @@
 <brigks>
-	<controller key="global" part="Global">
-		<controller key="local" part="Local"/>
+	<controller key="global" part="Global" icon="circle" size="50">
+		<controller key="local" part="Local" icon="circle" size="30"/>
 	</controller>
 	<organizer key="setup" part="Setup"/>
 	<organizer key="mesh" part="Mesh"/>
