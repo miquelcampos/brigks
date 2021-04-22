@@ -1,13 +1,23 @@
 import os.path
 import sip
+import logging
 
 import maya.OpenMayaUI as mui
 from maya import cmds
 
 from Qt import QtCompat
 from Qt.QtWidgets import QWidget, QInputDialog
+from Qt.QtGui import QColor, QPalette
 
 from brigks.gui.scriptWidget import ScriptWidget
+from brigks.gui.pickColorDialog import PickColorDialog
+
+STEPS = ["Pre Script",
+		"Create Objects",
+		"Create Attributes",
+		"Create Operators",
+		"Connect System",
+		"Post Script"]
 
 class GuideSettingsWidget(QWidget):
 
@@ -16,14 +26,70 @@ class GuideSettingsWidget(QWidget):
 		uiPath = os.path.join(os.path.dirname(__file__), "ui", "guideSettingsWidget.ui")
 		QtCompat.loadUi(uiPath, self)
 
-		self._guide = guide
+		self._blocked = False
 
 		self.uiPreScriptWDG = ScriptWidget("pre")
 		self.uiScriptsTAB.layout().addWidget(self.uiPreScriptWDG)
 		self.uiPostScriptWDG = ScriptWidget("post")
 		self.uiScriptsTAB.layout().addWidget(self.uiPostScriptWDG)
 
-		# Connect
+		self.connectWidgets()
+
+		self.setGuide(guide)
+
+	def setGuide(self, guide):
+		self._guide = guide
+		if self._guide is None:
+			return
+
+		self.settings = self._guide.settings
+		self._blocked = True
+
+		# Load Settings
+		for x in ["RFk", "RIk", "MFk", "MIk", "LFk", "LIk"]:
+			btn = self.__dict__["uiColor"+x]
+			value = self.settings("color"+x)
+			self.setButtonColor(btn, value)
+
+		# TODO
+		# WHYS IS THIS NOT WORKING?
+		print "SetGuide"
+		print STEPS
+		print STEPS.index(self.settings("stopAfter")), self.settings("stopAfter")
+		print self.settings("hideRig")
+		print self.settings("hideJoints")
+		self.uiStopAfter.clear()
+		self.uiStopAfter.addItems(STEPS)
+		self.uiStopAfter.setCurrentIndex(STEPS.index(self.settings("stopAfter")))
+		self.uiHideRig.setChecked(self.settings("hideRig"))
+		self.uiHideJoints.setChecked(self.settings("hideJoints"))
+
+		print self.uiStopAfter.currentText()
+		print self.uiHideRig.isChecked()
+		print self.uiHideJoints.isChecked()
+
+		self.loadGroups()
+		self.uiPreScriptWDG.setObject(self._guide)
+		self.uiPostScriptWDG.setObject(self._guide)
+		self._blocked = False
+
+	def connectWidgets(self):
+		self._blocked = True
+
+		# Colors
+		self.uiColorRFk.clicked.connect(lambda:self.pickColor(self.uiColorRFk, "colorRFk"))
+		self.uiColorRIk.clicked.connect(lambda:self.pickColor(self.uiColorRIk, "colorRIk"))
+		self.uiColorMFk.clicked.connect(lambda:self.pickColor(self.uiColorMFk, "colorMFk"))
+		self.uiColorMIk.clicked.connect(lambda:self.pickColor(self.uiColorMIk, "colorMIk"))
+		self.uiColorLFk.clicked.connect(lambda:self.pickColor(self.uiColorLFk, "colorLFk"))
+		self.uiColorLIk.clicked.connect(lambda:self.pickColor(self.uiColorLIk, "colorLIk"))
+
+		# Debug 
+		self.uiStopAfter.currentIndexChanged.connect(self.saveDebugSettings)
+		self.uiHideRig.clicked.connect(self.saveDebugSettings)
+		self.uiHideJoints.clicked.connect(self.saveDebugSettings)
+
+		# Groups
 		self.uiAddGroupBTN.clicked.connect(self.addGroup)
 		self.uiRenameGroupBTN.clicked.connect(self.renameGroup)
 		self.uiRemoveGroupBTN.clicked.connect(self.removeGroup)
@@ -32,26 +98,60 @@ class GuideSettingsWidget(QWidget):
 		self.uiGroupsLIST.itemSelectionChanged.connect(self.loadMembers)
 		self.uiMembersLIST.itemSelectionChanged.connect(self.selectScene)
 
+		# Script
 		self.uiPreScriptWDG.updated.connect(self.scriptUpdated)
 		self.uiPostScriptWDG.updated.connect(self.scriptUpdated)
 
 		# Connection to Maya Select Event
 		self._selectEventJobID = cmds.scriptJob(e=["SelectionChanged", self.selectMembers], protected=True)
-	
 
+		self._blocked = False
+	
 	def closeEvent(self, event):
 		cmds.scriptJob(kill=self._selectEventJobID, force=True)
 		super(GuideSettingsWidget, self).closeEvent(event)
 
-	def setGuide(self, guide):
-		self._guide = guide
-		self.loadGroups()
-		self.uiPreScriptWDG.setObject(self._guide)
-		self.uiPostScriptWDG.setObject(self._guide)
+	def commit(self):
+		if self._blocked:
+			return 
+		print "guide gui commit"
+		logging.debug("Save Guide Settings")
+		self._guide.commit()
+
+	# ----------------------------------------------------------------------------------
+	# FIRST TAB
+	# ----------------------------------------------------------------------------------
+	def pickColor(self, button, setting):
+		color = self.settings(setting)
+		
+		dialog = PickColorDialog(self, color)
+		dialog.exec_()
+		if not dialog.result():
+			return
+
+		self.setButtonColor(button, dialog.color)
+		self._guide.setSettings(**{setting:dialog.color})
+		self.commit()
+
+	def setButtonColor(self, button, color):
+		qcolor = QColor()
+		qcolor.setRgbF(color[0], color[1], color[2])
+		
+		palette = QPalette()
+		palette.setColor(QPalette.Button, qcolor)
+		button.setPalette(palette)
+
+	def saveDebugSettings(self):
+		self._guide.setSettings(
+			stopAfter=self.uiStopAfter.currentText(),
+			hideRig=self.uiHideRig.isChecked(),
+			hideJoints=self.uiHideJoints.isChecked()
+			)
+		self.commit()
 
 	# ----------------------------------------------------------------------------------
 	# GROUPS
-	# ----------------------------------------------------------------------------------\
+	# ----------------------------------------------------------------------------------
 	def loadGroups(self):
 		self.uiGroupsLIST.clear()
 		for groupName in self._guide.groups().keys():
@@ -76,7 +176,7 @@ class GuideSettingsWidget(QWidget):
 
 		self.uiGroupsLIST.addItem(groupName)
 		self._guide.addGroup(groupName)
-		self._guide.commit()
+		self.commit()
 
 	def renameGroup(self):
 		groupItem = self.uiGroupsLIST.currentItem()
@@ -88,13 +188,13 @@ class GuideSettingsWidget(QWidget):
 
 		groupItem.setText(newName)
 		self._guide.renameGroup(groupName, newName)
-		self._guide.commit()
+		self.commit()
 
 	def removeGroup(self):
 		index = self.uiGroupsLIST.currentRow()
 		groupItem = self.uiGroupsLIST.takeItem(index)
 		self._guide.removeGroup(groupItem.text())
-		self._guide.commit()
+		self.commit()
 
 	def addRemoveMembers(self, add=True):
 		groupItem = self.uiGroupsLIST.currentItem()
@@ -109,12 +209,12 @@ class GuideSettingsWidget(QWidget):
 
 		self.loadMembers()
 		self.selectMembers(selection)
-		self._guide.commit()
+		self.commit()
 
 	def selectMembers(self, selection=None):
 		if selection is None:
 			try:
-				selection = cmds.ls(selection=True, type="transform", long=True)
+				selection = cmds.ls(selection=True, type="transform", long=True) or []
 			except AttributeError:
 				pass
 
@@ -136,4 +236,4 @@ class GuideSettingsWidget(QWidget):
 	# ----------------------------------------------------------------------------------
 	def scriptUpdated(self, settings):
 		self._guide.setSettings(**settings)
-		self._guide.commit()
+		self.commit()

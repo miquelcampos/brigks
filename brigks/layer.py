@@ -14,7 +14,7 @@ class Layer():
 		self._systems = []
 		self._settings = dict(keepInSegmented=False,
 							 expanded=False,
-							 layerColor=[.875,.875,.250],
+							 color=[.875,.875,.250],
 							 useLayerColor=False,
 							 inheritColors=True,
 							 colorRFk=[0,.25,.75], colorRIk=[0,.5,1], 
@@ -56,6 +56,9 @@ class Layer():
 					systems=[system.dumps() for system in self._systems] )
 		return data
 
+	def commit(self):
+		self.guide().commit()
+
 	# ----------------------------------------------------------------------------------
 	# NAME and LAYERS
 	# ----------------------------------------------------------------------------------
@@ -65,8 +68,8 @@ class Layer():
 		else:
 			return self._parent
 
-	def settings(self):
-		return self._settings
+	def settings(self, key=None):
+		return self._settings if key is None else self._settings[key]
 
 	def setSettings(self, **settings):
 		self._settings.update(settings)
@@ -110,6 +113,14 @@ class Layer():
 			name = inputName + str(i)
 			i += 1
 		return name
+
+	def color(self, key):
+		if self.settings("useLayerColor"):
+			return self.settings("color"+key)
+		elif self.settings("inheritColors"):
+			return self._parent.color(key)
+		else:
+			return self.settings("color"+key)
 
 	# ----------------------------------------------------------------------------------
 	# SYSTEMS

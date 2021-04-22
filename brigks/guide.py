@@ -26,8 +26,11 @@ class Guide():
 							preScriptValue=scriptDefaultValue,
 							postScriptPath="",
 							postScriptValue=scriptDefaultValue,
+							colorRFk=[0,.25,.75], colorRIk=[0,.5,1], 
+							colorMFk=[.5,.25,.5], colorMIk=[.85,.6,.85],
+							colorLFk=[.6,.2,.2],  colorLIk=[1,.35,.35], 
 							groups=dict(),
-							stopAfter=None,
+							stopAfter="Post Script",
 							hideRig=True,
 							hideJoints=True
 							)
@@ -82,6 +85,7 @@ class Guide():
 					layers=[layer.dumps() for layer in self._layers])
 
 	def commit(self):
+		print "COMMITTTTTT"
 		# Saves settings to json in the model data attribute
 		cmds.setAttr(self._model+"."+DATA_ATTRIBUTE, json.dumps(self.dumps()), type="string")
 
@@ -101,6 +105,9 @@ class Guide():
 
 	def setSettings(self, **settings):
 		self._settings.update(settings)
+
+	def color(self, key):
+		return self.settings("color"+key)
 
 	def layers(self, name=None):
 		layers = {layer.name():layer for layer in self._layers}

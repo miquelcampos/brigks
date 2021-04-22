@@ -110,6 +110,8 @@ def convertXmlHarbie(xmlHarbie, useSymmetrySystems=False):
 	# Settings
 	xmlHarbieParameters = xmlHarbie.find("Parameters")
 	settings = json.loads(xmlHarbieParameters.get("value", {}))
+	if settings["stopAfter"] == "All":
+		settings["stopAfter"] = "Post Script"
 	xmlRoot.set("settings", json.dumps(settings))
 
 	# Layers
@@ -130,6 +132,7 @@ def _convertXmlLayer(xmlHarbieLayer, useSymmetrySystems):
 
 	xmlHarbieParameters = xmlHarbieLayer.find("Parameters")
 	settings = json.loads(xmlHarbieParameters.get("value", {}))
+	settings["color"] = settings.pop("layerColor")
 	xmlLayer.set("settings", json.dumps(settings))
 
 	xmlHarbieSystems = xmlHarbieLayer.find("Systems")

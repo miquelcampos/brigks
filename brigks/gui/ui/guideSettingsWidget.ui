@@ -2624,10 +2624,7 @@ FK</string>
          <property name="title">
           <string>Debug</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <property name="spacing">
-           <number>3</number>
-          </property>
+         <layout class="QGridLayout" name="gridLayout_2">
           <property name="leftMargin">
            <number>3</number>
           </property>
@@ -2640,59 +2637,92 @@ FK</string>
           <property name="bottomMargin">
            <number>3</number>
           </property>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="uiHideRig">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="uiStopAfter">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="currentIndex">
+             <number>5</number>
+            </property>
             <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Stop After</string>
-              </property>
-             </widget>
+             <property name="text">
+              <string>Pre Script</string>
+             </property>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBox_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="currentIndex">
-               <number>5</number>
-              </property>
-              <item>
-               <property name="text">
-                <string>Pre Script</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Create Object</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Create Attributes</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Create Operators</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Connect System</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Post Script</string>
-               </property>
-              </item>
-             </widget>
+             <property name="text">
+              <string>Create Object</string>
+             </property>
             </item>
-           </layout>
+            <item>
+             <property name="text">
+              <string>Create Attributes</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Create Operators</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Connect System</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Post Script</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Stop After</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Hide Rig</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Hide Joints</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="uiHideJoints">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
