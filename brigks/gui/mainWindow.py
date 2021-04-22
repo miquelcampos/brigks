@@ -11,11 +11,11 @@ from brigks.gui.guideSettingsWidget import GuideSettingsWidget
 from brigks.gui.layerSettingsWidget import LayerSettingsWidget
 from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 
-class MarbieWindow(QDialog):
+class MainWindow(QDialog):
 
 	def __init__(self, parent=None):
-		super(MarbieWindow, self).__init__(parent)
-		uiPath = os.path.join(os.path.dirname(__file__), "ui", "marbieWindow.ui")
+		super(MainWindow, self).__init__(parent)
+		uiPath = os.path.join(os.path.dirname(__file__), "ui", "mainWindow.ui")
 		QtCompat.loadUi(uiPath, self)
 
 		self._guide = None

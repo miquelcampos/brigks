@@ -167,6 +167,11 @@ class GuideSettingsWidget(QWidget):
 			btn = QPushButton(layer.name())
 			layout.addWidget(btn, i, 0)
 			self._visButtons.append(btn)
+			for j, k in enumerate(["Gde", "Rig", "Jnt", "Ctl"], start=1):
+				btn = QPushButton()
+				layout.addWidget(btn, i, j)
+				self._visButtons.append(btn)
+
 
 	# ----------------------------------------------------------------------------------
 	# GROUPS

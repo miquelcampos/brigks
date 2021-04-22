@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>311</width>
+    <width>267</width>
     <height>476</height>
    </rect>
   </property>
@@ -2749,22 +2749,16 @@ FK</string>
            <number>3</number>
           </property>
           <item row="0" column="0">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>ALL</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
+           </widget>
           </item>
           <item row="0" column="4">
            <widget class="QPushButton" name="uiAllCtlBTN">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -2773,6 +2767,12 @@ FK</string>
              <size>
               <width>0</width>
               <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="text">
@@ -2783,7 +2783,7 @@ FK</string>
           <item row="0" column="1">
            <widget class="QPushButton" name="uiAllGdeBTN">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -2792,6 +2792,12 @@ FK</string>
              <size>
               <width>0</width>
               <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="text">
@@ -2802,7 +2808,7 @@ FK</string>
           <item row="0" column="2">
            <widget class="QPushButton" name="uiAllRigBTN">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -2813,6 +2819,12 @@ FK</string>
               <height>0</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>Rig</string>
             </property>
@@ -2821,7 +2833,7 @@ FK</string>
           <item row="0" column="3">
            <widget class="QPushButton" name="uiAllJntBTN">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -2830,6 +2842,12 @@ FK</string>
              <size>
               <width>0</width>
               <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="text">

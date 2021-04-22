@@ -72,14 +72,10 @@ class GuideTreeWidget(QTreeWidget):
 		menu.uiAddGuideACT.triggered.connect(self.addGuide)
 		menu.uiAddLayerACT.triggered.connect(self.addLayer)
 		menu.uiAddSystemACT.triggered.connect(self.addSystem)
-		menu.uiShowGdeACT.triggered.connect(lambda:self.show(show=True, gde=True))
-		menu.uiShowRigACT.triggered.connect(lambda:self.show(show=True, rig=True))
-		menu.uiShowJntACT.triggered.connect(lambda:self.show(show=True, jnt=True))
-		menu.uiShowCtlACT.triggered.connect(lambda:self.show(show=True, ctl=True))
-		menu.uiHideGdeACT.triggered.connect(lambda:self.show(show=False, gde=True))
-		menu.uiHideRigACT.triggered.connect(lambda:self.show(show=False, rig=True))
-		menu.uiHideJntACT.triggered.connect(lambda:self.show(show=False, jnt=True))
-		menu.uiHideCtlACT.triggered.connect(lambda:self.show(show=False, ctl=True))
+		menu.uiToggleGdeACT.triggered.connect(lambda:self.toggle(gde=True))
+		menu.uiToggleRigACT.triggered.connect(lambda:self.toggle(rig=True))
+		menu.uiToggleJntACT.triggered.connect(lambda:self.toggle(jnt=True))
+		menu.uiToggleCtlACT.triggered.connect(lambda:self.toggle(ctl=True))
 		menu.uiBuildACT.triggered.connect(self.build)
 		menu.uiDuplicateACT.triggered.connect(self.duplicate)
 		menu.uiMirrorACT.triggered.connect(self.mirror)
@@ -138,8 +134,12 @@ class GuideTreeWidget(QTreeWidget):
 		print layer
 		print "addSystem"
 
-	def show(self, show=True, gde=False, rig=False, jnt=False, ctl=False):
+	def toggle(self, gde=False, rig=False, jnt=False, ctl=False):
 		print "show/hide", show, gde, rig, jnt, ctl
+		# TODO Find any object matching the use
+		# Check if it's visibile or not
+		# 
+		show = True
 
 		for systemGuide in self.selectedSystems():
 			if gde:
