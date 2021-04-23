@@ -201,6 +201,20 @@ def spinePointAt(name, cnsNode, masterA, masterB, blend=.5, axis="-Z", solver=0)
 
 	return spaNode
 
+
+def twoPointsConstraint(name, slave, masterA, masterB, blend=.5, axis="x-z"):
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	cns = cmds.pointConstraint(masterA, masterB, slave, weight=blend, maintainOffset=maintainOffset, name=name.format(node="TwoPnt"))
+	cmds.pointConstraint(masterB, slave, weight=blend, edit=True)
+	cmds.pointConstraint(masterA, slave, weight=1-blend, edit=True)
+
+	aim = aimConstraint(name+"Aim", slave, masterB, axis)
+	spinePointAt(name+"PtAt", aim, masterA, masterB, blend, "-Z")
+
+	return aim
+
 def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termination=0.0, amplitudeAxis=(1,1,1)):
 	if not cmds.pluginInfo("harmonics", q=True,  loaded=True):
 		cmds.loadPlugin("harmonics")

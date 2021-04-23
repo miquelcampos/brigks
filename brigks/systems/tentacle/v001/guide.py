@@ -17,6 +17,10 @@ class TentacleSystemGuide(SystemGuide):
 		basic=dict(),
 		chain=dict(),
 		)
+	markerPicked = ("Part",)
+	markerCurves = dict(
+		DispCrv=("Part",)
+		)
 
 	def addSettings(self):
 		self._settings["kinematic"] = "FK" # FK, IK or FK/IK

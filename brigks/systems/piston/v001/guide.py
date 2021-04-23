@@ -13,6 +13,10 @@ class PistonSystemGuide(SystemGuide):
 	markerCompatibility = dict(
 		stretch={},
 		)
+	markerPicked = ("Root", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["addControllers"] = False

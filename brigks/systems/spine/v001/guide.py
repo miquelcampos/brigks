@@ -10,12 +10,30 @@ class SpineSystemGuide(SystemGuide):
 		Root=Vector3([0,100,0]),
 		Eff=Vector3([0,135,0]),
 		)
+	markerPicked = ("Root", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Eff")
+		)
+
+	def createMarkers(self, matrices):
+		super(SpineSystemGuide, self).createMarkers(matrices)
+		
+		# Auxiliaries to attach the twist spline
+		aux25 = self.addMarker("Aux25", parent=self.markers("Root"))
+		aux50 = self.addMarker("Aux50", parent=self.markers("Root"))
+		aux75 = self.addMarker("Aux75", parent=self.markers("Root"))
+
+		compounds.twoPointsConstraint(aux25, self.markers("Root"), self.markers("Eff"), blend=.25, axis="x-z")
+		compounds.twoPointsConstraint(aux50, self.markers("Root"), self.markers("Eff"), blend=.50, axis="x-z")
+		compounds.twoPointsConstraint(aux75, self.markers("Root"), self.markers("Eff"), blend=.75, axis="x-z")
+		
+		for marker in [aux25, aux50, aux75]:
+			cmds.setAttr(marker+".template", True)
 
 	def addSettings(self):
 		self._settings["blend"] = "IK" # FK, IK
 		self._settings["breathing"] = False
 		self._settings["axis"] = "YZ"
-
 
 	def connectionPorts(self):
 		super(SpineSystemGuide, self).connectionPorts()

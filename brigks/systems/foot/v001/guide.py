@@ -18,6 +18,11 @@ class FootSystemGuide(SystemGuide):
 		In=Vector3([8,0,3]),
 		Out=Vector3([22,0,3]),
 		)
+	markerPicked = ("Root", "Part", "Heel")
+	markerCurves = dict(
+		DispCrv=("Root", "Part", "Heel"),
+		SideCrv=("In", "Heel", "Out")
+		)
 
 	def addSettings(self):
 		for i in range(self.count("Part")):

@@ -11,6 +11,10 @@ class LookatSystemGuide(SystemGuide):
 		Eff=Vector3([0,10,10]),
 		Ctrl=Vector3([0,15,0]),
 		)
+	markerPicked = ("Root", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["addLocalController"] = True

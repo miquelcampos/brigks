@@ -10,6 +10,7 @@ class AverageSystemGuide(SystemGuide):
 	markerPositions = dict(
 		Root=Vector3([0,10,0]),
 		)
+	markerPicked = ("Root",)
 
 	def addSettings(self):
 		self._settings["addControllers"] = False

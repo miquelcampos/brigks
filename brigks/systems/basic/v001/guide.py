@@ -19,6 +19,7 @@ class BasicSystemGuide(SystemGuide):
 		tentacle={},
 		#chain=dict(Part="Bone"), # This is how it should be formated if you had to rename markers
 		)
+	markerPicked = ("Part",)
 
 	def addSettings(self):
 		self._settings["addControllers"] = True

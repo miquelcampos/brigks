@@ -13,6 +13,10 @@ class ArmSystemGuide(SystemGuide):
 		Eff=Vector3([61,98,17]),
 		Prop=Vector3([57,100,14]),
 		)
+	markerPicked = ("Root", "Elbow", "Wrist", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Elbow", "Wrist", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["blend"] = "FK" # FK, IK

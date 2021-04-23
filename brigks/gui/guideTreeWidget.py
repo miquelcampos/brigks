@@ -6,6 +6,7 @@ from Qt.QtCore import Qt, QPoint
 
 from brigks.gui.guideTreeWidgetItems import GuideTreeWidgetItem, LayerTreeWidgetItem, SystemTreeWidgetItem, SubSystemTreeWidgetItem
 from brigks.gui.guideActionsMenu import GuideActionsMenu
+from brigks.systems import getSystemGuideClass
 
 class GuideTreeWidget(QTreeWidget):
 
@@ -127,8 +128,18 @@ class GuideTreeWidget(QTreeWidget):
 
 	def addSystem(self):
 		layer = self.selectedLayers()[0]
-		print layer
-		print "addSystem"
+		dialog = NewSystemDialog(self, self._guide, layer.name())
+		if not dialog.exec_():
+			return
+
+		systemType = dialog.systemType()
+		layer = dialog.layer()
+		if dialog.pickPositions():
+			SystemClass = getSystemGuideClass(systemType)
+			for key in SystemClass.markerPicked:
+			matrices = pick.positions(min=1, max=-1, show=True, returnAsMatrix=True)
+			
+
 
 	def toggle(self, gde=False, rig=False, jnt=False, ctl=False):
 		systemGuides = self.selectedSystems()

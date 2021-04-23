@@ -1,5 +1,5 @@
 import os
-
+from collections import defaultdict
 
 def getSystemGuideClass(systemType, version=None):
 	return _getClass(systemType, "guide", "SystemGuide", version)
@@ -33,6 +33,18 @@ def getSystemList():
 	folder = os.path.dirname(__file__)
 	for root, dirs, files in os.walk(folder, topdown=True):
 	   	return sorted(dirs)
+
+def getSystemListByCategory():
+	categories = defaultdict(list)
+	folder = os.path.dirname(__file__)
+	for root, dirs, files in os.walk(folder, topdown=True):
+	   	for systemType in sorted(dirs):
+			moduleName = ".".join(["brigks", "systems", systemType])
+			module = __import__(moduleName, globals(), locals(), ["*"], -1)
+			for cat in module.categories:
+				categories["ALL"].append(systemType)
+				categories[cat].append(systemType)
+	return categories
 
 def getSystemVersions(systemType):
 	# Get Module

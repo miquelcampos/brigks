@@ -11,6 +11,10 @@ class NeckSystemGuide(SystemGuide):
 		Head=Vector3([0,170,3]),
 		Eff=Vector3([0,185,3]),
 		)
+	markerPicked = ("Root", "Head", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Head", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["kinematic"] = "FK/IK" # IK or FK/IK

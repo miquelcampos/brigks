@@ -9,6 +9,7 @@ class QuadrantSystemGuide(SystemGuide):
 	markerPositions = dict(
 		Root=Vector3([20,0,0]),
 		)
+	markerPicked = ("Root",)
 
 	def addSettings(self):
 		self._settings["north"] = True

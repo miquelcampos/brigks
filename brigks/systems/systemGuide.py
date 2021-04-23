@@ -23,6 +23,8 @@ class SystemGuide(object):
 	markerPicked = ()
 	markerMinMax = {}
 	markerPositions = {}
+	markerPicked = ()
+	markerCurves = {}
 	# Marker Compatibility.
 	# Key is the type of systems compatible
 	# Value is a dictionary of markers to rename
@@ -302,6 +304,26 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
+	def pickMarkerPositions(self):
+		pickMin = 0
+		pickMax = 0
+		for part in self.markerPicked:
+			if part in self.markerMinMax:
+				pickMin += self.markerMinMax[0]
+				pickMax += self.markerMinMax[1]
+			else:
+				pickMin += 1
+				pickMax += 1
+
+		result = pick.positions(min=pickMin, max=pickMax, show=True, returnAsMatrix=True)
+		matrices = {}
+		for i, part in enumerate(self.markerPicked):
+			if part in self.markerMinMax:
+				pickMin += self.markerMinMax[0]
+				pickMax += self.markerMinMax[1]
+			else:
+				matrices[part] 
+
 	def createMarkers(self, matrices):
 		parent = None
 		markers = []
@@ -310,12 +332,24 @@ class SystemGuide(object):
 			parent = marker
 			markers.append(marker.name())
 
-		if len(markers) > 1:
-			curve = create.cnsCurve(self.getMarkerName("DispCrv"), markers, degree=1)
-			cmds.setAttr(curve+".template", True)
-
 		self.loadMarkers(force=True)
 		self.addSettings()
+
+		self.createMarkerCurves()
+
+	def createMarkerCurves(self):
+		for name, parts in self.markerCurves:
+			markers = []
+			for part in parts:
+				search = part+"*" if part in self.markerNames else part
+				result = cmds.ls(self.getMarkerName(search), transform=True, long=True)
+				result = [x for x in result if result.split("|").startswith("|"+self.model())]
+				result = sorted(result, key=lambda x:x.split("|")[-1])
+				markers += result
+
+			if len(markers) > 1:
+				curve = create.cnsCurve(self.getMarkerName(name), markers, degree=1)
+				cmds.setAttr(curve+".template", True)
 
 	def deleteMarkers(self):
 		self.loadMarkers(force=True)

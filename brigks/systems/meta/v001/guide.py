@@ -20,11 +20,20 @@ class MetaSystemGuide(SystemGuide):
 		Eff3=Vector3([60,105,11]),
 		Eff4=Vector3([60,105,9]),
 		)
+	markerPicked = ("Part",)
+	markerCurves = dict(
+		DispCrv=("Part",)
+		)
+
+	def createMarkerCurves(self):
+		for i in xrange(1, self.count("Part")+1):
+			markers = [self._markers["{}{}".format(x, i)].name() for x in ["Part", "Eff"]]
+			curve = create.cnsCurve(self.getMarkerName("Crv{}".format(i)), markers, degree=1)
+			cmds.setAttr(curve+".template", True)
 
 	def addSettings(self):
 		self._settings["startController"] = True
 		self._settings["interController"] = False
-
 
 	def connectionPorts(self):
 		super(MetaSystemGuide, self).connectionPorts()

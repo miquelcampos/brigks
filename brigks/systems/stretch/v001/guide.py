@@ -13,6 +13,10 @@ class StretchSystemGuide(SystemGuide):
 	markerCompatibility = dict(
 		piston={},
 		)
+	markerPicked = ("Root", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Eff")
+		)
 	
 	def addSettings(self):
 		self._settings["addControllers"] = False

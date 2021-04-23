@@ -20,6 +20,13 @@ class SliderSystemGuide(SystemGuide):
 		Pos1=Vector3([2,0,0]),
 		Neg1=Vector3([-1,0,0]),
 		)
+	markerPicked = ("Rail",)
+
+	def createMarkerCurves(self):
+		for i in xrange(1, self.count("Rail")+1):
+			markers = [self._markers["{}{}".format(x, i)].name() for x in ["Pos", "Rail", "Neg"]]
+			curve = create.cnsCurve(self.getMarkerName("DispCrv{}".format(i)), markers, degree=1)
+			cmds.setAttr(curve+".template", True)
 
 	def createMarkers(self, matrices):
 		super(SliderSystemGuide, self).createMarkers(matrices)

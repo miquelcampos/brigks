@@ -14,6 +14,10 @@ class ChainSystemGuide(SystemGuide):
 		Part1=Vector3([5,10,0]),
 		Part2=Vector3([10,10,0]),
 		)
+	markerPicked = ("Part",)
+	markerCurves = dict(
+		DispCrv=("Part",)
+		)
 	markerCompatibility = dict(
 		basic={},
 		tentacle={},

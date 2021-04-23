@@ -13,6 +13,10 @@ class LegSystemGuide(SystemGuide):
 		Ankle=Vector3([15,10,0]),
 		Eff=Vector3([15,10,5]),
 		)
+	markerPicked = ("Root", "Knee", "Wrist", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Knee", "Wrist", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["blend"] = "IK" # FK, IK

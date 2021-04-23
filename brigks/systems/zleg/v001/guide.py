@@ -13,6 +13,10 @@ class ZlegSystemGuide(SystemGuide):
 		Toe=Vector3([15,10,0]),
 		Eff=Vector3([15,10,5]),
 		)
+	markerPicked = ("Root", "Knee", "Ankle", "Toe", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Knee", "Ankle", "Toe", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["blend"] = "FK" # FK, IK

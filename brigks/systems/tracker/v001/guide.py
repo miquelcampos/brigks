@@ -4,9 +4,6 @@ from brigks.systems.systemGuide import SystemGuide
 
 class TrackerSystemGuide(SystemGuide):
 
-	markerNames = ()
-	markerMinMax = dict()
-
 	def addSettings(self):
 		self._settings["driverDefOrder"] = []
 		self._settings["driverDefs"] = {}

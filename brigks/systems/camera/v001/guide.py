@@ -9,6 +9,7 @@ class CameraSystemGuide(SystemGuide):
 	markerPositions = dict(
 		Root=Vector3([0,175,60]),
 		)
+	markerPicked = ("Root",)
 
 	def createMarkers(self, matrices):
 		parent = self.model()

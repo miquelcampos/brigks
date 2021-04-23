@@ -11,6 +11,10 @@ class BreastSystemGuide(SystemGuide):
 		Root=Vector3([5,135,5]),
 		Eff=Vector3([5,135,10]),
 		)
+	markerPicked = ("Root", "Eff")
+	markerCurves = dict(
+		DispCrv=("Root", "Eff")
+		)
 
 	def addSettings(self):
 		self._settings["dynActive"] = False

@@ -15,7 +15,14 @@ class PsdSystemGuide(SystemGuide):
 		Inner1=Vector3([-2,0,0]),
 		Outer1=Vector3([2,0,0]),
 		)
+	markerPicked = ("Root", "Driver",)
 
+	def createMarkerCurves(self):
+		for i in xrange(1, self.count("Driver")+1):
+			markers = [self._markers["{}{}".format(x, i)].name() for x in ["Inner", "Driver", "Outer"]]
+			curve = create.cnsCurve(self.getMarkerName("DispCrv{}".format(i)), markers, degree=1)
+			cmds.setAttr(curve+".template", True)
+			
 	def addSettings(self):
 		for i in xrange(1, self.count("Driver")+1):
 			self._settings["drvName{}".format(i)] = "Driver{}".format(i)
