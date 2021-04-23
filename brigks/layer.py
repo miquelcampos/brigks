@@ -122,6 +122,15 @@ class Layer():
 		else:
 			return self.settings("color"+key)
 
+
+	def setVisible(self, visible=True, gde=True, rig=True, jnt=True, ctl=True):
+		for system in self._systems.values():
+			system.setVisible(visible, gde, rig, jnt, ctl)
+
+	def isVisible(self, gde=True, rig=True, jnt=True, ctl=True):
+		if self._systems:
+			return self._systems[0].isVisible(gde, rig, jnt, ctl)
+
 	# ----------------------------------------------------------------------------------
 	# SYSTEMS
 	# ----------------------------------------------------------------------------------

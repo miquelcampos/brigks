@@ -236,11 +236,34 @@ class SystemGuide(object):
 		SystemBuilder = getSystemBuilderClass(self.type())
 		return SystemBuilder(parentBuilder, self)
 
-	def show(self, show=True):
-		search = self.getMarkerName("*")
-		markers = cmds.ls(search, type="transform", long=True)
-		for shp in cmds.listRelatives(markers, shapes=True):
-			cmds.setAttr(shp+".visibility", show)
+	def setVisible(self, visible=True, gde=True, rig=True, jnt=True, ctl=True):
+		objects = self.getObjects(gde, rig, jnt, ctl)
+		for shp in cmds.listRelatives(objects, shapes=True) or []:
+			for attr in ["lodVisibility", "visibility"]:
+				if cmds.listConnections(shp+"."+attr) or cmds.getAttr(shp+"."+attr, lock=True):
+					continue
+				cmds.setAttr(shp+"."+attr, visible)
+
+	def isVisible(self, gde=True, rig=True, jnt=True, ctl=True):
+		objects = self.getObjects(gde, rig, jnt, ctl)
+		visible = []
+		for obj in objects:
+			for shp in cmds.listRelatives(objects, shapes=True) or []:
+				visible.append(cmds.getAttr(shp+".lodVisibility"))
+		return visible.count(True) > visible.count(False)
+
+	def getObjects(self, gde=True, rig=True, jnt=True, ctl=True):
+		uses = {config.USE_GDE:gde, config.USE_RIG:rig,
+			config.USE_JNT:jnt, config.USE_CTL:ctl }
+
+		objects = []
+		for use, b in uses.iteritems():
+			if not b:
+				continue
+			search = naming.getObjectName(use, self.settings("location"), self.settings("name"), "*")
+			objects += cmds.ls(search, type="transform", long=True) or []
+		return objects
+
 
 	# ----------------------------------------------------------------------------------
 	# CONNECTIONS

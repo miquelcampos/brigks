@@ -44,7 +44,7 @@ class GuideTreeWidget(QTreeWidget):
 		layers = []
 		for item in self.selectedItems():
 			if isinstance(item, LayerTreeWidgetItem):
-				layers.extend(item.layer())
+				layers.append(item.layer())
 		return layers
 
 	def selectedSystems(self):
@@ -55,7 +55,7 @@ class GuideTreeWidget(QTreeWidget):
 			elif isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
 				systems.append(item.system())
 
-		systems = set(systems)
+		systems = list(set(systems))
 		return systems
 
 	def saveExpandedItem(self, item):
@@ -86,14 +86,10 @@ class GuideTreeWidget(QTreeWidget):
 		menu.uiToSceneACT.triggered.connect(self.toScene)
 		menu.uiFromSceneACT.triggered.connect(self.fromScene)
 
-		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_H), self, lambda:self.show(show=True, gde=True))
-		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_R), self, lambda:self.show(show=True, rig=True))
-		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_J), self, lambda:self.show(show=True, jnt=True))
-		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_C), self, lambda:self.show(show=True, ctl=True))
-		QShortcut(QKeySequence(Qt.Key_H), self, lambda:self.show(show=False, gde=True))
-		QShortcut(QKeySequence(Qt.Key_R), self, lambda:self.show(show=False, rig=True))
-		QShortcut(QKeySequence(Qt.Key_J), self, lambda:self.show(show=False, jnt=True))
-		QShortcut(QKeySequence(Qt.Key_C), self, lambda:self.show(show=False, ctl=True))
+		QShortcut(QKeySequence(Qt.Key_H), self, lambda:self.toggle(gde=True))
+		QShortcut(QKeySequence(Qt.Key_R), self, lambda:self.toggle(rig=True))
+		QShortcut(QKeySequence(Qt.Key_J), self, lambda:self.toggle(jnt=True))
+		QShortcut(QKeySequence(Qt.Key_C), self, lambda:self.toggle(ctl=True))
 		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_B), self, self.build)
 		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_D), self, self.duplicate)
 		QShortcut(QKeySequence(Qt.CTRL|Qt.ALT|Qt.Key_D), self, self.mirror)
@@ -135,18 +131,13 @@ class GuideTreeWidget(QTreeWidget):
 		print "addSystem"
 
 	def toggle(self, gde=False, rig=False, jnt=False, ctl=False):
-		print "show/hide", show, gde, rig, jnt, ctl
-		# TODO Find any object matching the use
-		# Check if it's visibile or not
-		# 
-		show = True
+		systemGuides = self.selectedSystems()
+		if not systemGuides:
+			return 
 
-		for systemGuide in self.selectedSystems():
-			if gde:
-				systemGuide.show(show)
-			if rig or jnt or ctl:
-				builder = systemGuide.builder(self._guide.builder())
-				builder.show(show, rig, jnt, ctl)
+		visible = not systemGuides[0].isVisible(gde, rig, jnt, ctl)
+		for systemGuide in systemGuides:
+			systemGuide.setVisible(visible, gde, rig, jnt, ctl)
 
 	def build(self):
 		self._guide.build(self.selectedSystems())

@@ -11,6 +11,7 @@ from Qt.QtGui import QColor, QPalette
 
 from brigks.gui.scriptWidget import ScriptWidget
 from brigks.gui.pickColorDialog import PickColorDialog
+from brigks.gui.guideVisibilityWidget import GuideVisibilityWidget
 
 STEPS = ["Pre Script",
 		"Create Objects",
@@ -27,6 +28,9 @@ class GuideSettingsWidget(QWidget):
 		QtCompat.loadUi(uiPath, self)
 
 		self._blocked = False
+
+		self.uiGroupVisibilityWDG = GuideVisibilityWidget(None)
+		self.uiVisibilityGRP.layout().addWidget(self.uiGroupVisibilityWDG)
 
 		self.uiPreScriptWDG = ScriptWidget("pre")
 		self.uiScriptsTAB.layout().addWidget(self.uiPreScriptWDG)
@@ -69,7 +73,7 @@ class GuideSettingsWidget(QWidget):
 		# print self.uiHideRig.isChecked()
 		# print self.uiHideJoints.isChecked()
 
-		self.loadVisibilities()
+		self.uiGroupVisibilityWDG.setGuide(self._guide)
 
 		self.loadGroups()
 		self.uiPreScriptWDG.setObject(self._guide)
@@ -149,28 +153,6 @@ class GuideSettingsWidget(QWidget):
 			hideJoints=self.uiHideJoints.isChecked()
 			)
 		self.commit()
-
-	# ----------------------------------------------------------------------------------
-	# VISIBILITIES
-	# ----------------------------------------------------------------------------------
-	def loadVisibilities(self):
-		layout = self.uiVisibilityGRP.layout()
-
-		# Clear
-		for btn in self._visButtons:
-			layout.removeWidget(btn)
-			btn.setVisible(False)
-			#TODO sip delete?
-		self._visButtons = []
-
-		for i, layer in enumerate(sorted(self._guide.layers().values()), start=1):
-			btn = QPushButton(layer.name())
-			layout.addWidget(btn, i, 0)
-			self._visButtons.append(btn)
-			for j, k in enumerate(["Gde", "Rig", "Jnt", "Ctl"], start=1):
-				btn = QPushButton()
-				layout.addWidget(btn, i, j)
-				self._visButtons.append(btn)
 
 
 	# ----------------------------------------------------------------------------------

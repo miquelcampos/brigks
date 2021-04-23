@@ -311,22 +311,6 @@ class SystemBuilder():
 	# ----------------------------------------------------------------------------------
 	# GET OBJECTS and NAMES
 	# ----------------------------------------------------------------------------------
-	def show(self, show=True, rig=True, jnt=True, ctl=True):
-		objects = []
-		for use, value in [(config.USE_RIG, rig), (config.USE_JNT, jnt), (config.USE_CTL, ctl)]:
-			if not value:
-				continue
-			search = self.getObjectName(use, "*")
-			objects += cmds.ls(search, type="transform", long=True)
-
-		for shp in cmds.listRelatives(objects, shapes=True) or []:
-			cmds.setAttr(shp+".lodVisibility", show)
-			if not cmds.listConnections(shp+".visibility"):
-				cmds.setAttr(shp+".visibility", True)
-
-	# ----------------------------------------------------------------------------------
-	# GET OBJECTS and NAMES
-	# ----------------------------------------------------------------------------------
 	def getObjectName(self, use, part):
 		return naming.getObjectName(
 			use=use,

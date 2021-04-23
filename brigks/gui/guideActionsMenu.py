@@ -63,7 +63,7 @@ class GuideActionsMenu(QMenu):
 		# Actions Visible
 		isLayerOnly = len(layerSelected) == 1 and not len(guideSelected) == 0 and not len(systemSelected) == 0
 		isOneLayer = isLayerOnly and (len(layerSelected) == 1)
-		isSystemOnly = len(systemSelected) == 1r and not len(guideSelected) == 0 and not len(layerSelected) == 0
+		isSystemOnly = len(systemSelected) == 1 and not len(guideSelected) == 0 and not len(layerSelected) == 0
 		isSystemOrLayer = not guideSelected
 		isGuideOrLayer = not systemSelected
 		isOneGuideOrOneLayer = isGuideOrLayer and (len(layerSelected+guideSelected) == 1)
