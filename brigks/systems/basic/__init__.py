@@ -1,1 +1,1 @@
-categories["Blur"]
+categories = ["Blur"]

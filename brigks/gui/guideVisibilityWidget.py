@@ -10,8 +10,7 @@ from Qt.QtGui import QColor, QPalette
 from Qt.QtCore import Qt
 
 COLOR_HIDDEN = QColor(70,70,70)
-# COLOR_BUILT = QColor(72,170,180)
-COLOR_VISIBLE = QColor(72,170,180)
+COLOR_VISIBLE = QColor(82,133,166)
 
 
 OPTIONS = ["gde", "rig", "jnt", "ctl"]
