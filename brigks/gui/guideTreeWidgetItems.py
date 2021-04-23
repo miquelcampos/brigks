@@ -20,7 +20,7 @@ class GuideTreeWidgetItem(QTreeWidgetItem):
 		for name, layer in sortedLayers:
 			LayerTreeWidgetItem(self, layer)
 
-	def guide(self):
+	def object(self):
 		return self._guide
 
 # ----------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ class LayerTreeWidgetItem(QTreeWidgetItem):
 		color = COLOR_BUILT if self.isBuilt() else COLOR_DEFAULT
 		self.setForeground(0, QBrush(color))
 
-	def layer(self):
+	def object(self):
 		return self._layer
 
 	def setLayerName(self, layerName):
@@ -86,7 +86,7 @@ class SystemTreeWidgetItem(QTreeWidgetItem):
 			SubSystemTreeWidgetItem(self, system, location="L")
 			SubSystemTreeWidgetItem(self, system, location="R")
 
-	def system(self):
+	def object(self):
 		return self._system
 
 	def setSystem(self, system):
@@ -107,7 +107,7 @@ class SubSystemTreeWidgetItem(QTreeWidgetItem):
 
 		self._system = system
 
-	def system(self):
+	def object(self):
 		return self._system
 
 

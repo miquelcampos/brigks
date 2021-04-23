@@ -347,12 +347,13 @@ class SystemGuide(object):
 		self.createMarkerCurves()
 
 	def createMarkerCurves(self):
-		for name, parts in self.markerCurves:
+		for name, parts in self.markerCurves.iteritems():
 			markers = []
 			for part in parts:
 				search = part+"*" if part in self.markerNames else part
-				result = cmds.ls(self.getMarkerName(search), transform=True, long=True)
-				result = [x for x in result if result.split("|").startswith("|"+self.model())]
+				result = cmds.ls(self.getMarkerName(search), type="transform", long=True)
+				print result
+				result = [x for x in result if x.split("|")[-1].startswith("|"+self.model())]
 				result = sorted(result, key=lambda x:x.split("|")[-1])
 				markers += result
 

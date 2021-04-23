@@ -13,12 +13,12 @@ from brigks.gui.systemSettingsWidget import SystemSettingsWidget
 
 class MainWindow(QDialog):
 
-	def __init__(self, parent=None):
+	def __init__(self, guide, parent=None):
 		super(MainWindow, self).__init__(parent)
 		uiPath = os.path.join(os.path.dirname(__file__), "ui", "mainWindow.ui")
 		QtCompat.loadUi(uiPath, self)
 
-		self._guide = None
+		self._guide = guide
 		self._settingsWidget = None
 		self._lastItem = None
 		self._guideSettingsWidget = GuideSettingsWidget(self._guide)
@@ -28,29 +28,22 @@ class MainWindow(QDialog):
 		self.uiGuideTREE = GuideTreeWidget()
 		self.uiTreeWDG.layout().addWidget(self.uiGuideTREE)
 
-		self.loadGuide()
-
 		self.uiGuideTREE.itemSelectionChanged.connect(self.loadSettings)
+		self.uiGuideTREE.setGuide(self._guide)
 
 		self.loadSettings()
 
-	def loadGuide(self):
-		# Find Guides
-		for guideAttr in cmds.ls("*.guide"):
-			guide, attr = guideAttr.split(".")
-			self._guide = Guide(model=guide)
-			self._guideSettingsWidget.setGuide(self._guide)
-			self.uiGuideTREE.setGuide(self._guide)
-			break
-
+			
 	def loadSettings(self):
 		# Clear
 		if self._settingsWidget:
 			self.uiSettingsWDG.layout().removeWidget(self._settingsWidget)
 			self._settingsWidget.setVisible(False)
 
+		if self._guide is None:
+			return
+
 		items = self.uiGuideTREE.selectedItems()
-		print items, not items or len(items)>1 or isinstance(items[0], GuideTreeWidgetItem)
 		if not items or len(items)>1 or isinstance(items[0], GuideTreeWidgetItem):
 			self._settingsWidget = self._guideSettingsWidget
 
@@ -65,11 +58,11 @@ class MainWindow(QDialog):
 
 			# Set Item and Connect
 			if isinstance(item, LayerTreeWidgetItem):
-				self._layerSettingsWidget.setLayer(item.layer())
+				self._layerSettingsWidget.setLayer(item.object())
 				self._layerSettingsWidget.layerRenamed.connect(item.setLayerName)
 				self._settingsWidget = self._layerSettingsWidget
 			elif isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
-				self._systemSettingsWidget.setSystem(item.system())
+				self._systemSettingsWidget.setSystem(item.object())
 				self._systemSettingsWidget.systemChanged.connect(item.setSystem)
 				self._systemSettingsWidget.systemRenamed.connect(item.setSystemName)
 				self._settingsWidget = self._systemSettingsWidget

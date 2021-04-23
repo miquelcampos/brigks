@@ -34,8 +34,9 @@ class GuideActionsMenu(QMenu):
 		self.uiDuplicateACT = self.addAction("Duplicate")
 		self.uiDuplicateACT.setShortcut(QKeySequence(Qt.CTRL|Qt.Key_D))
 		self.uiMirrorACT = self.addAction("Mirror")
-		self.uiMirrorACT.setShortcut(QKeySequence(Qt.CTRL|Qt.ALT|Qt.Key_D))
+		self.uiMirrorACT.setShortcut(QKeySequence(Qt.CTRL|Qt.Key_M))
 		self.uiMirrorL2RACT = self.addAction("Mirror L to R")
+		self.uiMirrorACT.setShortcut(QKeySequence(Qt.CTRL|Qt.SHIFT|Qt.Key_M))
 		# self.uiMirrorR2LACT = self.addAction("Mirror R to L")
 		# self.uiSnapACT = self.addAction("Snap")
 		self.addSeparator()
@@ -54,27 +55,38 @@ class GuideActionsMenu(QMenu):
 		
 		for item in self._tree.selectedItems():
 			if isinstance(item, GuideTreeWidgetItem):
-				guideSelected.append(item.guide())
+				guideSelected.append(item.object())
 			elif isinstance(item, LayerTreeWidgetItem):
-				layerSelected.append(item.layer())
+				layerSelected.append(item.object())
 			elif isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
-				systemSelected.append(item.system())
+				systemSelected.append(item.object())
 				
 		# Actions Visible
+		isEmpty = self._tree.guide() is None
+		hasSelection = len(guideSelected+layerSelected+systemSelected) > 0
 		isLayerOnly = len(layerSelected) == 1 and not len(guideSelected) == 0 and not len(systemSelected) == 0
 		isOneLayer = isLayerOnly and (len(layerSelected) == 1)
 		isSystemOnly = len(systemSelected) == 1 and not len(guideSelected) == 0 and not len(layerSelected) == 0
-		isSystemOrLayer = not guideSelected
-		isGuideOrLayer = not systemSelected
+		isSystemOrLayer = not guideSelected and hasSelection
+		isGuideOrLayer = not systemSelected and hasSelection
 		isOneGuideOrOneLayer = isGuideOrLayer and (len(layerSelected+guideSelected) == 1)
 		
-		self.uiAddGuideACT.setVisible(isOneGuideOrOneLayer)
+		self.uiAddGuideACT.setVisible(isEmpty)
 		self.uiAddLayerACT.setVisible(isOneGuideOrOneLayer)
 		self.uiAddSystemACT.setVisible(isOneLayer)
 
+		self.uiToggleGdeACT.setVisible(hasSelection)
+		self.uiToggleRigACT.setVisible(hasSelection)
+		self.uiToggleJntACT.setVisible(hasSelection)
+		self.uiToggleCtlACT.setVisible(hasSelection)
+
+		self.uiBuildACT.setVisible(hasSelection)
 		self.uiDuplicateACT.setVisible(isSystemOnly) 
 		self.uiMirrorACT.setVisible(isSystemOnly) 
 		self.uiMirrorL2RACT.setVisible(isLayerOnly)
 		# self.uiMirrorR2LACT.setVisible(isLayerOnly)
 
+		self.uiDeleteACT.setVisible(hasSelection)
+
 		self.uiToSceneACT.setVisible(isSystemOrLayer) 
+		self.uiFromSceneACT.setVisible(not isEmpty)

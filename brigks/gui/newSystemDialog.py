@@ -19,7 +19,7 @@ class NewSystemDialog(QDialog):
 
 		self.uiCategoryCBOX.currentIndexChanged.connect(setSystemList)
 
-	def setLayer(self, layer)
+	def setLayer(self, layer):
 		layers = sorted(self._guide.layers().keys())
 		default = layers.index(self._defaultLayer) if self._defaultLayer else 0
 		

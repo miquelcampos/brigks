@@ -1,12 +1,14 @@
 
 from Qt import QtCompat
-from Qt.QtWidgets import QTreeWidget, QTreeWidgetItem, QHeaderView, QShortcut, QMessageBox
+from Qt.QtWidgets import QTreeWidget, QHeaderView, QShortcut
 from Qt.QtGui import QKeySequence
 from Qt.QtCore import Qt, QPoint
 
 from brigks.gui.guideTreeWidgetItems import GuideTreeWidgetItem, LayerTreeWidgetItem, SystemTreeWidgetItem, SubSystemTreeWidgetItem
 from brigks.gui.guideActionsMenu import GuideActionsMenu
 from brigks.systems import getSystemGuideClass
+
+from brigks.gui import actions
 
 class GuideTreeWidget(QTreeWidget):
 
@@ -34,18 +36,50 @@ class GuideTreeWidget(QTreeWidget):
 		if guide:
 			self.setGuide(guide)
 
-	def setGuide(self, guide):
+	def setGuide(self, guide, selection=[]):
 		self.clear()
 		self._guide = guide
+		if guide is None:
+			return
 
 		item = GuideTreeWidgetItem(self, guide)
 		item.setExpanded(True)
 
+		print "setGuide", selection
+		if selection:
+			self.selectObjectsItems(item, selection)
+
+
+	def selectObjectsItems(self, item, selection):
+		isInSelection = item.object() in selection
+		item.setSelected(isInSelection)
+		if isInSelection:
+			item.parent().setExpanded(True)
+
+		for i in range(item.childCount()):
+			child = item.child(i)
+			self.selectObjectsItems(child, selection)
+
+	def guide(self):
+		return self._guide
+
+	#------------------------------------------------------
+	# SELECTED ITEMS
+	#------------------------------------------------------
+	def saveExpandedItem(self, item):
+		if isinstance(item, LayerTreeWidgetItem):
+			item.layer().settings()["expanded"] = item.isExpanded()
+
+		self._guide.commit()
+
+	#------------------------------------------------------
+	# SELECTED ITEMS
+	#------------------------------------------------------
 	def selectedLayers(self):
 		layers = []
 		for item in self.selectedItems():
 			if isinstance(item, LayerTreeWidgetItem):
-				layers.append(item.layer())
+				layers.append(item.object())
 		return layers
 
 	def selectedSystems(self):
@@ -54,16 +88,10 @@ class GuideTreeWidget(QTreeWidget):
 			if isinstance(item, LayerTreeWidgetItem):
 				systems.extend(item.systems())
 			elif isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
-				systems.append(item.system())
+				systems.append(item.object())
 
 		systems = list(set(systems))
 		return systems
-
-	def saveExpandedItem(self, item):
-		if isinstance(item, LayerTreeWidgetItem):
-			item.layer().settings()["expanded"] = item.isExpanded()
-
-		self._guide.commit()
 
 	#------------------------------------------------------
 	# MENU
@@ -73,10 +101,10 @@ class GuideTreeWidget(QTreeWidget):
 		menu.uiAddGuideACT.triggered.connect(self.addGuide)
 		menu.uiAddLayerACT.triggered.connect(self.addLayer)
 		menu.uiAddSystemACT.triggered.connect(self.addSystem)
-		menu.uiToggleGdeACT.triggered.connect(lambda:self.toggle(gde=True))
-		menu.uiToggleRigACT.triggered.connect(lambda:self.toggle(rig=True))
-		menu.uiToggleJntACT.triggered.connect(lambda:self.toggle(jnt=True))
-		menu.uiToggleCtlACT.triggered.connect(lambda:self.toggle(ctl=True))
+		menu.uiToggleGdeACT.triggered.connect(lambda:self.toggleVisibility(gde=True))
+		menu.uiToggleRigACT.triggered.connect(lambda:self.toggleVisibility(rig=True))
+		menu.uiToggleJntACT.triggered.connect(lambda:self.toggleVisibility(jnt=True))
+		menu.uiToggleCtlACT.triggered.connect(lambda:self.toggleVisibility(ctl=True))
 		menu.uiBuildACT.triggered.connect(self.build)
 		menu.uiDuplicateACT.triggered.connect(self.duplicate)
 		menu.uiMirrorACT.triggered.connect(self.mirror)
@@ -87,13 +115,14 @@ class GuideTreeWidget(QTreeWidget):
 		menu.uiToSceneACT.triggered.connect(self.toScene)
 		menu.uiFromSceneACT.triggered.connect(self.fromScene)
 
-		QShortcut(QKeySequence(Qt.Key_H), self, lambda:self.toggle(gde=True))
-		QShortcut(QKeySequence(Qt.Key_R), self, lambda:self.toggle(rig=True))
-		QShortcut(QKeySequence(Qt.Key_J), self, lambda:self.toggle(jnt=True))
-		QShortcut(QKeySequence(Qt.Key_C), self, lambda:self.toggle(ctl=True))
+		QShortcut(QKeySequence(Qt.Key_H), self, lambda:self.toggleVisibility(gde=True))
+		QShortcut(QKeySequence(Qt.Key_R), self, lambda:self.toggleVisibility(rig=True))
+		QShortcut(QKeySequence(Qt.Key_J), self, lambda:self.toggleVisibility(jnt=True))
+		QShortcut(QKeySequence(Qt.Key_C), self, lambda:self.toggleVisibility(ctl=True))
 		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_B), self, self.build)
 		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_D), self, self.duplicate)
-		QShortcut(QKeySequence(Qt.CTRL|Qt.ALT|Qt.Key_D), self, self.mirror)
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_M), self, self.mirror)
+		QShortcut(QKeySequence(Qt.CTRL|Qt.SHIFT|Qt.Key_M), self, self.mirrorL2R)
 		QShortcut(QKeySequence.Delete, self, self.delete)
 		QShortcut(QKeySequence(Qt.Key_F), self, self.toScene)
 		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_F), self, self.fromScene)
@@ -103,16 +132,11 @@ class GuideTreeWidget(QTreeWidget):
 	def mousePressEvent(self, event):
 		super(GuideTreeWidget, self).mousePressEvent(event)
 
-		# if not self._allowMenu:
-		# 	event.accept()
-		# 	return
-		
 		if event.button() == Qt.RightButton:
-			if len(self.selectedItems()):
-				# We add a little offset, otherwise we might click the first action accidentally
-				pos = self.mapToGlobal(event.pos()+QPoint(-25,15))
-				self._menu.filterActions()
-				self._menu.exec_(pos)
+			# We add a little offset, otherwise we might click the first action accidentally
+			pos = self.mapToGlobal(event.pos()+QPoint(-25,15))
+			self._menu.filterActions()
+			self._menu.exec_(pos)
 				
 		event.accept()
 
@@ -120,78 +144,48 @@ class GuideTreeWidget(QTreeWidget):
 	# ACTIONS
 	#-------------------------------------------------------------------------------
 	def addGuide(self):
-		print "addGuide"
+		guide = actions.addGuide()
+		self.setGuide(guide)
 
 	def addLayer(self):
-		parent = self._
-		print "addLayer"
+		layers = self.selectedLayers()
+		parent = layers[0] if layers else self._guide
+		layer = actions.addLayer(parent)
+		self.setGuide(self._guide, [layer])
 
 	def addSystem(self):
 		layer = self.selectedLayers()[0]
-		dialog = NewSystemDialog(self, self._guide, layer.name())
-		if not dialog.exec_():
-			return
-
-		systemType = dialog.systemType()
-		layer = dialog.layer()
-
-		matrices = {}
-		if dialog.pickPositions():
-			SystemClass = getSystemGuideClass(systemType)
-			matrices = SystemClass.pickMarkerPositions()
-			if not matrices:
-				return
-
-		system = layer.addSystem(systemType, "M", "NewSystem", matrices, version=None)
-		self._guide.commit()
+		actions.addSystem(layer)
 		self.setGuide(self._guide)
 			
-	def toggle(self, gde=False, rig=False, jnt=False, ctl=False):
+	def toggleVisibility(self, gde=False, rig=False, jnt=False, ctl=False):
 		systemGuides = self.selectedSystems()
 		if not systemGuides:
 			return 
-
-		visible = not systemGuides[0].isVisible(gde, rig, jnt, ctl)
-		for systemGuide in systemGuides:
-			systemGuide.setVisible(visible, gde, rig, jnt, ctl)
+		actions.toggleVisibility(systemGuides)
 
 	def build(self):
 		self._guide.build(self.selectedSystems())
 		self.setGuide(self._guide)
 
 	def duplicate(self):
-		for systemGuide in self.selectedSystems():
-			systemGuide.duplicate(mirror=False)
-		self._guide.commit()
+		actions.duplicate(self._guide, self.selectedSystems())
 		self.setGuide(self._guide)
 
 	def mirror(self):
-		for systemGuide in self.selectedSystems():
-			systemGuide.mirror(duplicate=True)
-		self._guide.commit()
+		actions.mirror(self._guide, self.selectedSystems())
 		self.setGuide(self._guide)
 
 	def mirrorL2R(self):
-		print "mirrorL2R"
-		print self.selectedSystems()
+		actions.mirrorL2R(self._guide, self.selectedSystems())
+		self.setGuide(self._guide)
 
 	def delete(self):
-		msgBox = QMessageBox(QMessageBox.Question, "Delete", "Are you sure you want to delte those systems?", QMessageBox.Cancel, self)
-		rigBTN = msgBox.addButton("Delete Rig", QMessageBox.ActionRole)
-		GuideBTN = msgBox.addButton("Delete Rig and Guide", QMessageBox.ActionRole)
-		rtn = msgBox.exec_()
-		if rtn == QMessageBox.Cancel:
-			return
-
-		for systemGuide in self.selectedSystems():
-			print "delete", systemGuide.key(), msgBox.clickedButton()==GuideBTN
-			#systemGuide.delete(deleteGuide=(rtn==GuideBTN))
-		self._guide.commit()
+		actions.delete(self._guide, self.selectedSystems())
 		self.setGuide(self._guide)
 
 	def toScene(self):
-		print "toScene"
-		print self.selectedSystems()
+		actions.toScene(self.selectedSystems())
 
 	def fromScene(self):
 		print "fromScene"

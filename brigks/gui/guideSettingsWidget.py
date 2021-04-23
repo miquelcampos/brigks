@@ -28,6 +28,7 @@ class GuideSettingsWidget(QWidget):
 		QtCompat.loadUi(uiPath, self)
 
 		self._blocked = False
+		self._selectEventJobID = None
 
 		self.uiGroupVisibilityWDG = GuideVisibilityWidget(None)
 		self.uiVisibilityGRP.layout().addWidget(self.uiGroupVisibilityWDG)
@@ -104,18 +105,28 @@ class GuideSettingsWidget(QWidget):
 		self.uiRemoveMembersBTN.clicked.connect(lambda:self.addRemoveMembers(add=False))
 		self.uiGroupsLIST.itemSelectionChanged.connect(self.loadMembers)
 		self.uiMembersLIST.itemSelectionChanged.connect(self.selectScene)
+		self.uiMainTAB.currentChanged.connect(self.connectSelection)
 
 		# Script
 		self.uiPreScriptWDG.updated.connect(self.scriptUpdated)
 		self.uiPostScriptWDG.updated.connect(self.scriptUpdated)
 
-		# Connection to Maya Select Event
-		self._selectEventJobID = cmds.scriptJob(e=["SelectionChanged", self.selectMembers], protected=True)
 
 		self._blocked = False
+
+	def connectSelection(self, index):
+		print "Connect Selection", self.uiMainTAB.tabText(index)
+		if self.uiMainTAB.tabText(index) == "Groups":
+			# Connection to Maya Select Event
+			self._selectEventJobID = cmds.scriptJob(e=["SelectionChanged", self.selectMembers], protected=True)
+		elif self._selectEventJobID:
+			print "DeleteScriptJob"
+			cmds.scriptJob(kill=self._selectEventJobID, force=True)
 	
 	def closeEvent(self, event):
-		cmds.scriptJob(kill=self._selectEventJobID, force=True)
+		if self._selectEventJobID:
+			print "DeleteScriptJob"
+			cmds.scriptJob(kill=self._selectEventJobID, force=True)
 		super(GuideSettingsWidget, self).closeEvent(event)
 
 	def commit(self):
@@ -220,10 +231,9 @@ class GuideSettingsWidget(QWidget):
 	def selectMembers(self, selection=None):
 		if selection is None:
 			try:
-				selection = cmds.ls(selection=True, type="transform", long=True) or []
+				selection = cmds.ls(selection=True, type="transform", long=True)
 			except AttributeError:
 				pass
-
 			selection = [x.split("|")[-1] for x in selection if x.startswith("|"+self._guide.setup())]
 		selection = [x.split("|")[-1] for x in selection]
 		for i in range(self.uiMembersLIST.count()):

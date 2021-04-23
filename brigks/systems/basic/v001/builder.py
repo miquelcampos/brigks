@@ -25,6 +25,11 @@ class BasicSystemBuilder(SystemBuilder):
 										self.directions("Part", "y"),self.directions("Part", "z"))
 													  , start=1):
 
+			print t
+			print dy
+			print dz
+			print axis
+
 			tfm = Transformation.lookAt(t, dy, dz, axis, negativeSide=self.negate())
 
 			part = "Part{}".format(i)
