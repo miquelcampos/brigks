@@ -1,9 +1,11 @@
 import sip
 import os.path
+import math
 
 from Qt.QtWidgets import QWidget, QFileDialog
 
 import maya.OpenMayaUI as mui
+import maya.OpenMaya as om
 from maya import cmds
 
 def getMayaWindow():
@@ -22,10 +24,17 @@ def get3dViews():
 
 	return views, widgets
 
+def wrapViewWidget(viewIndex):
+	view = mui.M3dView()
+	mui.M3dView.get3dView(viewIndex, view)
+	widget = sip.wrapinstance(long(view.widget()), QWidget)
+
+	return view, widget
+
 def viewToWorld(x, y, view=None):
 	""" Convert the 2D location on the viewport to a 3D position
 	"""
-	view = getActiveView() if view is None else view
+	view = mui.M3dView.active3dView() if view is None else view
 	height = view.portHeight()
 	y = height - y
 

@@ -304,25 +304,34 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# MARKERS / TRANSFORMS
 	# ----------------------------------------------------------------------------------
-	def pickMarkerPositions(self):
-		pickMin = 0
-		pickMax = 0
-		for part in self.markerPicked:
-			if part in self.markerMinMax:
-				pickMin += self.markerMinMax[0]
-				pickMax += self.markerMinMax[1]
-			else:
-				pickMin += 1
-				pickMax += 1
-
-		result = pick.positions(min=pickMin, max=pickMax, show=True, returnAsMatrix=True)
+	@classmethod
+	def pickMarkerPositions(cls):
+		guides = []
 		matrices = {}
-		for i, part in enumerate(self.markerPicked):
-			if part in self.markerMinMax:
-				pickMin += self.markerMinMax[0]
-				pickMax += self.markerMinMax[1]
+		for part in cls.markerPicked:
+			if part in cls.markerMinMax:
+				pickMin, pickMax = cls.markerMinMax[part]
 			else:
-				matrices[part] 
+				pickMin, pickMax = 1, 1
+
+			pp = pick.PickPositions(pickMin, pickMax, show=True, delete=False, messages=[part], returnAsMatrix=True)
+			pp.start()
+			result = pp.positions()
+			guides += pp.guides()
+			if not result:
+				matrices = {}
+				break
+
+			if part in cls.markerMinMax:
+				for i, matrix in enumerate(result):
+					matrices["{}{}".format(part, i+1)] = result[i]
+			else:
+				matrices[part] = result[0]
+
+		if guides:
+			cmds.delete(guides)
+		
+		return matrices
 
 	def createMarkers(self, matrices):
 		parent = None

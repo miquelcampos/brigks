@@ -134,13 +134,18 @@ class GuideTreeWidget(QTreeWidget):
 
 		systemType = dialog.systemType()
 		layer = dialog.layer()
+
+		matrices = {}
 		if dialog.pickPositions():
 			SystemClass = getSystemGuideClass(systemType)
-			for key in SystemClass.markerPicked:
-			matrices = pick.positions(min=1, max=-1, show=True, returnAsMatrix=True)
+			matrices = SystemClass.pickMarkerPositions()
+			if not matrices:
+				return
+
+		system = layer.addSystem(systemType, "M", "NewSystem", matrices, version=None)
+		self._guide.commit()
+		self.setGuide(self._guide)
 			
-
-
 	def toggle(self, gde=False, rig=False, jnt=False, ctl=False):
 		systemGuides = self.selectedSystems()
 		if not systemGuides:

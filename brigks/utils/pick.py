@@ -4,30 +4,31 @@ from Qt.QtWidgets import QApplication
 
 import maya.OpenMaya as om 
 import maya.OpenMayaUI as mui
+from maya import cmds
 
 from brigks.utils import gui, create
 
 
-def positions(self, min=1, max=-1, show=True):
-	# Using a QEventLoop to stop the script until the pick session is done
-	loop = QtCore.QEventLoop()
+# def positions(self, min=1, max=-1, show=True):
+# 	# Using a QEventLoop to stop the script until the pick session is done
+# 	loop = QEventLoop()
 
-	pp = PickPositions(min, max, show)
-	pp.pickSessionEnded.connect(lambda:loop.quit())
-	pp.start()
-	loop.exec_()
+# 	pp = PickPositions(min, max, show)
+# 	pp.pickSessionEnded.connect(lambda:loop.quit())
+# 	pp.start()
+# 	loop.exec_()
 
-	return [xmathutils.Vector.From_MVector(p) for p in pp.positions()]
+# 	return [xmathutils.Vector.From_MVector(p) for p in pp.positions()]
 
 
 class PickPositions(QObject):
 
 	pickSessionEnded = Signal(list)
 
-	def __init__(self, min=1, max=-1, show=False, returnAsMatrix=False):
-		super(PickPositions, self).__init__(parent)
-
+	def __init__(self, min=1, max=-1, show=False, delete=True, messages=[], returnAsMatrix=False):
 		self._mainWindow = gui.getMayaWindow()
+		super(PickPositions, self).__init__(self._mainWindow)
+
 		self._min, self._max = min, max
 		self._clickFilter = ClickFilter(self)
 		self._keyFilter = KeyFilter(self)
@@ -36,6 +37,9 @@ class PickPositions(QObject):
 		self._fnDependNode = om.MFnDependencyNode()
 		self._positions = []
 		self._show = show
+		self._delete = delete
+		self._messages = messages or [""]
+		self._messageCount = 0
 		self._returnAsMatrix = returnAsMatrix
 		self._guides = []
 		self._manipulators = []
@@ -49,13 +53,18 @@ class PickPositions(QObject):
 
 	# Methods -------------------------
 	def start(self):
+		self._loop = QEventLoop()
+		self.pickSessionEnded.connect(lambda:self._loop.quit())
+		self._showMessage()
 		self._createEventFilters()
 		self._setCursor(Qt.CrossCursor)
+		self._loop.exec_()
 
 	def finish(self, completed=True):
 		count = len(self._positions)
 		self._removeEventFilters()
-		self._removeGuides()
+		if self._delete:
+			self._removeGuides()
 		self._setCursor()
 		if count < self._min or (self._max > 0 and not count <= self._max) or not completed:
 			self._positions = []
@@ -67,6 +76,8 @@ class PickPositions(QObject):
 			self._createGuide(position)
 		if self._max > 0 and len(self._positions) >= self._max:
 			self.finish(completed=True)
+		else:
+			self._showMessage()
 
 	# Private -------------------
 	def _createEventFilters(self):
@@ -83,10 +94,16 @@ class PickPositions(QObject):
 		for v in self._viewWidgets:
 			v.setCursor(cursor)
 
+	def _showMessage(self):
+		index = self._messageCount if self._messageCount < len(self._messages) else -1
+		message = "Pick {} Position (Right Click to End)".format(self._messages[index])
+		cmds.inViewMessage(statusMessage=message, position="topRight", backColor=0x00000000, fade=True)
+		self._messageCount += 1
+
 	def _createGuide(self, position):  
 		matrix = self._asMatrix(position)
 		guide = create.transform("PickSessionGuide", parent=None, matrix=matrix)
-		create.icon("shpere", parent=guide, size=1, showCenter=True)
+		create.icon("sphere", parent=guide, size=3, showCenter=True)
 
 		self._guides.append(guide)
 		cmds.setAttr(guide+".overrideEnabled", True)
@@ -109,6 +126,9 @@ class PickPositions(QObject):
 		# 	try: self._fnFreePoint.deleteManipulator(manip)
 		# 	except: pass
 		# self._manipulators = []
+
+	def guides(self):
+		return self._guides
 
 	def _asMatrix(self, position):
 		return [1,0,0,0, 0,1,0,0, 0,0,1,0,
