@@ -153,8 +153,8 @@ class GuideTreeWidget(QTreeWidget):
 		layers = self.selectedLayers()
 		if not layers:
 			return
-		actions.addSystem(layers[0])
-		self.setGuide(self._guide)
+		system = actions.addSystem(layers[0])
+		self.setGuide(self._guide, [system])
 			
 	def toggleVisibility(self, gde=False, rig=False, jnt=False, ctl=False):
 		systemGuides = self.selectedSystems()

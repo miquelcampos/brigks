@@ -52,6 +52,9 @@ class SystemGuide(object):
 		self._connections = {}
 		self.addSettings()
 
+		self.guide = self._layer.guide
+		self.model = self.guide().model
+
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
 		"""Create System Guide
@@ -102,12 +105,6 @@ class SystemGuide(object):
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------
-	def guide(self):
-		return self._layer.guide()
-
-	def model(self):
-		return self._layer.guide().model()
-
 	def key(self):
 		return naming.getSystemKey(self._settings["location"], self._settings["name"])
 
@@ -352,7 +349,7 @@ class SystemGuide(object):
 			for part in parts:
 				search = part+"*" if part in self.markerNames else part
 				result = cmds.ls(self.getMarkerName(search), type="transform", long=True)
-				result = [x for x in result if x.split("|")[-1].startswith("|"+self.model())]
+				result = [x for x in result if x.split("|")[-1].startswith(self.model())]
 				result = sorted(result, key=lambda x:x.split("|")[-1])
 				markers += result
 
@@ -410,7 +407,7 @@ class SystemGuide(object):
 			self._multiMarkers = dict()
 			search = self.getMarkerName("*")
 			markers = cmds.ls(search, type="transform", long=True)
-			markers = [m for m in markers if m.startswith("|"+self.model())]
+			markers = [m for m in markers if m.startswith(self.model())]
 			for marker in markers:
 				part = marker.split("_")[-1]
 				self._markers[part] = SystemMarker(marker, self)

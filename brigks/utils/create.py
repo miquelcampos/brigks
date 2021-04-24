@@ -27,7 +27,7 @@ def transform(name, parent=None, matrix=None, icon=None, size=1, po=None, ro=Non
 	if matrix is not None:
 		attributes.setMatrix(node, matrix, worldSpace=True)
 
-	return node
+	return cmds.ls(node, long=True)[0]
 
 def joint(name, parent=None, matrix=None, color=None, radius=1, useJointOrient=False):
 	jnt = cmds.createNode("joint", name=name)

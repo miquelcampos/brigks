@@ -8,6 +8,7 @@ import logging
 from brigks.layer import Layer
 from brigks.builder import Builder
 from brigks import naming
+from brigks.utils import create
 from brigks.config import DATA_ATTRIBUTE
 from brigks.utils.xmldom import indent
 
@@ -42,13 +43,13 @@ class Guide():
 		if model:
 			self.load(model)
 		else:
-			self._model = cmds.createNode("transform", name="Guide")
+			self._model = create.transform("Guide")
 			cmds.addAttr(self._model, longName="model", attributeType="bool")
 			cmds.addAttr(self._model, longName="guide", attributeType="bool")
 			cmds.addAttr(self._model, longName=DATA_ATTRIBUTE, dataType="string")
 
 	def load(self, model):
-		self._model = model
+		self._model = cmds.ls(model, long=True)[0]
 		if not cmds.ls(model+"."+DATA_ATTRIBUTE):
 			raise RuntimeError("Invalide Guide. Missing Data Attribute.")
 
