@@ -115,17 +115,14 @@ class GuideSettingsWidget(QWidget):
 		self._blocked = False
 
 	def connectSelection(self, index):
-		print "Connect Selection", self.uiMainTAB.tabText(index)
 		if self.uiMainTAB.tabText(index) == "Groups":
 			# Connection to Maya Select Event
 			self._selectEventJobID = cmds.scriptJob(e=["SelectionChanged", self.selectMembers], protected=True)
 		elif self._selectEventJobID:
-			print "DeleteScriptJob"
 			cmds.scriptJob(kill=self._selectEventJobID, force=True)
 	
 	def closeEvent(self, event):
 		if self._selectEventJobID:
-			print "DeleteScriptJob"
 			cmds.scriptJob(kill=self._selectEventJobID, force=True)
 		super(GuideSettingsWidget, self).closeEvent(event)
 

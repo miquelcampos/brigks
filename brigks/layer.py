@@ -48,6 +48,8 @@ class Layer():
 
 	def delete(self, deleteGuide=False):
 		self.guide().delete(self._systems, deleteGuide)
+		if deleteGuide:
+			self._parent.removeLayer(self)
 
 	def dumps(self):
 		data = dict(name=self._name,
@@ -78,8 +80,19 @@ class Layer():
 		return self._name
 
 	def setName(self, name):
+		if name == self._name:
+			return self._name
 		name = self.__findUniqueName(name, self._parent.layers())
 		self._name = name
+		return self._name
+
+	def __findUniqueName(self, name, layers):
+		inputName = name
+		i = 1
+		while name in layers:
+			name = inputName + str(i)
+			i += 1
+		return name
 
 	def layers(self):
 		return {layer.name():layer for layer in self._layers}
@@ -106,14 +119,6 @@ class Layer():
 		self.setName(self.name())
 		self._parent._layers.append(self)
 
-	def __findUniqueName(self, name, layers):
-		inputName = name
-		i = 1
-		while name in layers:
-			name = inputName + str(i)
-			i += 1
-		return name
-
 	def color(self, key):
 		if self.settings("useLayerColor"):
 			return self.settings("color")
@@ -121,7 +126,6 @@ class Layer():
 			return self._parent.color(key)
 		else:
 			return self.settings("color"+key)
-
 
 	def setVisible(self, visible=True, gde=True, rig=True, jnt=True, ctl=True):
 		for system in self._systems.values():

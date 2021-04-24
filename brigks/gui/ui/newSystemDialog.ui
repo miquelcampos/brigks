@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>294</width>
+    <width>253</width>
     <height>416</height>
    </rect>
   </property>
@@ -157,7 +157,7 @@
       <item>
        <widget class="QCheckBox" name="uiPickPositionCHK">
         <property name="text">
-         <string>Pick Markers Positions</string>
+         <string>Pick Positions</string>
         </property>
         <property name="checked">
          <bool>true</bool>

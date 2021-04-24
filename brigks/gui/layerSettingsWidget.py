@@ -79,7 +79,8 @@ class LayerSettingsWidget(QWidget):
 	# ----------------------------------------------------------------------------------
 	def rename(self):
 		name = self.uiNameLINE.text()
-		self._layer.setName(name)
+		name = self._layer.setName(name)
+		self._layer.commit()
 		self.layerRenamed.emit(name)
 
 	def loadColors(self):

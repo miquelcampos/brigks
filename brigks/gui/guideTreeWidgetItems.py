@@ -36,7 +36,7 @@ class LayerTreeWidgetItem(QTreeWidgetItem):
 
 		sortedSubLayers = sorted(layer.layers().items(), key=lambda x: x[0])
 		for subName, subLayer in sortedSubLayers:
-			LayerTreeWidgetItem(self, subName, subLayer)
+			LayerTreeWidgetItem(self, subLayer)
 
 		sortedSystems = sorted(layer.systems().items(), key=lambda x: x[0])
 		for key, system in sortedSystems:
@@ -58,7 +58,7 @@ class LayerTreeWidgetItem(QTreeWidgetItem):
 			if isinstance(item, LayerTreeWidgetItem):
 				systems.extend(item.systems())
 			else:
-				systems.append(item.system())
+				systems.append(item.object())
 		return systems
 
 	def isBuilt(self):

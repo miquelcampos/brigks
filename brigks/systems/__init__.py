@@ -44,6 +44,7 @@ def getSystemListByCategory():
 			for cat in module.categories:
 				categories["ALL"].append(systemType)
 				categories[cat].append(systemType)
+		break
 	return categories
 
 def getSystemVersions(systemType):

@@ -16,9 +16,10 @@ class GuideActionsMenu(QMenu):
 		self._tree = tree
 		
 		# Actions
-		self.uiAddGuideACT = self.addAction("Add Guide")
 		self.uiAddLayerACT = self.addAction("Add Layer")
+		self.uiAddLayerACT.setShortcut(QKeySequence(Qt.CTRL|Qt.SHIFT|Qt.Key_H))
 		self.uiAddSystemACT = self.addAction("Add System")
+		self.uiAddSystemACT.setShortcut(QKeySequence(Qt.CTRL|Qt.Key_N))
 		self.addSeparator()
 		self.uiToggleGdeACT = self.addAction("Toggle Vis Gde")
 		self.uiToggleGdeACT.setShortcut(QKeySequence(Qt.Key_H))
@@ -63,22 +64,21 @@ class GuideActionsMenu(QMenu):
 				
 		# Actions Visible
 		isEmpty = self._tree.guide() is None
-		hasSelection = len(guideSelected+layerSelected+systemSelected) > 0
-		isLayerOnly = len(layerSelected) == 1 and not len(guideSelected) == 0 and not len(systemSelected) == 0
-		isOneLayer = isLayerOnly and (len(layerSelected) == 1)
-		isSystemOnly = len(systemSelected) == 1 and not len(guideSelected) == 0 and not len(layerSelected) == 0
-		isSystemOrLayer = not guideSelected and hasSelection
-		isGuideOrLayer = not systemSelected and hasSelection
-		isOneGuideOrOneLayer = isGuideOrLayer and (len(layerSelected+guideSelected) == 1)
-		
-		self.uiAddGuideACT.setVisible(isEmpty)
+		hasSelection = bool(guideSelected+layerSelected+systemSelected)
+		isLayerOnly = bool(layerSelected and not guideSelected and not systemSelected)
+		isOneLayer = bool(isLayerOnly and (len(layerSelected) == 1))
+		isSystemOnly = bool(systemSelected and not guideSelected and not layerSelected)
+		isSystemOrLayer = bool(not guideSelected and hasSelection)
+		isGuideOrLayer = bool(not systemSelected and hasSelection)
+		isOneGuideOrOneLayer = bool(isGuideOrLayer and (len(layerSelected+guideSelected) == 1))
+
 		self.uiAddLayerACT.setVisible(isOneGuideOrOneLayer)
 		self.uiAddSystemACT.setVisible(isOneLayer)
 
-		self.uiToggleGdeACT.setVisible(hasSelection)
-		self.uiToggleRigACT.setVisible(hasSelection)
-		self.uiToggleJntACT.setVisible(hasSelection)
-		self.uiToggleCtlACT.setVisible(hasSelection)
+		self.uiToggleGdeACT.setVisible(isSystemOrLayer)
+		self.uiToggleRigACT.setVisible(isSystemOrLayer)
+		self.uiToggleJntACT.setVisible(isSystemOrLayer)
+		self.uiToggleCtlACT.setVisible(isSystemOrLayer)
 
 		self.uiBuildACT.setVisible(hasSelection)
 		self.uiDuplicateACT.setVisible(isSystemOnly) 
@@ -86,7 +86,7 @@ class GuideActionsMenu(QMenu):
 		self.uiMirrorL2RACT.setVisible(isLayerOnly)
 		# self.uiMirrorR2LACT.setVisible(isLayerOnly)
 
-		self.uiDeleteACT.setVisible(hasSelection)
+		self.uiDeleteACT.setVisible(isSystemOrLayer)
 
 		self.uiToSceneACT.setVisible(isSystemOrLayer) 
 		self.uiFromSceneACT.setVisible(not isEmpty)

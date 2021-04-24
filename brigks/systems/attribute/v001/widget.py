@@ -246,7 +246,7 @@ class AttributeSystemWidget(SystemWidget):
 
 		attrName = str(self.uiAttributeLIST.currentItem().text())
 		if attrName not in self._definitions:
-			print "Harbie : ERROR : Params01 : Can't Find Attr in the list"
+			logging.error("Brigks : attribute system : Can't Find Attr in the list")
 			return None, None
 
 		return attrName

@@ -4,6 +4,7 @@ from Qt.QtWidgets import QMessageBox
 from maya import cmds
 
 from brigks import Guide
+from brigks.systems import getSystemGuideClass
 from brigks.utils import gui
 from brigks.gui.newSystemDialog import NewSystemDialog
 
@@ -14,12 +15,9 @@ def findGuides():
 		guides.append(Guide(model=guide))
 	return guides
 
-def addGuide():
-	return Guide()
-
 def addLayer(parent):
 	layer = parent.addLayer("NewLayer")
-	guide = guide if isinstance(parent, Guide) else parent.guide()
+	guide = parent if isinstance(parent, Guide) else parent.guide()
 	guide.commit()
 	return layer
 
@@ -27,7 +25,7 @@ def addSystem(layer, parent=None):
 	guide = layer.guide()
 	if parent is None:
 		parent = gui.getMayaWindow()
-	dialog = NewSystemDialog(parent, guide, layer.name())
+	dialog = NewSystemDialog(parent, guide, layer)
 	if not dialog.exec_():
 		return
 
@@ -69,7 +67,7 @@ def mirrorL2R(guide, systemGuides):
 		system.mirror()
 	guide.commit()
 
-def delete(guide, systemGuides, parent=None):
+def delete(guide, layers, systemGuides, parent=None):
 	if parent is None:
 		parent = gui.getMayaWindow()
 	msgBox = QMessageBox(QMessageBox.Question, "Delete", "Are you sure you want to delte those systems?", QMessageBox.Cancel, parent)
@@ -80,7 +78,9 @@ def delete(guide, systemGuides, parent=None):
 		return
 
 	for systemGuide in systemGuides:
-		systemGuide.delete(deleteGuide=(rtn==GuideBTN))
+		systemGuide.delete(deleteGuide=(rtn==1))
+	for layer in layers:
+		layer.delete(deleteGuide=(rtn==1))
 
 	guide.commit()
 

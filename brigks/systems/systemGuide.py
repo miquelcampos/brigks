@@ -8,7 +8,7 @@ from math3d import TransformationArray, Vector3Array
 
 from brigks.connections import getSystemConnectionClass
 from brigks import naming, config
-from brigks.utils import create
+from brigks.utils import create, pick
 from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
 
@@ -352,7 +352,6 @@ class SystemGuide(object):
 			for part in parts:
 				search = part+"*" if part in self.markerNames else part
 				result = cmds.ls(self.getMarkerName(search), type="transform", long=True)
-				print result
 				result = [x for x in result if x.split("|")[-1].startswith("|"+self.model())]
 				result = sorted(result, key=lambda x:x.split("|")[-1])
 				markers += result

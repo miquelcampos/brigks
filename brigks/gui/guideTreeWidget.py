@@ -45,7 +45,6 @@ class GuideTreeWidget(QTreeWidget):
 		item = GuideTreeWidgetItem(self, guide)
 		item.setExpanded(True)
 
-		print "setGuide", selection
 		if selection:
 			self.selectObjectsItems(item, selection)
 
@@ -68,7 +67,7 @@ class GuideTreeWidget(QTreeWidget):
 	#------------------------------------------------------
 	def saveExpandedItem(self, item):
 		if isinstance(item, LayerTreeWidgetItem):
-			item.layer().settings()["expanded"] = item.isExpanded()
+			item.object().settings()["expanded"] = item.isExpanded()
 
 		self._guide.commit()
 
@@ -98,7 +97,6 @@ class GuideTreeWidget(QTreeWidget):
 	#------------------------------------------------------
 	def createRightClickMenu(self):
 		menu = GuideActionsMenu(self)
-		menu.uiAddGuideACT.triggered.connect(self.addGuide)
 		menu.uiAddLayerACT.triggered.connect(self.addLayer)
 		menu.uiAddSystemACT.triggered.connect(self.addSystem)
 		menu.uiToggleGdeACT.triggered.connect(lambda:self.toggleVisibility(gde=True))
@@ -115,6 +113,8 @@ class GuideTreeWidget(QTreeWidget):
 		menu.uiToSceneACT.triggered.connect(self.toScene)
 		menu.uiFromSceneACT.triggered.connect(self.fromScene)
 
+		QShortcut(QKeySequence(Qt.CTRL|Qt.SHIFT|Qt.Key_N), self, self.addLayer)
+		QShortcut(QKeySequence(Qt.CTRL|Qt.Key_N), self, self.addSystem)
 		QShortcut(QKeySequence(Qt.Key_H), self, lambda:self.toggleVisibility(gde=True))
 		QShortcut(QKeySequence(Qt.Key_R), self, lambda:self.toggleVisibility(rig=True))
 		QShortcut(QKeySequence(Qt.Key_J), self, lambda:self.toggleVisibility(jnt=True))
@@ -143,10 +143,6 @@ class GuideTreeWidget(QTreeWidget):
 	#-------------------------------------------------------------------------------
 	# ACTIONS
 	#-------------------------------------------------------------------------------
-	def addGuide(self):
-		guide = actions.addGuide()
-		self.setGuide(guide)
-
 	def addLayer(self):
 		layers = self.selectedLayers()
 		parent = layers[0] if layers else self._guide
@@ -154,8 +150,10 @@ class GuideTreeWidget(QTreeWidget):
 		self.setGuide(self._guide, [layer])
 
 	def addSystem(self):
-		layer = self.selectedLayers()[0]
-		actions.addSystem(layer)
+		layers = self.selectedLayers()
+		if not layers:
+			return
+		actions.addSystem(layers[0])
 		self.setGuide(self._guide)
 			
 	def toggleVisibility(self, gde=False, rig=False, jnt=False, ctl=False):
@@ -181,7 +179,10 @@ class GuideTreeWidget(QTreeWidget):
 		self.setGuide(self._guide)
 
 	def delete(self):
-		actions.delete(self._guide, self.selectedSystems())
+		actions.delete(self._guide, 
+			self.selectedLayers(), 
+			self.selectedSystems(), 
+			self)
 		self.setGuide(self._guide)
 
 	def toScene(self):

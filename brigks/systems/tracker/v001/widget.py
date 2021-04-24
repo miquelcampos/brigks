@@ -45,11 +45,11 @@ class TrackerSystemWidget(SystemWidget):
 	def loadParameters(self):
 		self._definitions = copy.deepcopy(self.parameters("driverDefs"))
 
-		self.ordered = [paramName for paramName in self.parameters("driverDefOrder") if paramName in self._definitions]
+		self.ordered = [attrName for attrName in self.parameters("driverDefOrder") if attrName in self._definitions]
 
-		for paramName in self._definitions.keys():
-			if paramName not in self.ordered:
-				self.ordered.append(paramName)
+		for attrName in self._definitions.keys():
+			if attrName not in self.ordered:
+				self.ordered.append(attrName)
 
 		self.uiDriverLIST.clear()
 		self.uiDriverLIST.addItems(self.ordered)
@@ -57,8 +57,8 @@ class TrackerSystemWidget(SystemWidget):
 		self.saveParameters()
 
 	def loadDefinition(self):
-		paramName = self.getCurrentParameterName()
-		if not paramName:
+		attrName = self.getCurrentParameterName()
+		if not attrName:
 			self.uiDefinitionGRP.setEnabled(False)
 			return 
 
@@ -67,8 +67,8 @@ class TrackerSystemWidget(SystemWidget):
 		self.disconnectDefinitionChanged()
 
 
-		definition = self._definitions[paramName]
-		self.uiNameLINE.setText(paramName)
+		definition = self._definitions[attrName]
+		self.uiNameLINE.setText(attrName)
 
 		self.uiAxisCBOX.setCurrentIndex
 
@@ -91,9 +91,9 @@ class TrackerSystemWidget(SystemWidget):
 	# BUTTONS
 	# -------------------------------------------------------------
 	def addParameterDefinition(self):
-		paramName = self.getNextAvailableName("NewDriver")
+		attrName = self.getNextAvailableName("NewDriver")
 
-		self.uiDriverLIST.addItem(paramName)
+		self.uiDriverLIST.addItem(attrName)
 
 
 		definition = {	"axis":"Z",
@@ -101,18 +101,18 @@ class TrackerSystemWidget(SystemWidget):
 					   	"max":0,
 					   	"interpolation":"Linear"}
 
-		self._definitions[paramName] = definition
+		self._definitions[attrName] = definition
 
 		self.parameterOrderChanged()
 
-		self.uiDriverLIST.setCurrentRow(self.ordered.index(paramName))
+		self.uiDriverLIST.setCurrentRow(self.ordered.index(attrName))
 
 	def deleteParameterDefinition(self):
 		index = self.uiDriverLIST.currentRow()
 		item = self.uiDriverLIST.takeItem(index)
-		paramName = str(item.text())
+		attrName = str(item.text())
 
-		self._definitions.pop(paramName)
+		self._definitions.pop(attrName)
 
 		self.parameterOrderChanged()
 
@@ -173,17 +173,17 @@ class TrackerSystemWidget(SystemWidget):
 		self.saveParameters()
 
 	def parameterDefinitionChanged(self):
-		paramName = self.getCurrentParameterName()
-		if not paramName:
+		attrName = self.getCurrentParameterName()
+		if not attrName:
 			return 
 
-		definition = self._definitions[paramName]
+		definition = self._definitions[attrName]
 		definition["interpolation"] = str(self.uiInterpTypeCBOX.currentText())
 		definition["axis"] = str(self.uiAxisCBOX.currentText())
 		definition["min"] = self.uiMinSPN.value()
 		definition["max"] = self.uiMaxSPN.value()
 
-		self._definitions[paramName] = definition
+		self._definitions[attrName] = definition
 
 		self.saveParameters()
 
@@ -202,12 +202,12 @@ class TrackerSystemWidget(SystemWidget):
 		if not self.uiDriverLIST.currentItem():
 			return None, None
 
-		paramName = str(self.uiDriverLIST.currentItem().text())
-		if paramName not in self._definitions:
-			print "Harbie : ERROR : Params01 : Can't Find Parameter in the list"
+		attrName = str(self.uiDriverLIST.currentItem().text())
+		if attrName not in self._definitions:
+			logging.error("Brigks : tracker system : Can't Find Attr in the list")
 			return None, None
 
-		return paramName
+		return attrName
 
 	def getNextAvailableName(self, name):
 		if name not in self.parameters("driverDefs"):
