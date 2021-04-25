@@ -1,3 +1,8 @@
+'''Config Module
+
+Modifying this module allows you to customize the naming convention of Brigks
+'''
+
 from collections import OrderedDict
 
 

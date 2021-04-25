@@ -18,18 +18,25 @@ scriptDefaultValue = '''# cmds returns the maya.cmds module
 '''
 
 class SystemGuide(object):
-
+	'''
+	Attributes:
+		markerNames (list of str)
+		markerPicked (list of str)
+		markerMinMax (dict of 2 int)
+		markerPositions (dict of math3d.Vector3)
+		markerCurves (dict of str)
+		markerCompatibility (dict of dict of str)
+			Key is the type of systems compatible
+			Value is a dictionary of markers to rename
+			ie: markerCompatibility = dict(basic=dict(Bone="Part"))
+			In this example the system is compatible with the chain, but markers 'Bone', must be renamed to 'Part'
+		compatibles ?
+	'''
 	markerNames = ()
 	markerPicked = ()
 	markerMinMax = {}
 	markerPositions = {}
-	markerPicked = ()
 	markerCurves = {}
-	# Marker Compatibility.
-	# Key is the type of systems compatible
-	# Value is a dictionary of markers to rename
-	# ie: markerCompatibility = dict(basic=dict(Bone="Part"))
-	# In this example the system is compatible with the chain, but markers 'Bone', must be renamed to 'Part'
 	markerCompatibility = {}
 	compatibles = ()
 
@@ -57,7 +64,7 @@ class SystemGuide(object):
 
 	@classmethod
 	def create(cls, layer, location, name, matrices=None):
-		"""Create System Guide
+		'''Create System Guide
 
 		Args:
 		    systemType (str): Type of system to be create.
@@ -68,7 +75,7 @@ class SystemGuide(object):
 
 		Returns:
 		    SystemGuide: The newly created system.
-		"""
+		'''
 		system = cls(layer)
 		system._settings["location"] = location
 		system._settings["name"] = name

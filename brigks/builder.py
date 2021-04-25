@@ -8,24 +8,35 @@ from maya import cmds
 
 from brigks import naming
 from brigks import config
-from brigks.utils import create
+from brigks.utils import create, script
 
 HIERARCHY_XML_PATH = os.path.join(os.path.dirname(__file__),"hierarchy.xml")
 
 class Builder():
+	'''Main Builder Class
+
+	This object is building the core rig and loops on the systems to build and connect them all
+
+	'''
 
 	def __init__(self, guide):
+		'''Builder Init
+
+		Args:
+			guide (Guide): The Guide to build from
+
+		Returns:
+			Builder
+		'''
 		self.guide = guide
 		self._model = None
 		self._systems = {}
 		self._settings = dict(systems={})
 		self._nodes = {}
-
-		# Load
-		self.load()
-
-
-	def load(self):
+		
+		# Search if a model for the rig has already been built
+		# The model is connected to the guide using the "model" attributes
+		# This is how we detect which model has been generated from the guide
 		connections = cmds.listConnections(self.guide.model()+".model", destination=False, type="transform")
 		if not connections:
 			return 
@@ -41,24 +52,71 @@ class Builder():
 	# 
 	# ----------------------------------------------------------------------------------
 	def model(self):
+		'''Returns the root node of the rig
+
+		Returns:
+			str
+		'''
 		return self._model
 
 	def settings(self, key=None):
+		'''Returns the settings of the builder 
+
+		Args:
+			key (None||str): None returns the whole dictionary, if a key is passed it returns that setting value
+
+		Returns:
+			dictionary or setting value
+		'''
 		return self._settings if key is None else self._settings[key]
 
 	def systems(self, key=None):
+		'''Returns the system builder
+
+		Args:
+			key (None||str): None returns the a dictionary of all the systems, if a key is passed it returns that specific system
+
+		Returns:
+			dictionary or SystemBuilder
+		'''
 		return self._systems if key is None else self._systems[key]
 
 	def nodes(self, key=None):
+		'''Returns the core nodes 
+
+		The core nodes are defined in the core hierachy (See hierarchy.xml)
+
+		Args:
+			key (None||str): None returns the a dictionary of all the nodes, if a key is passed it returns that specific node
+
+		Returns:
+			dictionary or str
+		'''
 		return self._nodes if key is None else self._nodes[key]
 
 	def builtSystems(self, key=None):	
+		'''Returns the system settings for the systems already built
+
+		Args:
+			key (None||str): None returns the a dictionary of all the systems, if a key is passed it returns that specific system
+
+		Returns:
+			dictionary or settings
+		'''
 		return self._settings["systems"] if key is None else self._settings["systems"][key]
 
 	# ----------------------------------------------------------------------------------
 	# BUILD / DELETE
 	# ----------------------------------------------------------------------------------
 	def build(self, systemGuides):
+		'''Main method to build the rig.
+
+		This is the method find the systems already built and loops over the system to build. 
+		It's building all the steps and connect all the systems together.
+
+		Args:
+			systemGuides (list of SystemGuide): The system to be built
+		'''
 		self._buildCore()
 
 		start = dt.now()
@@ -77,7 +135,8 @@ class Builder():
 		start = dt.now()
 
 		# Pre Script
-		self._executeScript(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"))
+		script.execute(self.guide.settings("preScriptPath"), self.guide.settings("preScriptValue"),
+			 dict(cmds=cmds, this_model=self._model, this_guide=self.guide))
 		logging.info("PRE SCRIPT {time}".format(time=dt.now() - start))
 		start = dt.now()
 
@@ -98,12 +157,20 @@ class Builder():
 			cmds.setAttr(node+".lodVisibility", False)
 
 		# Post Script
-		self._executeScript(self.guide.settings("postScriptPath"), self.guide.settings("postScriptValue"))
+		script.execute(self.guide.settings("postScriptPath"), self.guide.settings("postScriptValue"),
+			 dict(cmds=cmds, this_model=self._model, this_guide=self.guide))
 		logging.info("POST SCRIPT {time}".format(time=dt.now() - start))
 
 		logging.info("DONE {time}".format(time=dt.now() - superstart))
 
 	def delete(self, systemGuides):
+		'''Delete the given systems.
+		
+		# TODO This is ambiguous. The method could be renamed deleteSystems maybe?
+
+		Args:
+			systemGuides (list of SystemGuide): The system to be deleted
+		'''
 		# If there is no model, there is nothing to delete
 		if not self._model:
 			return
@@ -123,14 +190,20 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	# BUILD HELPERS
 	# ----------------------------------------------------------------------------------
-	def _buildCore(self, create=True):
-		self._model = self.addModel(create)
+	def _buildCore(self):
+		'''Private Method. Create the core hierachy of the rig
+		
+		The hierarchy is defined in the hierarchy.xml file
+		'''
+		self._model = self._addModel()
 
 		xmlHierarchy = etree.parse(HIERARCHY_XML_PATH).getroot()
 		for xmlNode in xmlHierarchy:
 			self._createFromXml(xmlNode, parent=self._model)
 
 	def _createFromXml(self, xmlNode, parent):
+		'''Private Method. Create node from xml definition
+		'''
 		# Parse the XML tree and create the hierachy of nodes
 		key = xmlNode.get("key")
 		part = xmlNode.get("part")
@@ -149,7 +222,7 @@ class Builder():
 			if value is not None:
 				options[x] = json.loads(value)
 		
-		node = self.addTransform(name, parent, **options)
+		node = self._addTransform(name, parent, **options)
 
 		for xmlChild in xmlNode:
 			self._createFromXml(xmlChild, node)
@@ -158,6 +231,13 @@ class Builder():
 		return node
 
 	def _initSystems(self):
+		'''Private Method. Initialize the SystemBuilder for systems already built
+
+		We need those in case some need to be used in a connection
+
+		Returns:
+			dictionary: The SystemBuilder in a dictionary with the system key for index 
+		'''
 		builders = {}
 		# Looping over all the systems that have already been built 
 		for key, settings in self.builtSystems().iteritems():
@@ -175,6 +255,11 @@ class Builder():
 		return builders
 
 	def _initSystemsToBuild(self, systemGuides):
+		'''Private Method. Initialize the SystemBuilder for systems that we need to build
+
+		Returns:
+			dictionary: The SystemBuilder in a dictionary with the system key for index 
+		'''
 		builders = {}
 		for systemGuide in systemGuides:
 			systemGuide.loadMarkers(force=True)
@@ -189,6 +274,11 @@ class Builder():
 		return builders
 
 	def _initSystemsToConnect(self, toBuild):
+		'''Private Method. Initialize the SystemBuilder for systems already built that need to be reconnected
+
+		Returns:
+			tupple of dictionary: First the systems to connect, then the system to createAttr
+		'''
 		toConnect = {}
 		toCreateAttr = {}
 		# Looping over all the systems that have already been built 
@@ -196,7 +286,7 @@ class Builder():
 			if key in toBuild:
 				continue
 			
-			# TODO, WE're Re-initializing systems that have already been initialized, we can do bette rthan that
+			# TODO, We're Re-initializing systems that have already been initialized, we can do bette r than that
 
 			if settings["split"]:
 				key = key[:-1] + "X"
@@ -225,6 +315,17 @@ class Builder():
 		return toConnect, toCreateAttr
 
 	def _buildSystems(self, toBuild, toConnect, toCreateAttr):
+		'''Private Method. Loop over the system to be built and connect and run each building step
+
+		To guarantee that objects are available, the build process is happening in steps.
+		The steps are defined in the SystemBuilder class
+			Pre Script
+			Create Objects
+			Create Attributes
+			Create Operators
+			Connect System
+			Post Script
+		'''
 		steps = self._systems.values()[0].steps.keys()
 		for step in steps:
 			start = dt.now()
@@ -246,6 +347,12 @@ class Builder():
 				break
 
 	def _commit(self):
+		'''Private Method. Save the settings as a json dictionary in the rig
+		
+		This allow us to keep track what was built with which settings. 
+		This is useful when rebuilding but also when accessing the rig, when you need to know which options
+		are available for a specific system.
+		'''
 		# Update with the latest data
 		newSystemsData = {}
 		for k, v in self._systems.iteritems():
@@ -259,8 +366,14 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	# CREATE
 	# ----------------------------------------------------------------------------------
-	def addModel(self, create=True):
-		model = self.addTransform("Setup")
+	def _addModel(self):
+		'''Private Method. Create the root node for the rig
+
+		The model is a sinple transform node with a 'model' attribute
+		This model attribute is connected to the guide, to keep the relation between the two
+		The model also has a string attribute to hold the rig settings as a json dictionary 
+		'''
+		model = self._addTransform("Setup")
 	
 		cmds.addAttr(model, longName="model", attributeType="bool")
 		cmds.addAttr(model, longName=config.DATA_ATTRIBUTE, dataType="string")
@@ -269,7 +382,22 @@ class Builder():
 		cmds.connectAttr(model+".model", self.guide.model()+".model", force=True)
 		return model
 
-	def addTransform(self, name, parent=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+	def _addTransform(self, name, parent=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+		'''Private Method. Create a transform node
+
+		Args:
+			name (str): Name of the newly created node
+			parent (str|None): Parent of the node
+			icon (str): Icon type. See brigks.utils.create for icon list
+			size (int): Size of the icon
+			po (3 floats or None): Position offset of the icon
+			ro (3 floats or None): Rotation offset of the icon (in degrees)
+			so (3 floats or None): Scale offset of the icon
+			color (3 floats or None): Color of the node RGB from 0 to 1
+
+		Returns:
+			str: The transform node
+		'''
 		existing = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
 		if existing:
 			node = existing[0]
@@ -280,18 +408,3 @@ class Builder():
 				size = 1
 			create.icon(icon, node, size, po, ro, so)
 		return node
-		
-	# ----------------------------------------------------------------------------------
-	# 
-	# ----------------------------------------------------------------------------------
-	def _executeScript(self, path, value):
-		if os.path.exists(path):
-			with open(path, "r") as f:
-				value = f.read()
-
-		args = dict(
-			cmds=cmds,
-			this_model=self._model,
-			this_guide=self.guide
-			)
-		exec(value, args, args)
