@@ -94,12 +94,12 @@ class ChainSystemBuilder(SystemBuilder):
 			# Ik Controller
 			self.ikBfr = self.addBfr(self._root, "Ik", tfm=ikTfm)
 			self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube",  size=2, color=self.colorIk())
-			attributes.setKeyables(self.ikCtl, constants.tr_attrs)
+			attributes.setKeyables(self.ikCtl, constants.ATTRS_TR)
 
 			# UpVector Controller
 			self.upvBfr = self.addBfr(self._root, "UpV", upvTfm)
 			self.upvCtl = self.addCtl(self.upvBfr, "UpV", upvTfm, "diamond", color=self.colorIk())
-			attributes.setKeyables(self.upvCtl, constants.t_attrs)
+			attributes.setKeyables(self.upvCtl, constants.ATTRS_T)
 
 			# Ik Chain
 			self.ikBones, self.effector, self.handle = create.chain(self.getObjectName(config.USE_RIG, "Ik"), self._root, positions, normal, negate=self.negate())

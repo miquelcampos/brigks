@@ -19,7 +19,7 @@ class FootSystemBuilder(SystemBuilder):
 		if self.negate():
 			normal *= -1
 
-		rootTfm = Transformation.lookAt(self.translations("Root"), constants.y_axis, normal, "y-x", self.negate())
+		rootTfm = Transformation.lookAt(self.translations("Root"), constants.AXIS_Y, normal, "y-x", self.negate())
 		direction = self.translations("Part")[-1] - self.translations("Heel")
 		heelTfm = Transformation.lookAt(self.translations("Heel"), direction, normal, "xz", self.negate())
 		
@@ -49,13 +49,13 @@ class FootSystemBuilder(SystemBuilder):
 		self.heelBfr = self.addBfr(self._root, "Heel", heelTfm)
 		self.heelRol = self.addRig(self.heelBfr, "HeelRoll", tfm=heelTfm)
 		self.heelCtl = self.addCtl(self.heelRol, "Heel", heelTfm, "sphere", so=[1,1,0], color=self.colorIk())
-		attributes.setKeyables(self.heelCtl, constants.tr_attrs)
+		attributes.setKeyables(self.heelCtl, constants.ATTRS_TR)
 		# self.setInversedParameters(self.heelCtl, middle=["posz", "rotx", "roty"])
 
 		# Swivel
 		self.swivelBfr = self.addBfr(self.heelCtl, "Swivel", swivelTfm)
 		self.swivelCtl = self.addCtl(self.swivelBfr, "Swivel", swivelTfm, "sphere", so=[3,0,3], color=self.colorIk())
-		attributes.setKeyables(self.swivelCtl, constants.tr_attrs)
+		attributes.setKeyables(self.swivelCtl, constants.ATTRS_TR)
 		# self.setInversedParameters(self.swivelCtl, middle=["posz", "rotx", "roty"])
 
 		# Roll
@@ -76,7 +76,7 @@ class FootSystemBuilder(SystemBuilder):
 			bkBfr = self.addBfr(parent, "Bk%s"%index, tfm=tfm)
 			bkRol = self.addRig(bkBfr, "Bk%sRoll"%index, tfm=tfm)
 			bkCtl = self.addCtl(bkRol, "Bk%s"%index, tfm, "sphere", color=self.colorIk(), so=[1,1,0])
-			attributes.setKeyables(bkCtl, constants.r_attrs)
+			attributes.setKeyables(bkCtl, constants.ATTRS_R)
 			# self.setInversedParameters(bkCtl, middle=["rotx", "roty"])
 
 			self.bkBfr.append(bkBfr)

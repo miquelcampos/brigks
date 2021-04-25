@@ -29,7 +29,7 @@ class LegSystemBuilder(SystemBuilder):
 		if self.negate():
 			normal *= -1
 
-		isInversed = constants.x_axis.dot(oriNormal) >= 0
+		isInversed = constants.AXIS_X.dot(oriNormal) >= 0
 		
 		d = [(positions[i],positions[i+1]) for i in range(2)]
 		self.lengths = [Vector3.distance(a,b) for a,b in d]
@@ -44,7 +44,7 @@ class LegSystemBuilder(SystemBuilder):
 		fkTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		axis = "-y-x" if isInversed else "y-x"
 		if self.settings("ankleUpVector") == "World Y":
-			upaxis = constants.y_axis
+			upaxis = constants.AXIS_Y
 		else:
 			upaxis = -1 * self.directions("Ankle", "z")
 
@@ -53,8 +53,8 @@ class LegSystemBuilder(SystemBuilder):
 		fkTfm = fkTfm.appended(fk2Tfm)
 
 		bfrTfm = [tfm.copy(rotation=fkTfm[max(i-1,0)].rotation) for i, tfm in enumerate(fkTfm)]
-		xaxis = constants.nx_axis if isInversed else constants.x_axis
-		bfrTfm[0] = Transformation.lookAt(self.translations("Root"), constants.ny_axis, xaxis, "x"+self.nsign()+"z", self.negate())
+		xaxis = constants.AXIS_NX if isInversed else constants.AXIS_X
+		bfrTfm[0] = Transformation.lookAt(self.translations("Root"), constants.AXIS_NY, xaxis, "x"+self.nsign()+"z", self.negate())
 
 		
 		# ik
@@ -63,7 +63,7 @@ class LegSystemBuilder(SystemBuilder):
 		ikbfrTfm = Transformation.fromParts(translation=ikbfr_pos)
 		ikTfm = Transformation.lookAt(self.translations("Ankle"), direction, upaxis, "zy", False)
 		
-		upvbfrTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), ikbfr_pos, constants.nx_axis, ratio, False))
+		upvbfrTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), ikbfr_pos, constants.AXIS_NX, ratio, False))
 		upvTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), self.translations("Ankle"), oriNormal, ratio))
 		
 		# extras
@@ -83,7 +83,7 @@ class LegSystemBuilder(SystemBuilder):
 		self.rootBfr = self.addBfr(None, "Root", rootTfm)
 		self.rootCtl = self.addCtl(self.rootBfr, "Root", rootTfm, "sphere", color=self.colorIk(), size=rootSize)
 		# self.addToSubControllers(self.rootCtl)
-		attributes.setKeyables(self.rootCtl, constants.t_attrs)
+		attributes.setKeyables(self.rootCtl, constants.ATTRS_T)
 		
 		
 		# Fk Ref
@@ -105,7 +105,7 @@ class LegSystemBuilder(SystemBuilder):
 			if self.settings("lockKneeRotation") and i == 2:
 				keyableParams = ["posx", "posy", "posz", "rotz", "sclx", "scly", "sclz"]
 			else:
-				keyableParams = constants.trs_attrs
+				keyableParams = constants.ATTRS_TRS
 
 			attributes.setKeyables(ctl, keyableParams)
 			
@@ -121,26 +121,26 @@ class LegSystemBuilder(SystemBuilder):
 		# IK Controllers
 		self.ikBfr = self.addBfr(None, "Ik", ikbfrTfm)
 		self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube", color=self.colorIk(), size=ikSize)
-		attributes.setKeyables(self.ikCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ikCtl, constants.ATTRS_TRS)
 		
 		attributes.setRotOrder(self.ikCtl, "XZY")
 
 		self.ikoffCtl = self.addCtl(self.ikCtl, "IkOffset", ikTfm, "cube", color=self.colorIk(), size=ikSize)
 		# self.addToSubControllers(self.ikoffCtl)
-		attributes.setKeyables(self.ikoffCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ikoffCtl, constants.ATTRS_TRS)
 		self.ikRef = self.addRig(self.ikoffCtl, "IkRef", fkTfm[-1])
 		
 		attributes.setRotOrder(self.ikoffCtl, "XZY")
 
 		self.upvBfr = self.addBfr(None, "Upv", upvbfrTfm)
 		self.upvCtl = self.addCtl(self.upvBfr, "Upv", upvTfm, "diamond", color=self.colorIk(), size=upvSize)
-		attributes.setKeyables(self.upvCtl, constants.t_attrs)
+		attributes.setKeyables(self.upvCtl, constants.ATTRS_T)
 		
 
 		self.ctrBfr = self.addBfr(self.bones[0], "Center", ctrTfm)
 		self.ctrCtl = self.addCtl(self.ctrBfr, "Center", ctrTfm, "sphere", size=rootSize, color=self.colorIk())
 		# self.addToSubControllers(self.ctrCtl)
-		attributes.setKeyables(self.ctrCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ctrCtl, constants.ATTRS_TRS)
 		
 		self.upvCrv = create.cnsCurve(self.getObjectName(config.USE_RIG, "UpvCrv"), [self.upvCtl, self.ctrCtl])
 		

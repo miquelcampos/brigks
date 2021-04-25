@@ -1,3 +1,8 @@
+'''Attributes Module
+
+This modules provides convinient method for attributes creation and manipulation
+'''
+
 from maya import cmds
 
 from math3d.transformation import TransformationArray, Transformation
@@ -11,36 +16,30 @@ from brigks.utils import constants
 # ----------------------------------------------------------------------------------
 def create(node, longName, dataType="bool", value=True, minValue=None, maxValue=None,
 					keyable=False, writable=True, readable=True, channelBox=True, displayName=None):
-	"""Creates an attribute.
-
-	We return an MPlug rather than an MFnAttribute because it's easy to get the MFn from
-	the MPlug but impossible to go the other way round.
+	'''Creates an attribute.
 
 	Args:
-		node(MObject or MFnDependencyNode): Automatically casted when possible.
-		longName(str): Attribute Name
-		dataType(str): ("kString")
-		value(?): must be a valid type for this attribute
-		keyable(bool): is keyable
-		writable(bool): is writable
-		readable(bool): is readable
-		channelBox(bool): shows up in the channel box
-		displayName(str|None): display Name of the parameter. Same as longName if None
+		node (str): Node to add the attribute to.
+		longName (str): Attribute Name
+		dataType (str): "bool", "shot", "float", "float3", "string"...
+		value (): Must be a valid type for this attribute
+		keyable (bool): is keyable
+		writable (bool): is writable
+		readable (bool): is readable
+		channelBox (bool): Shows up in the channel box
+		displayName (str|None): Display Name of the parameter. Same as longName if None
 
 	Returns:
-		MPlug
+		str: The newly created attribute path
 
 	Raises:
 		ValueError: if attibute with same name already exists
-	"""
+	'''
 	longName = str(longName)
 	displayName = longName if displayName is None else str(displayName)
 
 	if cmds.attributeQuery(longName, node=node, exists=True):
 		raise ValueError("Node already has an attribute with that name")
-
-	if cmds.lockNode(node, query=True)[0]:
-		raise RuntimeError("Given node is locked. {n}".format(n=node))
 
 	kwargs = dict(
 		longName=longName,
@@ -93,11 +92,17 @@ def create(node, longName, dataType="bool", value=True, minValue=None, maxValue=
 
 	return node+"."+longName
 
-def setKeyables(node, attrs=None, lock=True):
-	if attrs is None:
-		attrs = constants.trs_attrs
+def setKeyables(node, attrs=None):
+	'''Set the transform attribute keyables on given transform node
 
-	for attrName in constants.trs_attrs:
+	Args:
+		node (str): Node to update
+		attrs (list of str): The transform attributes to make keyable. The attribute not in this list will be non-keyable
+	'''
+	if attrs is None:
+		attrs = constants.ATTRS_TRS
+
+	for attrName in constants.ATTRS_TRS:
 		keyable = attrName in attrs
 		cmds.setAttr(node+"."+attrName, lock=not keyable)
 		cmds.setAttr(node+"."+attrName, keyable=keyable)
@@ -105,18 +110,40 @@ def setKeyables(node, attrs=None, lock=True):
 			cmds.setAttr(node+"."+attrName, channelBox=keyable)
 
 def setRotOrder(node, rotOrder):
-	orders = ["xyz", "yzx", "zxy", "xzy", "yxz", "zyx"]
-	#TODO Parent/Unparent children? 
+	'''Set the rotation order on given node
+
+	This ensure the global transform of the node are unchanged
+
+	Args:
+		node (str): Node to update
+		rotOrder (str): rotation order ["xyz", "yzx", "zxy", "xzy", "yxz", "zyx"]
+	'''
 	matrix = cmds.xform(node, q=True, matrix=True, worldSpace=True)
-	cmds.setAttr(node+".rotateOrder", orders.index(rotOrder.lower()))
+	cmds.setAttr(node+".rotateOrder", constants.ROT_ORDERS.index(rotOrder.lower()))
 	cmds.xform(node, matrix=matrix, worldSpace=True)
 
-def inheritsTransform(obj, b):
-	matrix = cmds.xform(obj, q=True, matrix=True, worldSpace=True)
-	cmds.setAttr(obj+".inheritsTransform", b)
-	cmds.xform(obj, matrix=matrix, worldSpace=True)
+def inheritsTransform(node, inherit):
+	'''Set the 'inheritsTransform' attr for the given node
+
+	This ensure the global transform of the node are unchanged
+
+	Args:
+		node (str): Node to update
+		inherit (bool): 
+	'''
+	matrix = cmds.xform(node, q=True, matrix=True, worldSpace=True)
+	cmds.setAttr(node+".inheritsTransform", inherit)
+	cmds.xform(node, matrix=matrix, worldSpace=True)
 	
 def setLimits(node, attrs, minimum=None, maximum=None):
+	'''Set the limit for the the given transform attributes
+
+	Args:
+		node (str): Node to update
+		attrs (list of str): Attributes to update
+		minimum (float): Minimum value
+		maximum (float): Maximum value
+	'''
 	for attr in attrs:
 		cmds.setAttr(node+".min"+attr+"LimitEnable", minimum is not None)
 		cmds.setAttr(node+".max"+attr+"LimitEnable", maximum is not None)
@@ -129,7 +156,7 @@ def setColor(node, color):
 	''' Set the color of given node
 
 	Args:
-		node(): 
+		node (str): Node to update
 		color(int|float triplet): color as index or rgb(0-1)
 	'''
 	if color is None:
@@ -152,6 +179,14 @@ def setColor(node, color):
 		cmds.setAttr(node+".overrideColorB", color[2])
 
 def setMatrix(node, matrix, worldSpace=True):
+	''' Set the matrix of a given node
+	
+	Set the matrix of the node regardless how it's described
+
+	Args:
+		node (str): Node to update
+		matrix(math3d.Transformation||math3d.Matrix4||list of float): The transformation matrix
+	'''
 	if isinstance(matrix, Transformation):
 		matrix = matrix.asMatrix().flattened()
 	elif isinstance(matrix, Matrix4):

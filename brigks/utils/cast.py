@@ -1,19 +1,19 @@
-'''
-	Cast any object to any other object if possible. 
-	Return None if that doesn't work. 
+'''Cast Module
 
-	Supported type
-	om.MObject
-	om.MFnBase
-	om.MDagPath
-	om.MObjectHandle
-	om.MPlug
-	str(path)
+Cast any object to any other object if possible. 
+Return None if that doesn't work. 
+
+Supported type
+om.MObject
+om.MFnBase
+om.MDagPath
+om.MObjectHandle
+om.MPlug
+str(path)
 '''
 
 import maya.OpenMaya as om
 import maya.OpenMayaAnim as oma
-
 
 _classes = (om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str, unicode)
 
@@ -23,15 +23,16 @@ _classes = (om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 # ----------------------------------------------------------------
 def toMObject(source):
 	'''	Attempt to cast any source to MObject.
-		Returns None if casting has failed. 
-		Only works with the following type: 
-		om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Args:
-			source: Object to cast
+	Returns None if casting has failed. 
+	Only works with the following type: 
+	om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Returns:
-			MObject
+	Args:
+		source: Object to cast
+
+	Returns:
+		MObject
 	'''
 	if isinstance(source, om.MObject):
 		return source
@@ -56,15 +57,16 @@ def toMObject(source):
 
 def toMObjectHandle(source):
 	'''	Attempt to cast any source to MObjectHandle.
-		Returns None if casting has failed. 
-		Only works with the following type: 
-		om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Args:
-			source: Object to cast
+	Returns None if casting has failed. 
+	Only works with the following type: 
+	om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Returns:
-			MObjectHandle
+	Args:
+		source: Object to cast
+
+	Returns:
+		MObjectHandle
 	'''
 	if isinstance(source, om.MObjectHandle):
 		return source
@@ -75,15 +77,16 @@ def toMObjectHandle(source):
 
 def toMFn(source):
 	'''	Attempt to cast any source to MFnBase.
-		Returns None if casting has failed. 
-		Only works with the following type: 
-		om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Args:
-			source: Object to cast
+	Returns None if casting has failed. 
+	Only works with the following type: 
+	om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Returns:
-			MFnBase
+	Args:
+		source: Object to cast
+
+	Returns:
+		MFnBase
 	'''
 	if isinstance(source, om.MFnBase):
 		return source
@@ -101,15 +104,16 @@ def toMFn(source):
 
 def toMDagPath(source):
 	'''	Attempt to cast any source to MDagPath.
-		Returns None if casting has failed. 
-		Only works with the following type: 
-		om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Args:
-			source: Object to cast (if str: fullPathName)
+	Returns None if casting has failed. 
+	Only works with the following type: 
+	om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Returns:
-			MDagPath
+	Args:
+		source: Object to cast (if str: fullPathName)
+
+	Returns:
+		MDagPath
 	'''
 	if isinstance(source, om.MDagPath):
 		return source
@@ -134,15 +138,16 @@ def toMDagPath(source):
 
 def toPath(source):
 	'''	Attempt to cast any source to str (path).
-		Returns None if casting has failed. 
-		Only works with the following type: 
-		om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
+	
+	Returns None if casting has failed. 
+	Only works with the following type: 
+	om.MObject, om.MObjectHandle, om.MDagPath, om.MFnBase, om.MPlug, str
 
-		Args:
-			source: Object to cast
+	Args:
+		source: Object to cast
 
-		Returns:
-			str: dag path of the node
+	Returns:
+		str: dag path of the node
 	'''
 	if isinstance(source, (str, unicode)):
 		return source
@@ -225,11 +230,11 @@ def _castList(sources, method):
 def _getFunctionSet(source):
 	''' Retrieve the corresponding Function Set class.
 
-		Args:
-			source(MObject)
+	Args:
+		source(MObject)
 
-		Returns:
-			MFnBase Class
+	Returns:
+		MFnBase Class
 	'''
 	if not isinstance(source, om.MObject):
 		raise ValueError("Given source must be of type MObject")

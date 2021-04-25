@@ -59,7 +59,7 @@ class LookatSystemBuilder(SystemBuilder):
 			# Target
 			self.targetCtl = self.addCtl(self.targetBfr, "Target", trgTfm, "cube", size=1, color=self.colorIk())
 			# self.addToSubControllers(self.targetCtl)
-			attributes.setKeyables(self.targetCtl, constants.t_attrs)	
+			attributes.setKeyables(self.targetCtl, constants.ATTRS_T)	
 			# self.setInversedsettings(self.targetCtl, middle=["posy"])
 				
 		if self.settings("addLocalController"):

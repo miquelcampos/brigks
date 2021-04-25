@@ -1,31 +1,44 @@
 
 
 
+Goals for v0.1.0
+- All systems build properly on both sides
+- Fully working rebuild
+- API sphinx documentation
+- Custom guide creation (custom markers, build from pick session, custom curves)
+- Can create, delete, duplicate, move systems thru UI
 
+Goals for v0.2.0
+- Guide colors per layer
+- Controllers colors
+- Controllers preserve shapes
+- TransformMulti system
+- All systems widgets working
+- Revamp connections
+multiParent replaces all the parenting
+connections settings can be defined in guide
+connection child or attr can be defined in the guide
+connections always exist but can be activated or not (no need to check if the connection exists)
+New connection UI
+- Test X Systems
+- Builder: Init Systems could be more efficient (Right now we init the same system multiple times)
 
+Goals for v0.3.0
+- Access class for all the systems
+- Brigks cpp solvers 
+- UIHosts can be rebuilt after the systems (recreate attr and reconnect them - might require to change where attr are connected)
+- All nodes and shapes named properly and flexible naming convention
 
-- System X Symmetry
-- Check if Basic is building properly on Neg side
-- Action Menu
-- Connection UI could be nicer
-- Reconnect attr when rebuilding uiHosts
-- Builder: Init Systems could be more efficient
-- Average should be replaced with Basic with Average Transform
-- Camera
+Goals for v0.4.0
+- TransformAverage, transformDriven could be just Basic with new connection types?
+- Joints hierarchy ala mGear for engine compatibility 
+- Support mocap skeleton i/o
+- Variation support
 - Duplicate Multiple Systems and preserve interconnections
 
-NEW FEATURE: 
-Multiple UIHOSTs?
-Ability to have some attr on different controllers? 
 
-
-New Feature:
-When deleting/rebuilding a system, 
-Check if it's used as a uiHost
-Store attr Name and Connections
-Rerun the createAttributes of other systems
-Recreate connections
-
+TBD
+- Multiple UIHOSTs? Ability to have some attr on different controllers? 
 
 
 

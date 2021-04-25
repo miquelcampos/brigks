@@ -1,3 +1,7 @@
+'''Cast Module
+
+This modules provides convinient method to create complex set of nodes and connections
+'''
 from itertools import izip, product
 import math
 
@@ -12,6 +16,17 @@ POINTAT_AXIS = ["X", "Y", "Z", "-X", "-Y", "-Z"]
 COMPARE_OPS = ["==", "!=", ">", ">=", "<", "<="]
 
 def compare(name, first, second, operation):
+	'''	Create a Compare nodes compound
+
+	Args:
+		name (str): name of the nodes
+		first (str||float||int): First value to compare
+		second (str||float||int): Second value to compare
+		operation (str): ["==", "!=", ">", ">=", "<", "<="]
+
+	Returns:
+		str: The condition node
+	'''
 	if operation not in COMPARE_OPS:
 		raise ValueError("Given operation must be in {}".format(COMPARE_OPS))
 
@@ -42,6 +57,21 @@ def compare(name, first, second, operation):
 # TRANSFORMS
 # ----------------------------------------------------------------------------------
 def blendMatrix(name, slave, masters, maintainOffset=False, translate=True, rotate=True, scale=True, useJointOrient=False):
+	'''	Create a BlendMatrix nodes compound
+
+	Args:
+		name (str): Name of the nodes
+		slave (str): The node to constraint
+		masters (list of str): The nodes that will drive the constraint
+		maintainOffset (bool): True to maintain original offset
+		translate (bool): True to connect the translation
+		rotate (bool): True to connect the rotate
+		scale (bool): True to connect the scale
+		useJointOrient (bool): For joints, True to connect the rotation to the jointOrient instead of the rotate
+
+	Returns:
+		str: The blendMatrix node
+	'''
 	if "{node}" not in name:
 		name += "{node}"
 
@@ -107,7 +137,20 @@ def blendMatrix(name, slave, masters, maintainOffset=False, translate=True, rota
 # 	return cns
 
 def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, maintainOffset=False):
-	# TODO Replace with aimMatrix
+	'''	Create a Aim Constraint nodes compound
+
+	TODO Replace with aimMatrix
+
+	Args:
+		name (str): Name of the nodes
+		slave (str): The node to constraint
+		master (str): The node that will drive the constraint
+		axis (str): "xy", "zx", "-xy"... First the axis to point At, then the one used for the upvector
+
+
+	Returns:
+		str: The aimConstraint node
+	'''
 
 	# No master, we point to a vector
 	if upMaster is None:

@@ -46,14 +46,14 @@ class ArmSystemBuilder(SystemBuilder):
 		fkTfm = fkTfm.appended(fk2Tfm)
 
 		bfrTfm = [Transformation.fromParts(translation=tfm.translation, rotation=fkTfm[max(i-1,0)].rotation) for i, tfm in enumerate(fkTfm)]
-		bfrTfm[0] = Transformation.lookAt(self.translations("Root"), constants.x_axis, constants.y_axis, axis=self.sign()+"xz", negativeSide=self.negate())
+		bfrTfm[0] = Transformation.lookAt(self.translations("Root"), constants.AXIS_X, constants.AXIS_Y, axis=self.sign()+"xz", negativeSide=self.negate())
 		
 		# ik
 		ikbfrPos = Vector3([self.factor() * sum(self.lengths[:2]), 0, 0]) * rootTfm.asMatrix()
 		ikbfrTfm = Transformation.fromParts(translation=ikbfrPos)
 		ikTfm = Transformation.lookAt(self.translations("Wrist"), direction, self.directions("Wrist", "z"), axis=self.sign()+"xy", negativeSide=False)
 		
-		upvbfrTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), ikbfrPos, constants.y_axis, ratio, self.negate()))
+		upvbfrTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), ikbfrPos, constants.AXIS_Y, ratio, self.negate()))
 		upvTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), self.translations("Wrist"), oriNormal, ratio))
 		
 		# extras
@@ -76,7 +76,7 @@ class ArmSystemBuilder(SystemBuilder):
 		self.rootBfr = self.addBfr(None, "Root", rootTfm)
 		self.rootCtl = self.addCtl(self.rootBfr, "Root", rootTfm, "sphere", size=rootSize, color=self.colorIk())
 		# self.addToSubControllers(self.rootCtl)
-		attributes.setKeyables(self.rootCtl, constants.t_attrs)
+		attributes.setKeyables(self.rootCtl, constants.ATTRS_T)
 		
 		# Fk Ref
 		# Used as a reference for the upr start twist
@@ -108,7 +108,7 @@ class ArmSystemBuilder(SystemBuilder):
 				attributes.setKeyables(ctl, ["tx", "ty", "tz", "rz", "sx", "sy", "sz"], lock=True)
 			else:
 				attributes.setRotOrder(ctl, "xzy")
-				attributes.setKeyables(ctl, constants.trs_attrs)
+				attributes.setKeyables(ctl, constants.ATTRS_TRS)
 			
 			fkParent = ctl
 			self.fkBfr.append(bfr)
@@ -122,23 +122,23 @@ class ArmSystemBuilder(SystemBuilder):
 		self.ikBfr = self.addBfr(None, "Ik", ikbfrTfm)
 		self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube", size=ikSize, color=self.colorIk())
 
-		attributes.setKeyables(self.ikCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ikCtl, constants.ATTRS_TRS)
 		attributes.setRotOrder(self.ikCtl, "XZY")
 
 		self.ikoffCtl = self.addCtl(self.ikCtl, "IkOffset", ikTfm, "null", size=ikSize, color=self.colorIk())
 		# self.addToSubControllers(self.ikoffCtl)
-		attributes.setKeyables(self.ikoffCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ikoffCtl, constants.ATTRS_TRS)
 		self.ikRef = self.addRig(self.ikoffCtl, "IkRef", fkTfm[-1])
 		attributes.setRotOrder(self.ikoffCtl, "XZY")
 
 		self.upvBfr = self.addBfr(None, "Upv", upvbfrTfm)
 		self.upvCtl = self.addCtl(self.upvBfr, "Upv", upvTfm, "diamond", size=upvSize, color=self.colorIk())
-		attributes.setKeyables(self.upvCtl, constants.t_attrs)
+		attributes.setKeyables(self.upvCtl, constants.ATTRS_T)
 
 		self.ctrBfr = self.addBfr(self.bones[0], "Center", ctrTfm)
 		self.ctrCtl = self.addCtl(self.ctrBfr, "Center", ctrTfm, "sphere", size=upvSize, color=self.colorIk())
 		# self.addToSubControllers(self.ctrCtl)
-		attributes.setKeyables(self.ctrCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ctrCtl, constants.ATTRS_TRS)
 
 		self.upvCrv = create.cnsCurve(self.getObjectName(config.USE_RIG, "UpvCrv"), [self.upvCtl, self.ctrCtl])
 		cmds.setAttr(self.upvCrv+".template", True)

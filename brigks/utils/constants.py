@@ -1,15 +1,16 @@
 from math3d.vectorN import Vector3 
 
+ROT_ORDERS = ["xyz", "yzx", "zxy", "xzy", "yxz", "zyx"]
 
-trs_attrs = ("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz")
-tr_attrs = ("tx", "ty", "tz", "rx", "ry", "rz")
-ts_attrs = ("tx", "ty", "tz", "sx", "sy", "sz")
-t_attrs = ("tx", "ty", "tz")
-r_attrs = ("rx", "ry", "rz")
+ATTRS_TRS = ("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz")
+ATTRS_TR = ("tx", "ty", "tz", "rx", "ry", "rz")
+ATTRS_TS = ("tx", "ty", "tz", "sx", "sy", "sz")
+ATTRS_T = ("tx", "ty", "tz")
+ATTRS_R = ("rx", "ry", "rz")
 
-x_axis = Vector3([1,0,0])
-y_axis = Vector3([0,1,0])
-z_axis = Vector3([0,0,1])
-nx_axis = Vector3([-1,0,0])
-ny_axis = Vector3([0,-1,0])
-nz_axis = Vector3([0,0,-1])
+AXIS_X = Vector3([1,0,0])
+AXIS_Y = Vector3([0,1,0])
+AXIS_Z = Vector3([0,0,1])
+AXIS_NX = Vector3([-1,0,0])
+AXIS_NY = Vector3([0,-1,0])
+AXIS_NZ = Vector3([0,0,-1])

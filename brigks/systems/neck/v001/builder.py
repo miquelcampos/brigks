@@ -66,7 +66,7 @@ class NeckSystemBuilder(SystemBuilder):
 			self.ikOffCtl = self.addCtl(self.ikCtl, "IkOff", ikTfm, "cube", size=.9, 
 				po=(0,headLength*.5,0), so=(8, headLength, 8),color=self.colorIk())   
 			# self.setInversedsettings(self.ikOffCtl, middle=["posx", "roty", "rotz"])
-			attributes.setKeyables(self.ikOffCtl, constants.r_attrs)
+			attributes.setKeyables(self.ikOffCtl, constants.ATTRS_R)
 			attributes.setRotOrder(self.ikOffCtl, "XZY")
 			self.lastIkCtl = self.ikOffCtl
 			# self.addToSubControllers(self.ikOffCtl)
@@ -84,7 +84,7 @@ class NeckSystemBuilder(SystemBuilder):
 		
 		self.midBfr = self.addBfr(self.crv, "Mid", midTfm)
 		self.midCtl = self.addCtl(self.midBfr, "Mid", midTfm, "sphere", size=4, so=(1,0,1), color=self.colorIk())
-		attributes.setKeyables(self.midCtl, constants.ts_attrs)
+		attributes.setKeyables(self.midCtl, constants.ATTRS_TS)
 		# self.setInversedsettings(self.midCtl, middle=["posx"])
 		
 		self.headBfr = self.addBfr(self.crv, "Head", endTfm)
@@ -115,7 +115,7 @@ class NeckSystemBuilder(SystemBuilder):
 
 			if self.settings("gimbalControllers"):
 				self.fkOffCtl = self.addCtl(self.fkCtl[-1], "fkOffCtl", boneTfm[-1], "cube", size=7.5, so=(1,.1,1), color=self.colorFk())
-				attributes.setKeyables(self.fkOffCtl, constants.r_attrs)
+				attributes.setKeyables(self.fkOffCtl, constants.ATTRS_R)
 				attributes.setRotOrder(self.fkOffCtl, "XZY")
 
 		# Hooks

@@ -36,12 +36,12 @@ class ZlegSystemBuilder(SystemBuilder):
 		# fk
 		fkTfm = TransformationArray.chain(positions, normal, axis="xz", negativeSide=self.negate(), endTransform=False)
 		lookAtEff = self.translations("Eff") - self.translations("Toe")
-		fk3Tfm = Transformation.lookAt(self.translations("Toe"), lookAtEff, constants.y_axis, "y-x", self.negate())
+		fk3Tfm = Transformation.lookAt(self.translations("Toe"), lookAtEff, constants.AXIS_Y, "y-x", self.negate())
 		fkTfm = fkTfm.appended(fk3Tfm)
 		for tfm, dist in izip(fkTfm, self.lengths):
 			tfm.scale = Vector3([dist * self.factor(), self.factor(), self.factor()])
 		bfrTfm = [tfm.copy(rotation=fkTfm[max(i-1,0)].rotation) for i, tfm in enumerate(fkTfm)]
-		bfrTfm[0] = Transformation.lookAt(self.translations("Root"), constants.ny_axis, constants.x_axis, "x"+self.nsign()+"z", self.negate())
+		bfrTfm[0] = Transformation.lookAt(self.translations("Root"), constants.AXIS_NY, constants.AXIS_X, "x"+self.nsign()+"z", self.negate())
 		scale = bfrTfm[0].scale
 		scale.x *= self.lengths[0]
 		bfrTfm[0].scale = scale
@@ -49,9 +49,9 @@ class ZlegSystemBuilder(SystemBuilder):
 		# ik
 		ikbfrPos = Vector3([self.translations("Root").x, self.translations("Toe").y, self.translations("Root").z])
 		ikbfrTfm = Transformation.fromParts(translation=ikbfrPos)
-		ikTfm = Transformation.lookAt(self.translations("Toe"), lookAtEff, constants.y_axis, "zy", False)
+		ikTfm = Transformation.lookAt(self.translations("Toe"), lookAtEff, constants.AXIS_Y, "zy", False)
 		
-		upvbfrTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), ikbfrPos, constants.nx_axis, ratio, False))
+		upvbfrTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), ikbfrPos, constants.AXIS_NX, ratio, False))
 		upvTfm = Transformation.fromParts(translation=umath.upVector(self.translations("Root"), self.translations("Ankle"), oriNormal, ratio))
 		
 		rollNormal = Vector3.planeNormal(self.translations("Root"), upvTfm.translation, self.translations("Toe"))
@@ -80,7 +80,7 @@ class ZlegSystemBuilder(SystemBuilder):
 		self.rootBfr = self.addBfr(None, "Root", rootTfm)
 		self.rootCtl = self.addCtl(self.rootBfr, "Root", rootTfm, "sphere", size=4, color=self.colorIk())
 		# self.addToSubControllers(self.rootCtl)
-		attributes.setKeyables(self.rootCtl, constants.t_attrs)
+		attributes.setKeyables(self.rootCtl, constants.ATTRS_T)
 		# self.setInversedParameters(self.rootCtl, middle=["posx"], side=["posx"])
 		
 		# Fk Ref
@@ -103,7 +103,7 @@ class ZlegSystemBuilder(SystemBuilder):
 			if self.settings("lockKneeRotation") and i == 2:
 				keyables = ["posx", "posy", "posz", "rotz", "sclx", "scly", "sclz"]
 			else:
-				keyables = constants.trs_attrs
+				keyables = constants.ATTRS_TRS
 
 			if i == 1:
 				attributes.setRotOrder(ctl, "XZY")
@@ -131,31 +131,31 @@ class ZlegSystemBuilder(SystemBuilder):
 
 		self.ikBfr = self.addBfr(None, "Ik", ikbfrTfm)
 		self.ikCtl = self.addCtl(self.ikBfr, "Ik", ikTfm, "cube", size=6, color=self.colorIk())
-		attributes.setKeyables(self.ikCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ikCtl, constants.ATTRS_TRS)
 		# self.setInversedParameters(self.ikCtl, middle=["posx", "rotz", "roty"], side=["posx", "rotz", "roty"])
 		attributes.setRotOrder(self.ikCtl, "XZY")
 
 		self.ikoffCtl = self.addCtl(self.ikCtl, "IkOffset", ikTfm, "null", size=4, color=self.colorIk())
 		# self.addToSubControllers(self.ikoffCtl)
-		attributes.setKeyables(self.ikoffCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ikoffCtl, constants.ATTRS_TRS)
 		# self.setInversedParameters(self.ikoffCtl, middle=["posx", "rotz", "roty"], side=["posx", "rotz", "roty"])
 		attributes.setRotOrder(self.ikoffCtl, "XZY")
 
 		self.upvBfr = self.addBfr(None, "Upv", upvbfrTfm)
 		self.upvCtl = self.addCtl(self.upvBfr, "Upv", upvTfm, "diamond", size=2, color=self.colorIk())
-		attributes.setKeyables(self.upvCtl, constants.t_attrs)
+		attributes.setKeyables(self.upvCtl, constants.ATTRS_T)
 		# self.setInversedParameters(self.upvCtl, middle=["posx"], side=["posx"])
 
 		self.ctrABfr = self.addBfr(self.bones[0], "CenterA", ctrATfm)
 		self.ctrACtl = self.addCtl(self.ctrABfr, "CenterA", ctrATfm, "sphere", size=5, color=self.colorIk())
 		# self.addToSubControllers(self.ctrACtl)
-		attributes.setKeyables(self.ctrACtl, constants.trs_attrs)
+		attributes.setKeyables(self.ctrACtl, constants.ATTRS_TRS)
 		# self.setInversedParameters(self.ctrACtl, middle=["posz", "roty", "rotx"])
 
 		self.ctrBBfr = self.addBfr(self.bones[1], "CenterB", ctrBTfm)
 		self.ctrBCtl = self.addCtl(self.ctrBBfr, "CenterB", ctrBTfm, "sphere", size=5, color=self.colorIk())
 		# self.addToSubControllers(self.ctrBCtl)
-		attributes.setKeyables(self.ctrBCtl, constants.trs_attrs)
+		attributes.setKeyables(self.ctrBCtl, constants.ATTRS_TRS)
 		# self.setInversedParameters(self.ctrBCtl, middle=["posz", "roty", "rotx"])
 		
 		self.upvCrv = create.cnsCurve(self.getObjectName(config.USE_RIG, "UpvCrv"), [self.upvCtl, self.ctrACtl])

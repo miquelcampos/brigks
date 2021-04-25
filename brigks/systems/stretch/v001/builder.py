@@ -23,10 +23,10 @@ class StretchSystemBuilder(SystemBuilder):
 		
 		if self.settings("addControllers"):
 			startCtl = self.addCtl(startBfr, "Start", ctlTfm[0], "cube", color=self.colorIk())
-			attributes.setKeyables(startCtl, constants.tr_attrs)
+			attributes.setKeyables(startCtl, constants.ATTRS_TR)
 			
 			endCtl = self.addCtl(endBfr, "End", ctlTfm[1], "cube", color=self.colorIk())
-			attributes.setKeyables(endCtl, constants.tr_attrs)
+			attributes.setKeyables(endCtl, constants.ATTRS_TR)
 			
 			self.centers = [startCtl, endCtl]
 		else:

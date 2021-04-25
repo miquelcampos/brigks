@@ -41,7 +41,7 @@ class BasicSystemBuilder(SystemBuilder):
 				self.ctl.append(ctl)	
 				attributes.setRotOrder(ctl, self.settings("defaultRotationOrder"))
 
-				keyables = [attr for attr in constants.trs_attrs if self.settings(attr)]
+				keyables = [attr for attr in constants.ATTRS_TRS if self.settings(attr)]
 				attributes.setKeyables(ctl, keyables)
 				jntparent = ctl
 			else:

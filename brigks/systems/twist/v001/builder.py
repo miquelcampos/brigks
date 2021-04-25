@@ -40,8 +40,8 @@ class TwistSystemBuilder(SystemBuilder):
 		shdScl = [length,length,length]
 		shdScl["xyz".index(self.axis)] = 0
 
-		se_keyableParameters = list(constants.tr_attrs)
-		int_keyableParameters = list(constants.t_attrs)
+		se_keyableParameters = list(constants.ATTRS_TR)
+		int_keyableParameters = list(constants.ATTRS_T)
 
 		if self.settings("scaleWithControllers"):
 			se_keyableParameters += ["scl"+s for s in "xyz" if s != self.axis]
