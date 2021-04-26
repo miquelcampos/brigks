@@ -54,7 +54,7 @@ def compare(name, first, second, operation):
 	return node
 
 # ----------------------------------------------------------------------------------
-# TRANSFORMS
+# TRANSFORMS - CONSTRAINTS
 # ----------------------------------------------------------------------------------
 def blendMatrix(name, slave, masters, maintainOffset=False, translate=True, rotate=True, scale=True, useJointOrient=False):
 	'''	Create a BlendMatrix nodes compound
@@ -114,27 +114,52 @@ def blendMatrix(name, slave, masters, maintainOffset=False, translate=True, rota
 
 	return bmNode
 
-# def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None):
-# 	# TODO Replace with aimMatrix
-# 	cns = cmds.aimConstraint(master, slave, worldUpType="objectrotation", maintainOffset=False, name=name, skip="none")[0]
 
-# 	# UpVector
-# 	cmds.setAttr(cns+".worldUpVectorX", upVector[0])
-# 	cmds.setAttr(cns+".worldUpVectorY", upVector[1])
-# 	cmds.setAttr(cns+".worldUpVectorZ", upVector[2])
+def fkik2Bones(name, iks, fks, bones, lenA, lenB, neg):
+	'''	Create a fkik2Bones nodes compound
 
-# 	cmds.connectAttr(upMaster+".worldMatrix[0]", cns+".worldUpMatrix")
+	Args:
+		name (str): Name of the nodes
+		iks (list of str): In order - root, effector, upvector
+		fks (list of str): In order - fk1, 2 and 3
+		lenA (float): Initial length of the first bone
+		lenB (float): Initial length of the second bone
+		neg (bool): Build for negative side
 
-# 	# Direction Axis
-# 	aimAttr = ["aimVectorX", "aimVectorY", "aimVectorZ", "upVectorX", "upVectorY", "upVectorZ"]
-# 	a = axis.replace("-", "")
-# 	out = [0]*6
-# 	out["xyz".index(a[0])] = -1 if axis[0] == "-" else 1
-# 	out["xyz".index(a[1])+3] = -1 if axis[-2] == "-" else 1
-# 	for name, value in izip(aimAttr, out):
-# 		cmds.setAttr(cns+"."+name, value)
+	Returns:
+		str: The FkIk2Bones node
+	'''
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
 
-# 	return cns
+	fkikNode = cmds.createNode("FkIk2Bones", name=name.format(node="FKIK"))
+
+	for ctl, attr in izip(iks, ["Root", "effector", "upVector"]):
+		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
+
+	for ctl, attr in izip(fks, ["FkA", "FkB", "FkC"]):
+		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
+
+	cmds.setAttr(fkikNode+".lengthA", lenA)
+	cmds.setAttr(fkikNode+".lengthB", lenB)
+	cmds.setAttr(fkikNode+".negate", neg)
+
+
+	for bone, s in izip(bones, "ABC"):
+		attributes.inheritsTransform(bone, False)
+		cmds.setAttr(bone+".shearXY", 0)
+		cmds.setAttr(bone+".shearXZ", 0)
+		cmds.setAttr(bone+".shearYZ", 0)
+
+		dmNode = cmds.createNode("decomposeMatrix", name=name+"{s}".format(node="FKIKDcpMat", s=s))
+
+		cmds.connectAttr(fkikNode+".bone{}Tfm".format(s), dmNode+".inputMatrix")
+
+		cmds.connectAttr(dmNode+".outputTranslate", bone+".translate")
+		cmds.connectAttr(dmNode+".outputRotate", bone+".rotate")
+		cmds.connectAttr(dmNode+".outputScale", bone+".scale")
+
+	return fkikNode
 
 def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, maintainOffset=False):
 	'''	Create a Aim Constraint nodes compound
@@ -146,12 +171,14 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, 
 		slave (str): The node to constraint
 		master (str): The node that will drive the constraint
 		axis (str): "xy", "zx", "-xy"... First the axis to point At, then the one used for the upvector
+		upMaster ():
+		upVector ():
+		maintainOffset (bool): True to maintain original offset
 
 
 	Returns:
 		str: The aimConstraint node
 	'''
-
 	# No master, we point to a vector
 	if upMaster is None:
 		upType = "vector"
@@ -192,60 +219,36 @@ def aimConstraint(name, slave, master, axis="xy", upMaster=None, upVector=None, 
 	return cns
 
 def orientConstraint(name, slave, masters, maintainOffset=False):
+	'''	Create a Orient Constraint nodes compound
+
+	We actually use a Parent constraint without the translation
+
+	Args:
+		name (str): Name of the nodes
+		slave (str): The node to constraint
+		masters (list of str): The node that will drive the constraint
+		maintainOffset (bool): True to maintain original offset
+
+	Returns:
+		str: The parentConstraint node
+	'''
 	cns = cmds.parentConstraint(masters, slave, maintainOffset=maintainOffset, skipTranslate=["x", "y", "z"], name=name.format(node="OriCns"))[0]
 	return cns
 
-def pointAtDoubleAxis(name, cns, masterA, masterB, axis="z"):
-	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
-		cmds.loadPlugin("HarbieNodes")
-
-	node = cmds.createNode("PointAtDoubleAxis", name=name.format(node="PtAtDouble"))
-	cmds.connectAttr(masterA+".worldMatrix[0]", node+".ref")
-	cmds.connectAttr(masterB+".worldMatrix[0]", node+".trk")
-	cmds.setAttr(node+".axis", "zy".index(axis))
-
-	cmds.setAttr(cns+".worldUpType", 3)
-	cmds.connectAttr(node+".out", cns+".worldUpVector")
-
-def pointAtBlendedAxis(name, cns, masterA, masterB, blend=.5, axis="Z"):
-	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
-		cmds.loadPlugin("HarbieNodes")
-
-	node = cmds.createNode("PointAtBlendedAxis", name=name.format(node="PtAtBlended"))
-	cmds.connectAttr(masterA+".worldMatrix[0]", node+".mA")
-	cmds.connectAttr(masterB+".worldMatrix[0]", node+".mB")
-
-	cmds.setAttr(node+".axis", POINTAT_AXIS.index(axis))
-	cmds.setAttr(node+".blend", blend)
-
-	cmds.setAttr(cns+".worldUpType", 3)
-	cmds.connectAttr(node+".out", cns+".worldUpVector")
-
-	return node
-
-def spinePointAt(name, cnsNode, masterA, masterB, blend=.5, axis="-Z", solver=0):
-	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
-		cmds.loadPlugin("HarbieNodes")
-
-	spaNode = cmds.createNode("SpinePointAt", name=name.format(node="SpPtAt"))
-
-	cmds.setAttr(spaNode+".blend", blend)
-	cmds.setAttr(spaNode+".axis", POINTAT_AXIS.index(axis))
-	# Solver 0:SpinepointAt. 1:Slerp
-	cmds.setAttr(spaNode+".alg", solver)
-
-	cmds.connectAttr(masterA+".worldMatrix[0]", spaNode+".tfmA")
-	cmds.connectAttr(masterB+".worldMatrix[0]", spaNode+".tfmB")
-
-	# Outputs
-	cmds.setAttr(cnsNode+".worldUpType", 3)
-
-	cmds.connectAttr(spaNode+".pointAt", cnsNode+".worldUpVector")
-
-	return spaNode
-
-
 def twoPointsConstraint(name, slave, masterA, masterB, blend=.5, axis="x-z"):
+	'''	Create a Point Constraint with two master and a SpinePointAt compound
+
+	Args:
+		name (str): Name of the nodes
+		slave (str): The node to constraint
+		masterA (str): The node that will drive the constraint
+		masterB (str): The node that will drive the constraint
+		blend (float): 0-1
+		axis (str): 
+
+	Returns:
+		str: The pointConstraint node
+	'''
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
@@ -259,6 +262,23 @@ def twoPointsConstraint(name, slave, masterA, masterB, blend=.5, axis="x-z"):
 	return aim
 
 def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termination=0.0, amplitudeAxis=(1,1,1)):
+	'''	Create a Harmonic compound
+
+	Harmonic is a dynamic constraint to create secondary animation automatically
+
+	Args:
+		name (str): Name of the nodes
+		slave (str): The node to constraint
+		master (str): The node that will drive the constraint
+		amplitude (float): 0-1
+		decay (float): 
+		frequency (float): 
+		termination (float): 
+		amplitudeAxis (triplet of float): 
+
+	Returns:
+		str: The harmonics node
+	'''
 	if not cmds.pluginInfo("harmonics", q=True,  loaded=True):
 		cmds.loadPlugin("harmonics")
 
@@ -280,7 +300,119 @@ def harmonic(name, slave, master, amplitude=1.0, decay=8.0, frequency=0.5, termi
 
 	return hNode
 
+# ----------------------------------------------------------------------------------
+# POINT AT
+# ----------------------------------------------------------------------------------
+def pointAtDoubleAxis(name, cns, masterA, masterB, axis="z"):
+	'''	Create a pointAtDoubleAxis compound
+	
+	This is mean to be used for UpVector direction with a aimConstraint or similar
+
+	Args:
+		name (str): Name of the nodes
+		cns (str): The constraint node to connect to
+		masterA (str): The node that will drive the constraint
+		masterB (str): The node that will drive the constraint
+		axis (str): 
+
+	Returns:
+		str: The PointAtDoubleAxis node
+	'''
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	node = cmds.createNode("PointAtDoubleAxis", name=name.format(node="PtAtDouble"))
+	cmds.connectAttr(masterA+".worldMatrix[0]", node+".ref")
+	cmds.connectAttr(masterB+".worldMatrix[0]", node+".trk")
+	cmds.setAttr(node+".axis", "zy".index(axis))
+
+	cmds.setAttr(cns+".worldUpType", 3)
+	cmds.connectAttr(node+".out", cns+".worldUpVector")
+
+def pointAtBlendedAxis(name, cns, masterA, masterB, blend=.5, axis="Z"):
+	'''	Create a pointAtBlendedAxis compound
+	
+	This is mean to be used for UpVector direction with a aimConstraint or similar
+
+	Args:
+		name (str): Name of the nodes
+		cns (str): The constraint node to connect to
+		masterA (str): The node that will drive the constraint
+		masterB (str): The node that will drive the constraint
+		blend (float): 0-1
+		axis (str): 
+
+	Returns:
+		str: The PointAtBlendedAxis node
+	'''
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	node = cmds.createNode("PointAtBlendedAxis", name=name.format(node="PtAtBlended"))
+	cmds.connectAttr(masterA+".worldMatrix[0]", node+".mA")
+	cmds.connectAttr(masterB+".worldMatrix[0]", node+".mB")
+
+	cmds.setAttr(node+".axis", POINTAT_AXIS.index(axis))
+	cmds.setAttr(node+".blend", blend)
+
+	cmds.setAttr(cns+".worldUpType", 3)
+	cmds.connectAttr(node+".out", cns+".worldUpVector")
+
+	return node
+
+def spinePointAt(name, cnsNode, masterA, masterB, blend=.5, axis="-Z", solver=0):
+	'''	Create a spinePointAt compound
+	
+	This is mean to be used for UpVector direction with a aimConstraint or similar
+	This is the Maya version of the Softimage Isner Spine Point At solver
+
+	Args:
+		name (str): Name of the nodes
+		cns (str): The constraint node to connect to
+		masterA (str): The node that will drive the constraint
+		masterB (str): The node that will drive the constraint
+		blend (float): 0-1
+		axis (str): 
+		solver (int): 0.SpinepointAt 1.Slerp
+
+	Returns:
+		str: The SpinePointAt node
+	'''
+	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
+		cmds.loadPlugin("HarbieNodes")
+
+	spaNode = cmds.createNode("SpinePointAt", name=name.format(node="SpPtAt"))
+
+	cmds.setAttr(spaNode+".blend", blend)
+	cmds.setAttr(spaNode+".axis", POINTAT_AXIS.index(axis))
+	# 
+	cmds.setAttr(spaNode+".alg", solver)
+
+	cmds.connectAttr(masterA+".worldMatrix[0]", spaNode+".tfmA")
+	cmds.connectAttr(masterB+".worldMatrix[0]", spaNode+".tfmB")
+
+	# Outputs
+	cmds.setAttr(cnsNode+".worldUpType", 3)
+
+	cmds.connectAttr(spaNode+".pointAt", cnsNode+".worldUpVector")
+
+	return spaNode
+
+# ----------------------------------------------------------------------------------
+# ROTATION TRACKER
+# ----------------------------------------------------------------------------------
 def rotationTracker(name, attr, reference, tracker):
+	'''	Create a rotationTracker compound
+
+	Args:
+		name (str): Name of the nodes
+		attr (str): Output Attribute to connect to
+		reference (str): The reference node that will drive the constraint
+		tracker (str): The tracker node that will drive the constraint
+
+	Returns:
+		str: The RotationTracker node
+	'''
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
@@ -306,6 +438,21 @@ def rotationTracker(name, attr, reference, tracker):
 	return node
 
 def rotationToSlider(name, attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
+	'''	Create a rotationToSlider compound
+
+	This node convert a rotation range in a translation
+
+	Args:
+		name (str): Name of the nodes
+		attr (str): Output Attribute to connect to
+		rotMin (float): The minimum rotation value in degrees
+		rotMax (float): The maximum rotation value in degrees
+		slideMin (float): The minimum translation value
+		slideMax (float): The maximum translation value
+
+	Returns:
+		str: The RotationToSlider node
+	'''
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
@@ -319,15 +466,52 @@ def rotationToSlider(name, attr, rotMin=-90, rotMax=90, slideMin=0, slideMax=1):
 
 	return node
 
-def curveConstraints(name, slave, curve, axis="xy", parametric=True, u=.5, percentageToU=False):
-	'''
+# ----------------------------------------------------------------------------------
+# NURBS and MESH CONSTRAINTS
+# ----------------------------------------------------------------------------------
+def curvePointCenters(name, curve, center, index):
+	'''	Create a curvePointCenters compound
+
+	This node is attaching the curve point to given transforms
+
 	Args:
-		slave():
-		curve():
-		axis(str): 'xy', '-xy'...
-		parametric(bool): True to use parametric attachment (Faster)
-		u(float): Normalized U [0.0:1.0]
-		percentageToU: True to convert percentage value to U (ignored if parametric is False)
+		name (str): Name of the nodes
+		curve (str): Curve to drive
+		center (str): Transform node to drive the position
+		index (int): Index of the CV to drive
+	'''
+
+	# If that fails it might be that you don't have the matrixNodes.mll plungin installed
+	dmNode = cmds.createNode("decomposeMatrix", name=name+"{i}".format(node="DcpMat", i=index))
+
+	shape = cmds.listRelatives(curve, shapes=True)[0]
+
+	cmds.setAttr(curve+".inheritsTransform", False)
+
+	cmds.connectAttr(center+".worldMatrix[0]", dmNode+".inputMatrix")
+	cmds.connectAttr(dmNode+".outputTranslate", shape+".controlPoints[{}]".format(index))
+
+	for t, a in product(["translate", "rotate", "scale"], "XYZ"):
+		attrName = t+a
+		value = 1 if t == "scale" else 0
+
+		cmds.setAttr(curve+"."+attrName, lock=False)
+		cmds.setAttr(curve+"."+attrName, value)
+		cmds.setAttr(curve+"."+attrName, lock=True)
+
+def curveConstraints(name, slave, curve, axis="xy", parametric=True, u=.5, percentageToU=False):
+	'''	Create a curveConstraints compound
+
+	Args:
+		slave (str): Node to attach to the curve
+		curve (str): Curve to drive the node
+		axis (str): 'xy', '-xy'...
+		parametric (bool): True to use parametric attachment (Faster)
+		u (float): Normalized U [0.0:1.0]
+		percentageToU (bool): True to convert percentage value to U (ignored if parametric is False)
+
+	Returns:
+		str: The motionPath node
 	'''
 	shape = cmds.listRelatives(curve, shapes=True)[0]
 
@@ -373,76 +557,37 @@ def curveConstraints(name, slave, curve, axis="xy", parametric=True, u=.5, perce
 
 	return mpNode
 
-def fkik2Bones(name, iks, fks, bones, lenA, lenB, neg):
-	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
-		cmds.loadPlugin("HarbieNodes")
-
-	fkikNode = cmds.createNode("FkIk2Bones", name=name.format(node="FKIK"))
-
-	for ctl, attr in izip(iks, ["Root", "effector", "upVector"]):
-		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
-
-	for ctl, attr in izip(fks, ["FkA", "FkB", "FkC"]):
-		cmds.connectAttr(ctl+".worldMatrix[0]", fkikNode+"."+attr+"[0]")
-
-	cmds.setAttr(fkikNode+".lengthA", lenA)
-	cmds.setAttr(fkikNode+".lengthB", lenB)
-	cmds.setAttr(fkikNode+".negate", neg)
-
-
-	for bone, s in izip(bones, "ABC"):
-		attributes.inheritsTransform(bone, False)
-		cmds.setAttr(bone+".shearXY", 0)
-		cmds.setAttr(bone+".shearXZ", 0)
-		cmds.setAttr(bone+".shearYZ", 0)
-
-		dmNode = cmds.createNode("decomposeMatrix", name=name+"{s}".format(node="FKIKDcpMat", s=s))
-
-		cmds.connectAttr(fkikNode+".bone{}Tfm".format(s), dmNode+".inputMatrix")
-
-		cmds.connectAttr(dmNode+".outputTranslate", bone+".translate")
-		cmds.connectAttr(dmNode+".outputRotate", bone+".rotate")
-		cmds.connectAttr(dmNode+".outputScale", bone+".scale")
-
-	return fkikNode
-
-# ----------------------------------------------------------------------------------
-# ATTACH
-# ----------------------------------------------------------------------------------
-def curvePointCenters(name, curve, center, index):
-	# If that fails it might be that you don't have the matrixNodes.mll plungin installed
-	dmNode = cmds.createNode("decomposeMatrix", name=name+"{i}".format(node="DcpMat", i=index))
-
-	shape = cmds.listRelatives(curve, shapes=True)[0]
-
-	cmds.setAttr(curve+".inheritsTransform", False)
-
-	cmds.connectAttr(center+".worldMatrix[0]", dmNode+".inputMatrix")
-	cmds.connectAttr(dmNode+".outputTranslate", shape+".controlPoints[{}]".format(index))
-
-	for t, a in product(["translate", "rotate", "scale"], "XYZ"):
-		attrName = t+a
-		value = 1 if t == "scale" else 0
-
-		cmds.setAttr(curve+"."+attrName, lock=False)
-		cmds.setAttr(curve+"."+attrName, value)
-		cmds.setAttr(curve+"."+attrName, lock=True)
-
 def surfaceAttach(name, slave, surface, u=None, v=None):
+	'''	Create a surfaceAttach compound
+	
+	# TODO This can't possibly work, the variable position isn't defined
+
+	Args:
+		slave (str): Node to attach to the Surface
+		surface (str): Surface to drive the node
+		u (float||None): U position, if None closest U is computed 
+		v (float||None): V position, if None closest V is computed 
+
+	Returns:
+		str: The SurfaceMultiAttach node
+	'''
 	if u is None or v is None:
 		u, v = self._getClosestUV(surface, position, globalSpace=True)
 
-	compounds.surfaceMultiAttach(name, [[slave]], surface, 0, [u], [v])
-	return attach
+	return compounds.surfaceMultiAttach(name, [[slave]], surface, 0, [u], [v])
 
 def surfaceMultiAttach(name, slaves, surface, attach=0, uParams=None, vParams=None, evenly=False):
-	'''
+	'''	Create a surfaceMultiAttach compound
+
 	Args:
-		slaves(List of List of Transform): 
-		surface(): 
-		attach(int): 0 Parametric, 1 Percentage, 2 Fixed Length
-		uParams(list of double|None): None for linear distribution. double must be between 0.0 and 1.0
-		vParams(list of double|None): None for linear distribution. double must be between 0.0 and 1.0
+		slaves (list of str): Nodes to attach to the Surface 
+		surface (str): Surface to drive the node
+		attach (int): 0 Parametric, 1 Percentage, 2 Fixed Length
+		uParams (list of double|None): None for linear distribution. double must be between 0.0 and 1.0
+		vParams (list of double|None): None for linear distribution. double must be between 0.0 and 1.0
+
+	Returns:
+		str: The SurfaceMultiAttach node
 	'''
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
@@ -508,13 +653,17 @@ def surfaceMultiAttach(name, slaves, surface, attach=0, uParams=None, vParams=No
 
 
 def meshMultiAttach(name, slave, mesh, attach=0, index=-1, orient=False):
-	'''
+	'''	Create a meshMultiAttach compound
+
 	Args:
-		slave(): 
-		mesh(): 
-		attach(int): 0 Vertex, 1 Edge, 2 Polygon
-		index(int): -1 to auto detect closest index
-		orient(bool): True to compute orientation from component normal/tangent (slower)
+		slaves (str): Node to attach to the Surface 
+		mesh (str): Mesh to drive the node
+		attach (int): 0 Vertex, 1 Edge, 2 Polygon
+		index (int): -1 to auto detect closest index
+		orient (bool): True to compute orientation from component normal/tangent (slower)
+
+	Returns:
+		str: The MeshMultiAttach node
 	'''
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
@@ -526,7 +675,7 @@ def meshMultiAttach(name, slave, mesh, attach=0, index=-1, orient=False):
 		index = _closestComponentIndex(shape, pos, attach)
 
 	# We're not creating a new node if there is already one available using the correct attach method
-	mmaNode = _getExistingNode(shape, attach)
+	mmaNode = _getMeshMultiAttachNode(shape, attach)
 	if mmaNode is None:
 		mmaNode = cmds.createNode("MeshMultiAttach", name=name.format(node="MshMAttch"))
 	attrIndex = _getNextAvailableIndex(mmaNode)
@@ -543,7 +692,19 @@ def meshMultiAttach(name, slave, mesh, attach=0, index=-1, orient=False):
 	if orient:
 		cmds.connectAttr(mmaNode+".output[%s].rotate"%attrIndex, slave+".rotate")
 
-def _getExistingNode(shape, attach):
+# ----------------------------------------------------------------------------------
+# MISC
+# ----------------------------------------------------------------------------------
+def _getMeshMultiAttachNode(shape, attach):
+	'''	Find existing MeshMultiAttachNode if any
+
+	Args:
+		shape (str): Mesh to drive the node
+		attach (int): 0 Vertex, 1 Edge, 2 Polygon
+
+	Returns:
+		str||None: The MeshMultiAttach node if any
+	'''
 	nodes = cmds.listConnections(shape, type="MeshMultiAttach")
 	if nodes:
 		for node in nodes:
@@ -551,6 +712,14 @@ def _getExistingNode(shape, attach):
 				return node
 
 def _getNextAvailableIndex(node):
+	'''	Get the next port available to attach to
+
+	Args:
+		node (str): MeshMultiAttach Node
+
+	Returns:
+		int: MNext available port
+	'''
 	indices = cmds.getAttr(node+".component", mi=True)
 	if indices:
 		return max(indices) + 1
@@ -561,9 +730,9 @@ def _closestComponentIndex(shape, position, componentType):
 	'''	Get the closest component Index to given position
 
 	Args:
-		mesh
-		position(MPoint|MVector) : 
-		componentType(int) : 0 Vertex, 1 Edge, 2 Polygon
+		shape (str):
+		position (triplet of float): 
+		componentType (int): 0 Vertex, 1 Edge, 2 Polygon
 
 	Return:
 		int
@@ -619,11 +788,11 @@ def _getClosestUV(surface, point, globalSpace=True):
 	'''Returns the Closest UV values on a NurbsSurface to 'point'
 
 	Args:
-		surface(MDagPath): dagPath to the nurbsSurface shapeNode
-		point(MPoint): get the closest UV to this point
-		globalSpace(bool): globalSpace?
+		surface (MDagPath): dagPath to the nurbsSurface shapeNode
+		point (MPoint): get the closest UV to this point
+		globalSpace( bool): globalSpace?
 	Returns:
-		(list): float UV values
+		list of float: float UV values
 	'''
 	if globalSpace:
 		space = om.MSpace.kWorld

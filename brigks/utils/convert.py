@@ -1,3 +1,9 @@
+'''Convert Module
+
+This convert rigguide definition to Brigks
+Currently only support Harbie. harbie is Blur's Rig Builder
+This code is messy and is not meant to be very reusable. It's a patch to help the transition to Brigks
+'''
 import json
 import getpass
 import datetime

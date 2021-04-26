@@ -2,9 +2,6 @@ import os.path
 
 from maya import cmds
 
-
-
-
 def execute(path, value, args={}):
 	'''Execute a script from a given path
 

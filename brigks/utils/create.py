@@ -17,6 +17,22 @@ ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "c
 	 "lookat", "bendedarrow", "rotatearrow", "gear", "lung"]
 
 def transform(name, parent=None, matrix=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
+	'''	Create a Transform node
+
+	Args:
+		name (str): Name of the node
+		parent (str): Parent node
+		matrix (math3d.Transformation||math3d.Matrix4||list of float): The world transformation
+		icon (str): Type of nurbscurve shape 
+		size (float): Size of the shape
+		po (triplet of float): Position offset of the shape
+		ro (triplet of float): Rotation offset of the shape
+		so (triplet of float): Scale offset of the shape
+		color (triplet of float): Color of the shape
+
+	Returns:
+		str
+	'''
 	node = cmds.createNode("transform", name=name)
 	if parent:
 		node = cmds.parent(node, parent)[0]
@@ -30,6 +46,19 @@ def transform(name, parent=None, matrix=None, icon=None, size=1, po=None, ro=Non
 	return cmds.ls(node, long=True)[0]
 
 def joint(name, parent=None, matrix=None, color=None, radius=1, useJointOrient=False):
+	'''	Create a Joint node
+
+	Args:
+		name (str): Name of the node
+		parent (str): Parent node
+		matrix (math3d.Transformation||math3d.Matrix4||list of float): The world transformation
+		color (triplet of float): Color of the shape
+		radius (float): Size of the shape
+		useJointOrient (bool): Use the jointOrient Attribute to set the rotation
+
+	Returns:
+		str
+	'''
 	jnt = cmds.createNode("joint", name=name)
 	cmds.setAttr(jnt+".radius", radius)
 	if parent:
@@ -67,13 +96,34 @@ def camera(name, parent=None, matrix=None, color=None, **kwargs):
 	'''Creates a Transform Node with a camera shape node.
 
 	Args:
-		name(str): Name of the newly created Node
-		parent(): Parent of the node. None if no parent. Automatically casted when possible.
-		matrix(): Transform or position of the node
-		color(int|float triplet): color as index or rgb(0-1)
+		name (str): Name of the node
+		parent (str): Parent node
+		matrix (math3d.Transformation||math3d.Matrix4||list of float): The world transformation
+		color (int|float triplet): color as index or rgb(0-1)
+		kwargs (dictionary): extra camera attributes
+			centerOfInterest
+			focalLength
+			lensSqueezeRatio
+			cameraScale
+			horizontalFilmAperture
+			horizontalFilmOffset
+			verticalFilmAperture
+			verticalFilmOffset
+			filmFit
+			overscan
+			motionBlur
+			shutterAngle
+			nearClipPlane
+			farClipPlane
+			orthographic
+			orthographicWidth
+			panZoomEnabled
+			horizontalPan
+			verticalPan
+			zoom
 
 	Returns:
-		MFnTransform
+		str
 	'''
 	options=dict(
 		centerOfInterest=5.0, 
@@ -115,6 +165,22 @@ def camera(name, parent=None, matrix=None, color=None, **kwargs):
 	return camera
 
 def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False, showOrientation=False, centerScale=1.0):
+	'''Add a Nurbscurve shape to the given node
+
+	Args:
+		icon (str): Type of nurbscurve shape 
+		parent (str): Parent node
+		size (float): Size of the shape
+		po (triplet of float): Position offset of the shape
+		ro (triplet of float): Rotation offset of the shape
+		so (triplet of float): Scale offset of the shape
+		showCenter (float): Show the center helper
+		showOrientation (float): Show the orientation helper
+		centerScale (float): Size of the center shape
+
+	Returns:
+		str
+	'''
 	if not cmds.pluginInfo("harbieLocator.mll", q=True, loaded=True): 
 		cmds.loadPlugin("harbieLocator.mll")
 
@@ -141,24 +207,25 @@ def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False,
 	cmds.setAttr(mhc+".ShowOrientation", showOrientation)
 	cmds.setAttr(mhc+".CenterScale", centerScale)
 
+	return shape
+
 def text(name="curve", parent=None, matrix=None, text="Text", font="Arial", size=40, align="left", bold=False, italic=False, color=None):
-	'''	Creates a Transform node with a Text NurbsCurve Shape. 
-	This method uses cmds for convenience but return an MFn.
+	'''	Creates a Transform node with a Text NurbsCurve Shape.
 
 	Args:
-		name(str): Name of the newly created Node
-		parent(MObject): parent of the node. None if no parent
-		transform(MTransformationMatrix or MVector): Transform or position of the node
-		text(str): Text to display. 
-		font(str): Font to be used. Default is Arial
-		size(int): size off the text. Default is 40 which is close to 1 maya unit high.
-		align(left|center|right): Alignment of the Text.
-		bold(bool): Make text bold
-		italic(bool): Make text italic.
-		color(list of float): Color of the curve.
+		name (str): Name of the newly created Node
+		parent (MObject): parent of the node. None if no parent
+		transform (MTransformationMatrix or MVector): Transform or position of the node
+		text (str): Text to display. 
+		font (str): Font to be used. Default is Arial
+		size (int): size off the text. Default is 40 which is close to 1 maya unit high.
+		align (left|center|right): Alignment of the Text.
+		bold (bool): Make text bold
+		italic (bool): Make text italic.
+		color (list of float): Color of the curve.
 
 	Returns:
-		MFnTransform
+		str
 	'''
 	wt = "wt:75" if bold else "wt:50"
 	sl = "sl:i" if italic else "sl:n"
@@ -213,6 +280,20 @@ def text(name="curve", parent=None, matrix=None, text="Text", font="Arial", size
 #  CHAIN
 # ----------------------------------------------------------------------------------
 def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1, color=None):
+	'''	Creates an Ik chain of joints
+
+	Args:
+		name (str): Name of the newly created Node
+		parent (str): parent of the node. None if no parent
+		positions (list of triplet): position of the node
+		normal (triplet of float):
+		axis (str):
+		size (int): size off the text. Default is 40 which is close to 1 maya unit high.
+		color (list of float): Color of the curve.
+
+	Returns:
+		(str, str, str): joints, effector, handle
+	'''
 	if normal is None:
 		if len(positions) >= 3:
 			normal = Vector3.planeNormal(positions, normalize=True)
@@ -256,27 +337,25 @@ def chain(name, parent, positions, normal=None, axis="xz", negate=False, size=1,
 #  NURBS
 # ----------------------------------------------------------------------------------
 def curve(name, points, closed=False, degree=3, parent=None, color=None):
-	'''
-		Creates a Transform node with a NurbsCurve Shape. 
-		This method uses pymel for convenience but return an MFnNurbsCurve.
+	'''Creates a Transform node with a NurbsCurve Shape. 
 
-		I wasn't able to make it work using OM. 
-		The commented code below works for kOpen, kClosed but not kPeriodic
-		The issue is related to the knots. 
+	This method uses pymel for convenience.
+	I wasn't able to make it work using OM. 
+	The commented code below works for kOpen, kClosed but not kPeriodic
+	The issue is related to the knots. 
 
-		knot count muyst be #CVs + degree - 1
+	knot count muyst be #CVs + degree - 1
 
-		Args:
-			name(str): Name of the newly created Node
-			parent(MObject): parent of the node. None if no parent. Automatically casted when possible. 
-			transform(MTransformationMatrix or MVector): Transform or position of the node
-			points(list of float3): Control points positions
-			closed(bool): Close the curve
-			degree(1 or 3): degree of the curve
-			color(int|list of float): color as index or rbg
+	Args:
+		name (str): Name of the newly created Node
+		points (list of float3): Control points positions
+		closed (bool): Close the curve
+		degree (1 or 3): degree of the curve
+		parent (str): parent of the node. None if no parent. Automatically casted when possible. 
+		color (int|list of float): color as index or rbg
 
-		Returns:
-			MFnNurbsCurve
+	Returns:
+		str
 	'''
 	if len(points) < 2:
 		raise ValueError("You need at least 2 points")
@@ -309,19 +388,17 @@ def curve(name, points, closed=False, degree=3, parent=None, color=None):
 	return curve
 
 def bezier(name, parent=None, points=None, matrix=None, color=None):
-	'''
-		Creates a Transform node with a NurbsCurve Bezier Shape. 
-		This method uses cmds for convenience but return an MFnNurbsCurve.
+	'''Creates a Transform node with a NurbsCurve Bezier Shape. 
 
-		Args:
-			name(str): Name of the newly created Node
-			parent(MObject): parent of the node. None if no parent. Automatically casted when possible. 
-			matrix(): Transform or position of the node
-			points(list of MVector): Control points positions
-			color(int|list of float): color as index or rbg
+	Args:
+		name (str): Name of the newly created Node
+		parent (str): parent of the node. None if no parent. Automatically casted when possible. 
+		matrix (): Transform or position of the node
+		points (list of MVector): Control points positions
+		color (int|list of float): color as index or rbg
 
-		Returns:
-			MFnNurbsCurve
+	Returns:
+		str
 	'''
 	if len(points) < 4:
 		raise ValueError("Need at least 4 points")
@@ -354,14 +431,14 @@ def cnsCurve(name="curve", centers=[], closed=False, degree=3, color=None):
 	'''Creates a Transform node with a NurbsCurve Shape with each point constrained to a given center. 
 
 	Args:
-		name(str): Name of the newly created Node
-		centers(list of object): 
-		closed(bool): Close the curve
-		degree(1 or 3): degree of the curve
-		color(int|list of float): color as index or rbg
+		name (str): Name of the newly created Node
+		centers (list of str): 
+		closed (bool): Close the curve
+		degree (1 or 3): degree of the curve
+		color (int|list of float): color as index or rbg
 
 	Returns:
-		curve(str)
+		str
 	'''
 	if len(centers) < 2:
 		raise ValueError("You need at least 2 centers")
@@ -396,7 +473,7 @@ def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=
 		color(int|list of float): color as index or rbg
 
 	Returns:
-		MFnTransformation
+		str
 	'''
 
 	if axis == "x":

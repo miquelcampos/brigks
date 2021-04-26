@@ -1,3 +1,7 @@
+'''Constants Module
+
+This module offer constants value useful in a rig builder
+'''
 from math3d.vectorN import Vector3 
 
 ROT_ORDERS = ["xyz", "yzx", "zxy", "xzy", "yxz", "zyx"]

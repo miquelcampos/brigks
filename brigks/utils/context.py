@@ -1,3 +1,7 @@
+'''Context Module
+
+This module offer convinient context and decorators
+'''
 import contextlib
 from functools import wraps
 import datetime
@@ -7,26 +11,10 @@ from maya import cmds
 
 @contextlib.contextmanager
 def selection(*args, **kwargs):
-	"""A context manager that resets selections after exiting.
-
-	Args:
-		args: Passed to ``cmds.select``.
-		kwargs: Passed to ``cmds.select``.
-
-	A list of the original selection will be bound to the target of the with
-	statement. Changes to that list will be applied.
-
-	Example::
-
-		>>> with selection(clear=True):
-		...     # Do something with an empty selection, but restore the user's
-		...     # selection when we are done.
-
-	"""
+	'''A context manager that resets selections after exiting
+	'''
 	existing = cmds.ls(selection=True, long=True) or []
 	try:
-		if args or kwargs:
-			cmds.select(*args, **kwargs)
 		yield existing
 	finally:
 		if existing:
@@ -35,8 +23,9 @@ def selection(*args, **kwargs):
 		else:
 			cmds.select(clear=True)
 
-
 class undoChunk(object):
+	'''A context to wrap your script in single undo chunk
+	'''
 	 def __init__(self, name="", raise_error=True):
 			 self.raise_error = raise_error
 			 self.name = name
@@ -64,6 +53,11 @@ class undoChunk(object):
 # DECORATOR
 # ----------------------------------------------------------------------------------
 def command(resetSelection=True):
+	'''A decorator to wrap your method with undo, time stamp and reset selection.
+
+	Args:
+		resetSelection (bool): Restore the current selection
+	'''
 	def wrapper(func):
 		name = func.__name__
 		@wraps(func)

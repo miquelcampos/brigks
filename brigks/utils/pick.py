@@ -8,19 +8,6 @@ from maya import cmds
 
 from brigks.utils import gui, create
 
-
-# def positions(self, min=1, max=-1, show=True):
-# 	# Using a QEventLoop to stop the script until the pick session is done
-# 	loop = QEventLoop()
-
-# 	pp = PickPositions(min, max, show)
-# 	pp.pickSessionEnded.connect(lambda:loop.quit())
-# 	pp.start()
-# 	loop.exec_()
-
-# 	return [xmathutils.Vector.From_MVector(p) for p in pp.positions()]
-
-
 class PickPositions(QObject):
 
 	pickSessionEnded = Signal(list)

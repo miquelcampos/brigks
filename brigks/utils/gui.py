@@ -9,6 +9,11 @@ import maya.OpenMaya as om
 from maya import cmds
 
 def getMayaWindow():
+	'''Returns the Maya main Window for UI parenting 
+
+	Returns:
+		QWidget
+	'''
 	ptr = mui.MQtUtil.mainWindow()
 	return sip.wrapinstance(long(ptr), QWidget)
 
@@ -32,8 +37,16 @@ def wrapViewWidget(viewIndex):
 	return view, widget
 
 def viewToWorld(x, y, view=None):
-	""" Convert the 2D location on the viewport to a 3D position
-	"""
+	'''Convert the 2D location on the viewport to a 3D position
+
+	Args:
+		x (int): X Position
+		y (int): Y Position
+		view ():
+
+	Returns:
+		triplet of float: 3D Space position
+	'''
 	view = mui.M3dView.active3dView() if view is None else view
 	height = view.portHeight()
 	y = height - y
@@ -72,6 +85,14 @@ def viewToWorld(x, y, view=None):
 	return (position.x, position.y, position.z)
 
 def addScriptWidget(tempWindowName):
+	'''Create a native Maya Script Widget
+
+	Args:
+		tempWindowName (str): 
+
+	Returns:
+		QWidget
+	'''
 	if not cmds.window(tempWindowName, q=True, ex=True):
 	    cmds.window(tempWindowName)
 	    cmds.formLayout("qtLayoutObjects")
@@ -95,6 +116,18 @@ def addScriptWidget(tempWindowName):
 
 
 def fileDialog(parent, title, initPath, filters, save=True):
+	'''Create a file dialog 
+
+	Args:
+		parent (QWidget): Parent Widget
+		title (str): Dialog title
+		initPath (str): Initial Path
+		filters (list of str): List of valid extension ie:["ma", "mb"]
+		save (bool): Open dialog in save mode
+
+	Returns:
+		str
+	'''
 	filters = ";;".join(["%s (*.%s)"%(filter,filter) for filter in filters] + ["All files (*.*)"])
 	fileDialog = QFileDialog(parent, title, initPath, filters)
 	
