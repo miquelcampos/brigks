@@ -18,7 +18,10 @@ scriptDefaultValue = '''# cmds returns the maya.cmds module
 '''
 
 class SystemGuide(object):
-	'''
+	'''System Guide Class
+
+	This is the core class for all system guides. It defines the main methods and all the systems are inheriting from this class 
+
 	Attributes:
 		markerNames (list of str)
 		markerPicked (list of str)
@@ -31,6 +34,25 @@ class SystemGuide(object):
 			ie: markerCompatibility = dict(basic=dict(Bone="Part"))
 			In this example the system is compatible with the chain, but markers 'Bone', must be renamed to 'Part'
 		compatibles ?
+
+		_layer (Layer): The parent Layer of the system
+		_settings (dict): Dictionary of settings for that guide
+			preScriptPath (str): Path to the pre-script
+			preScriptValue (str): Code of the pre-script. Saved in case the path is no longer accessible
+			postScriptPath (str): Path to the post script
+			postScriptValue (str): Code of the post-script. Saved in case the path is no longer accessible
+			name (str): Name of the system
+			location (str): Location of the system
+			split (bool): Tells if the system has been split from an X symmetrical system
+			inheritColors (bool): True to inherit colors from parent Layer
+			colorFk (3 float): 0-1 RGB Default color for Fk controllers
+			colorFk (3 float): 0-1 RGB Default color for Fk controllers 
+			createJoints (bool): True to create joints
+		_markers
+		_multiMarkers
+		_connections
+		guide (Guide): The Parent Guide
+		model (str): The guide model
 	'''
 	markerNames = ()
 	markerPicked = ()
@@ -41,6 +63,16 @@ class SystemGuide(object):
 	compatibles = ()
 
 	def __init__(self, layer, name="Name", location="M"):
+		'''Guide Init
+
+		Args:
+			layer (Layer): The parent layer for that system
+			name (str): The system name
+			location (str): The system location
+
+		Returns:
+			SystemGuide
+		'''
 		self._layer = layer
 		self._settings = dict(
 					preScriptPath="",
@@ -100,10 +132,10 @@ class SystemGuide(object):
 
 
 	def dumps(self):
-		"""
+		'''
 		Returns:
 		    dictionary: System settings, including connections.
-		"""
+		'''
 		data = dict(systemType=self.type(),
 					settings=self._settings,
 					connections={slot:cnx.dumps() for slot, cnx in self._connections.iteritems()})

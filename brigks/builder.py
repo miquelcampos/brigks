@@ -16,7 +16,6 @@ class Builder():
 	'''Main Builder Class
 
 	This object is building the core rig and loops on the systems to build and connect them all
-
 	'''
 
 	def __init__(self, guide):
