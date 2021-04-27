@@ -109,7 +109,7 @@ class FootSystemBuilder(SystemBuilder):
 	#----------------------------------------------------------------------------
 	# PROPERTIES
 	def createAttributes(self):
-		self.angleAttr = [self.addAnimAttr("Angle%s"%i, "float", 20, 0, None, 0, 90) for i in xrange(1, self.count("Part"))]
+		self.angleAttr = [self.addAnimAttr("Angle%s"%i, "float", 20, 0, None) for i in xrange(1, self.count("Part"))]
 		self.blendAttr = self.addSetupAttr("Blend", "float", 1, 0, 1)
 
 	#----------------------------------------------------------------------------

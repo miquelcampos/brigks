@@ -92,7 +92,7 @@ def create(node, longName, dataType="bool", value=True, minValue=None, maxValue=
 
 	return node+"."+longName
 
-def setKeyables(node, attrs=None):
+def setKeyables(node, attrs=None, lock=True):
 	'''Set the transform attribute keyables on given transform node
 
 	Args:
@@ -104,7 +104,7 @@ def setKeyables(node, attrs=None):
 
 	for attrName in constants.ATTRS_TRS:
 		keyable = attrName in attrs
-		cmds.setAttr(node+"."+attrName, lock=not keyable)
+		cmds.setAttr(node+"."+attrName, lock=not keyable and lock)
 		cmds.setAttr(node+"."+attrName, keyable=keyable)
 		if not keyable:
 			cmds.setAttr(node+"."+attrName, channelBox=keyable)

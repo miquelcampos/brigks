@@ -252,7 +252,7 @@ def twoPointsConstraint(name, slave, masterA, masterB, blend=.5, axis="x-z"):
 	if not cmds.pluginInfo("HarbieNodes", q=True, loaded=True):
 		cmds.loadPlugin("HarbieNodes")
 
-	cns = cmds.pointConstraint(masterA, masterB, slave, weight=blend, maintainOffset=maintainOffset, name=name.format(node="TwoPnt"))
+	cns = cmds.pointConstraint(masterA, masterB, slave, weight=blend, maintainOffset=False, name=name.format(node="TwoPnt"))
 	cmds.pointConstraint(masterB, slave, weight=blend, edit=True)
 	cmds.pointConstraint(masterA, slave, weight=1-blend, edit=True)
 

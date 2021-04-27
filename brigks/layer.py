@@ -192,13 +192,13 @@ class Layer():
 		'''Returns the sub Layer or the Layer
 
 		Args:
-			key (None||str): None returns the whole dictionary, if a key is passed it returns that Layer
+			name (None||str): None returns the whole dictionary, if a key is passed it returns that Layer
 
 		Returns:
 			dictionary or setting value
 		'''
 		layers = {layer.name():layer for layer in self._layers}
-		return layers if key is None else layers[key]
+		return layers if name is None else layers[name]
 
 	def addLayer(self, name):
 		'''Add a sub Layer to the Layer

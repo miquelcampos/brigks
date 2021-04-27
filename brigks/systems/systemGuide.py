@@ -8,7 +8,7 @@ from math3d import TransformationArray, Vector3Array
 
 from brigks.connections import getSystemConnectionClass
 from brigks import naming, config
-from brigks.utils import create, pick
+from brigks.utils import create, pick, compounds
 from brigks.systems.systemMarker import SystemMarker, checkMarkersMinMax
 
 
@@ -338,7 +338,7 @@ class SystemGuide(object):
 		return {}
 
 	# ----------------------------------------------------------------------------------
-	# MARKERS / TRANSFORMS
+	# MARKERS
 	# ----------------------------------------------------------------------------------
 	@classmethod
 	def pickMarkerPositions(cls):
@@ -354,6 +354,10 @@ class SystemGuide(object):
 			pp.start()
 			result = pp.positions()
 			guides += pp.guides()
+
+			# TODO: Add an option to get the matrices to lookAt the next one
+			# That will be useful for chains, arms, legs
+
 			if not result:
 				matrices = {}
 				break
@@ -370,6 +374,14 @@ class SystemGuide(object):
 		return matrices
 
 	def createMarkers(self, matrices):
+		'''Create the Markers 
+		
+		If the no matrices is defined for a given marker, it will first try to use the default
+		value, as defined in self.markerPositions, otherwise it will just create it at origin
+	
+		Args:
+			matrices (dict of Matrix): The matrix of the markers
+		'''
 		parent = None
 		markers = []
 		for part, matrix in checkMarkersMinMax(matrices, self.markerNames, self.markerMinMax):
@@ -383,18 +395,19 @@ class SystemGuide(object):
 		self.createMarkerCurves()
 
 	def createMarkerCurves(self):
+		'''Create the Marker Display curves from the definition in self.markerCurves
+		'''
 		for name, parts in self.markerCurves.iteritems():
 			markers = []
 			for part in parts:
 				search = part+"*" if part in self.markerNames else part
 				result = cmds.ls(self.getMarkerName(search), type="transform", long=True)
-				result = [x for x in result if x.split("|")[-1].startswith(self.model())]
+				result = [x for x in result if x.startswith(self.model())]
 				result = sorted(result, key=lambda x:x.split("|")[-1])
 				markers += result
 
 			if len(markers) > 1:
-				curve = create.cnsCurve(self.getMarkerName(name), markers, degree=1)
-				cmds.setAttr(curve+".template", True)
+				self.addMarkerDispCurve(name, markers)
 
 	def deleteMarkers(self):
 		self.loadMarkers(force=True)
@@ -403,12 +416,38 @@ class SystemGuide(object):
 			cmds.delete(markers)
 
 	def addMarker(self, part, parent=None, matrix=None):
+		'''Create a single SystemMarker
+
+		Args:
+			part (str): Unique part of the system object
+			parent (str): Marker to be parented under
+			matrix (Matrix): The matrix of the markers
+		
+		Returns:
+			SystemMarker
+		'''
 		parent = self.model() if parent is None else parent
 		name = self.getMarkerName(part)
-		if matrix is None:
+		if matrix is None and part in self.markerPositions:
 			position = self.markerPositions[part]
 			matrix = Transformation.fromParts(translation=position)
 		return SystemMarker.create(name, self, parent, matrix)
+
+	def addMarkerDispCurve(self, part, markers):
+		'''Create a display curve. 
+
+		This is just a curve constrained to the markers to help visualize there relation
+
+		Args:
+			part (str): Unique part of the system object
+			markers (list of str): 
+		
+		Returns:
+			str: The constrained curve
+		'''
+		curve = create.cnsCurve(self.getMarkerName(part), markers, degree=1)
+		cmds.setAttr(curve+".template", True)
+		return curve
 
 	def addMarkerCamera(self, part, parent=None, matrix=None):
 		parent = self.model() if parent is None else parent
@@ -490,6 +529,9 @@ class SystemGuide(object):
 				if cmds.objExists(oldName):
 					cmds.rename(oldName, newName)
 
+	# ----------------------------------------------------------------------------------
+	# MARKER TRANSFORMS
+	# ----------------------------------------------------------------------------------
 	def transforms(self, name=None):
 		if name is None:
 			return {k:m.transform() for k,m in self.markers().iteritems()}
@@ -522,11 +564,52 @@ class SystemGuide(object):
 		else:
 			return self.markers(name).scale()
 
-	def count(self, name):
-		if name not in self.markerMinMax:
-			raise RuntimeError("Can't count single Markers")
-		return len(self.markers(name))
+	def count(self, part):
+		'''Returns the number of multiMarker found
+		
+		Args:
+			part (str): Unique part of the system object
 
+		Returns:
+			int
+		'''
+		if part not in self.markerMinMax:
+			raise RuntimeError("Can't count single Markers")
+		return len(self.markers(part))
+
+	# ----------------------------------------------------------------------------------
+	# MISC
+	# ----------------------------------------------------------------------------------
+	def addCompound(self, compoundType, name, *args, **kwargs):
+		'''Helper Method. Create a compound with the right naming convention
+
+		The compounds are methods in brigks.utils.compounds
+		
+		Args:
+			compoundType (str): Node type
+			name (str): Unique part name of the system object
+			args (): Extra arguments for the method
+			kwargs (): Extra arguments for the method
+
+		Returns:
+			str
+		'''
+		nArgs = []
+		for arg in args:
+			if isinstance(arg, SystemMarker):
+				arg = arg.name()
+			nArgs.append(arg)
+
+		nKwargs = {}
+		for key, value in kwargs.iteritems():
+			if isinstance(value, SystemMarker):
+				value = value.name()
+			nKwargs[key] = value
+
+
+		method = compounds.__dict__[compoundType]
+		name = self.getMarkerName(name+"{node}")
+		return method(name, *nArgs, **nKwargs)
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT

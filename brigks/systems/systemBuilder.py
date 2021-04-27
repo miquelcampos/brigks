@@ -4,8 +4,8 @@ from collections import OrderedDict
 
 from maya import cmds
 
-from brigks.utils import attributes, create, compounds
-from brigks import naming, config, script
+from brigks.utils import attributes, create, compounds, script
+from brigks import naming, config
 
 class SystemBuilder():
 	'''System Builder Class
@@ -580,7 +580,7 @@ class SystemBuilder():
 			str
 		'''
 		name = self.getObjectName(use, part)
-		objects = [x for x in cmds.ls(name, type="transform", long=True) if x.startswith("|"+self.model())]
+		objects = [x for x in cmds.ls(name, type="transform", long=True) if x.startswith(self.model())]
 		if objects:
 			return objects[0]
 
@@ -608,7 +608,7 @@ class SystemBuilder():
 			str
 		'''
 		longName = self.getObjectName(config.USE_RIG, name)
-		attributes = [x for x in cmds.ls("*."+longName, long=True) if x.startswith("|"+self.model())]
+		attributes = [x for x in cmds.ls("*."+longName, long=True) if x.startswith(self.model())]
 		if attributes:
 			return attributes[0]
 

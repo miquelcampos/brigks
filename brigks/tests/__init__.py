@@ -40,10 +40,10 @@ def createGuidesAndBuild(location="M", mirror=False, showWindow=False):
 	# g.setSettings(stopAfter="Create Objects")
 
 	layer = g.addLayer("MyFirstLayer")
-	basicA = layer.addSystem("basic", location, "BasicA")
+	# basicA = layer.addSystem("basic", location, "BasicA")
 	# basicB = layer.addSystem("basic", location, "BasicB")
 	chain = layer.addSystem("chain", location, "Chain")
-	stretch = layer.addSystem("stretch", location, "Stretch")
+	# stretch = layer.addSystem("stretch", location, "Stretch")
 	# slider = layer.addSystem("slider", location, "Slider")
 	# twist = layer.addSystem("twist", location, "Twist")
 	# spine = layer.addSystem("spine", location, "Spine")
@@ -66,6 +66,7 @@ def createGuidesAndBuild(location="M", mirror=False, showWindow=False):
 	# tentacle = layer.addSystem("tentacle", location, "Tentacle")
 
 	# System Settings
+	chain.setSettings(dynamic=True, dynamicAnimatable=True, strap=True)
 	# slider.setSettings(dynamic=True, dynamicAnimatable=True, splitRotation=True)
 	# stretch.setSettings(squash=True)
 

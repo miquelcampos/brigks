@@ -26,28 +26,28 @@ def selection(*args, **kwargs):
 class undoChunk(object):
 	'''A context to wrap your script in single undo chunk
 	'''
-	 def __init__(self, name="", raise_error=True):
-			 self.raise_error = raise_error
-			 self.name = name
+	def __init__(self, name="", raise_error=True):
+		self.raise_error = raise_error
+		self.name = name
 
-	 def __enter__(self):
-			 cmds.undoInfo(openChunk=True, chunkName=self.name)
-			 cmds.waitCursor(state=True)
-			 cmds.refresh(suspend =True)
+	def __enter__(self):
+		cmds.undoInfo(openChunk=True, chunkName=self.name)
+		cmds.waitCursor(state=True)
+		cmds.refresh(suspend =True)
 
-	 def __exit__(self, exc_type, exc_val, exc_tb):
-			 """ Turn refresh on again and raise errors if asked """
-			 cmds.refresh(suspend =False)
-			 cmds.refresh()
-			 cmds.waitCursor(state=False)
-			 cmds.undoInfo(closeChunk=True)
-			 if exc_type is not None:
-					 if self.raise_error:
-							 import traceback
-							 traceback.print_tb(exc_tb)
-							 raise exc_type, exc_val
-					 else:
-							 sys.stderr.write("%s" % exc_val)
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		""" Turn refresh on again and raise errors if asked """
+		cmds.refresh(suspend =False)
+		cmds.refresh()
+		cmds.waitCursor(state=False)
+		cmds.undoInfo(closeChunk=True)
+		if exc_type is not None:
+			if self.raise_error:
+				import traceback
+				traceback.print_tb(exc_tb)
+				raise exc_type, exc_val
+			else:
+				sys.stderr.write("%s" % exc_val)
 
 # ----------------------------------------------------------------------------------
 # DECORATOR

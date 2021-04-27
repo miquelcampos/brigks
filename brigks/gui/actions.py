@@ -48,9 +48,6 @@ def toggleVisibility(systemGuides, gde=False, rig=False, jnt=False, ctl=False):
 	for systemGuide in systemGuides:
 		systemGuide.setVisible(visible, gde, rig, jnt, ctl)
 
-def build(guide, systemGuides):
-	guide.build(systemGuides)
-
 def duplicate(guide, systemGuides):
 	for systemGuide in systemGuides:
 		systemGuide.duplicate(mirror=False)

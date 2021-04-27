@@ -284,7 +284,7 @@ class ChainSystemBuilder(SystemBuilder):
 	# CONNECTION
 	def createConnections(self):
 		if "Root" in self._connections:
-			obj = self.getObject(config.USE_RIG, "Root")	
+			obj = self.getObject(config.USE_RIG, "Root")
 			self.connections("Root").connect(obj, attrName="RootParent")
 
 		if "IK" in self._connections:

@@ -28,8 +28,7 @@ class MetaSystemGuide(SystemGuide):
 	def createMarkerCurves(self):
 		for i in xrange(1, self.count("Part")+1):
 			markers = [self._markers["{}{}".format(x, i)].name() for x in ["Part", "Eff"]]
-			curve = create.cnsCurve(self.getMarkerName("Crv{}".format(i)), markers, degree=1)
-			cmds.setAttr(curve+".template", True)
+			self.addMarkerDispCurve("Crv{}".format(i), markers)
 
 	def addSettings(self):
 		self._settings["startController"] = True

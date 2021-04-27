@@ -194,7 +194,8 @@ class Builder():
 		
 		The hierarchy is defined in the hierarchy.xml file
 		'''
-		self._model = self._addModel()
+		if not self._model:
+			self._model = self._addModel()
 
 		xmlHierarchy = etree.parse(HIERARCHY_XML_PATH).getroot()
 		for xmlNode in xmlHierarchy:
@@ -214,14 +215,19 @@ class Builder():
 
 		name = naming.getObjectName(use, "M", "Root", part)
 
-		options = dict(
-			icon=xmlNode.get("icon", None))	
-		for x in ["size", "po", "ro", "so", "color"]:
-			value = xmlNode.get(x, None)
-			if value is not None:
-				options[x] = json.loads(value)
-		
-		node = self._addTransform(name, parent, **options)
+		# Check if the node was already created
+		for node in cmds.ls(name, type="transform", long=True):
+			if node.startswith(self._model):
+				break
+		else:
+			options = dict(
+				icon=xmlNode.get("icon", None))	
+			for x in ["size", "po", "ro", "so", "color"]:
+				value = xmlNode.get(x, None)
+				if value is not None:
+					options[x] = json.loads(value)
+			
+			node = self._addTransform(name, parent, **options)
 
 		for xmlChild in xmlNode:
 			self._createFromXml(xmlChild, node)

@@ -45,7 +45,7 @@ class StretchSystemBuilder(SystemBuilder):
 			self.twistBlendAttr = self.addAnimAttr("twistBlend", "float", self.settings("twistBlend"), 0, 1)
 
 		if self.settings("squash"):
-			self.squashAttr = [self.addAnimAttr("squash"+s, "float", self.settings("squash"+s), None, None, -1, 1) for s in "yz"]
+			self.squashAttr = [self.addAnimAttr("squash"+s, "float", self.settings("squash"+s), None, None) for s in "yz"]
 
 		if self.settings("stretch"):
 			self.stretchBlendAttr = self.addAnimAttr("stretchBlend", "float", self.settings("stretchBlend"), 0, 1)

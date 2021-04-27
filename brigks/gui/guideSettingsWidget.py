@@ -38,9 +38,8 @@ class GuideSettingsWidget(QWidget):
 		self.uiPostScriptWDG = ScriptWidget("post")
 		self.uiScriptsTAB.layout().addWidget(self.uiPostScriptWDG)
 
-		self.connectWidgets()
-
 		self.setGuide(guide)
+		self.connectWidgets()
 
 	def setGuide(self, guide):
 		self._guide = guide
@@ -57,22 +56,11 @@ class GuideSettingsWidget(QWidget):
 			value = self.settings("color"+x)
 			self.setButtonColor(btn, value)
 
-		# TODO
-		# WHYS IS THIS NOT WORKING?
-		# print "SetGuide"
-		# print STEPS
-		# print STEPS.index(self.settings("stopAfter")), self.settings("stopAfter")
-		# print self.settings("hideRig")
-		# print self.settings("hideJoints")
 		self.uiStopAfter.clear()
 		self.uiStopAfter.addItems(STEPS)
 		self.uiStopAfter.setCurrentIndex(STEPS.index(self.settings("stopAfter")))
 		self.uiHideRig.setChecked(self.settings("hideRig"))
 		self.uiHideJoints.setChecked(self.settings("hideJoints"))
-
-		# print self.uiStopAfter.currentText()
-		# print self.uiHideRig.isChecked()
-		# print self.uiHideJoints.isChecked()
 
 		self.uiGroupVisibilityWDG.setGuide(self._guide)
 

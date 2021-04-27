@@ -10,7 +10,7 @@ from math3d.transformation import TransformationArray, Transformation
 from math3d.vectorN import Vector3
 from math3d.matrixN import Matrix4
 
-from brigks.utils import attributes, compounds, cast
+from brigks.utils import attributes, compounds, cast, skin
 
 ICONS = ["arrow", "bone", "circle", "compass", "cross", "crossarrow", "cube", "cubewithpeak",
 	"cylinder", "diamond", "flower", "jaw", "null", "pyramid", "sphere", "spine", "square",
@@ -520,7 +520,8 @@ def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=
 	# cmds is not create to bind to transform, so we bind to temp joints
 	tmpJnts = []
 	for center in centers:	
-		tmpJnt = joint(center+"_TEMPJNT", center)
+		matrix = cmds.xform(center, q=True, matrix=True, worldSpace=True)
+		tmpJnt = joint(center+"_TEMPJNT", center, matrix)
 		tmpJnts.append(tmpJnt)
 	skinCluster = cmds.skinCluster(tmpJnts, surface, maximumInfluences=1, toSelectedBones=True, bindMethod=0)[0]
 	for center, tmpJnt in izip(centers, tmpJnts):

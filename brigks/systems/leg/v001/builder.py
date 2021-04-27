@@ -173,8 +173,8 @@ class LegSystemBuilder(SystemBuilder):
 		self.showCtrlAttr = self.addAnimAttr("showCtrl", "bool", False) 
 		self.rollAttr = self.addAnimAttr("Roll", "float", 0, -180, 180)
 
-		self.scaleAAttr = self.addAnimAttr("ScaleA", "float", 1, None, None, 0, 2)
-		self.scaleBAttr = self.addAnimAttr("ScaleB", "float", 1, None, None, 0, 2)
+		self.scaleAAttr = self.addAnimAttr("ScaleA", "float", 1, None, None)
+		self.scaleBAttr = self.addAnimAttr("ScaleB", "float", 1, None, None)
 		self.maxStretchAttr = self.addAnimAttr("MaxStretch", "float", self.settings("stretchDefault"), 1, None)
 		self.slideAttr = self.addAnimAttr("Slide", "float", .5, 0, 1)
 		self.reverseAttr = self.addAnimAttr("Reverse", "float", self.settings("reverseDefault"), 0, 1)

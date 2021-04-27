@@ -319,7 +319,7 @@ class Guide():
 		Returns:
 			dictionary or group value
 		'''
-		return self._settings["groups"] if key is None else self._settings["groups"][key]
+		return self._settings["groups"] if name is None else self._settings["groups"][name]
 
 	def addGroup(self, name, members=[]):
 		'''Add a group to the Guide
