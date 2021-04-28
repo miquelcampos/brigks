@@ -23,7 +23,7 @@ class NewSystemDialog(QDialog):
 		self.uiCategoryCBOX.currentIndexChanged.connect(self.setSystemList)
 
 	def loadLayers(self):
-		layers = self._findLayers(self._guide)
+		layers = self._guide.getLayersDepths()
 		
 		self.uiLayerCBOX.clear()
 		default = 0
@@ -40,14 +40,6 @@ class NewSystemDialog(QDialog):
 		self.uiCategoryCBOX.setCurrentIndex(categories.index("ALL"))
 
 		self.setSystemList()
-
-	def _findLayers(self, parent, depth=0):
-		layers = sorted(parent.layers().values(), key=lambda x:x.name())
-		found = []
-		for layer in layers:
-			found.append((depth, layer))
-			found += self._findLayers(layer, depth+1)
-		return found
 
 	def setSystemList(self):
 		category = self.uiCategoryCBOX.currentText()

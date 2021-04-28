@@ -278,20 +278,30 @@ class Layer():
 			jnt (bool): True to update USE_JNT objects
 			ctl (bool): True to update USE_CTL objects
 		'''
-		for system in self._systems.values():
+		for system in self._systems:
 			system.setVisible(visible, gde, rig, jnt, ctl)
 
 	def isVisible(self, gde=True, rig=True, jnt=True, ctl=True):
-		'''Returns the visibility status of the objects
+		'''Return True if the majority of objects of the specified use are visible
 
 		Args:
-			gde (bool): True to consider USE_GDE objects
-			rig (bool): True to consider USE_RIG objects
-			jnt (bool): True to consider USE_JNT objects
-			ctl (bool): True to consider USE_CTL objects
+			gde (bool): Returns the object of use config.USE_GDE
+			rig (bool): Returns the object of use config.USE_RIG and USE_BFR
+			jnt (bool): Returns the object of use config.USE_JNT
+			ctl (bool): Returns the object of use config.USE_CTL
+
+		Returns:
+			bool
 		'''
-		if self._systems:
-			return self._systems[0].isVisible(gde, rig, jnt, ctl)
+		objects  = []
+		for system in self._systems:
+			objects += system.getObjects(gde, rig, jnt, ctl)
+		shapes = cmds.listRelatives(objects, shapes=True, path=True) or []
+		joints = cmds.ls(objects, type="joint", long=True)
+		visible = []
+		for shp in shapes + joints:
+			visible.append(cmds.getAttr(shp+".lodVisibility"))
+		return visible.count(True) > visible.count(False)
 
 	# ----------------------------------------------------------------------------------
 	# SYSTEMS
@@ -394,7 +404,6 @@ class Layer():
 
 		self._systems.append(newSystem)
 		return newSystem
-
 
 	# ----------------------------------------------------------------------------------
 	# IMPORT EXPORT

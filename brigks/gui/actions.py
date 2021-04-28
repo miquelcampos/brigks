@@ -49,9 +49,12 @@ def toggleVisibility(systemGuides, gde=False, rig=False, jnt=False, ctl=False):
 		systemGuide.setVisible(visible, gde, rig, jnt, ctl)
 
 def duplicate(guide, systemGuides):
+	dups = []
 	for systemGuide in systemGuides:
-		systemGuide.duplicate(mirror=False)
+		dups.append(systemGuide.duplicate(mirror=False))
 	guide.commit()
+	toScene(dups)
+	return dups
 
 def mirror(guide, systemGuides):
 	for systemGuide in systemGuides:

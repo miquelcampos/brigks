@@ -275,23 +275,57 @@ class SystemGuide(object):
 		return SystemBuilder(parentBuilder, self)
 
 	def setVisible(self, visible=True, gde=True, rig=True, jnt=True, ctl=True):
+		'''Set the visibility of the system's objects per use
+
+		Args:
+			visible (bool): Visibility
+			gde (bool): Returns the object of use config.USE_GDE
+			rig (bool): Returns the object of use config.USE_RIG and USE_BFR
+			jnt (bool): Returns the object of use config.USE_JNT
+			ctl (bool): Returns the object of use config.USE_CTL
+		'''
 		objects = self.getObjects(gde, rig, jnt, ctl)
-		for shp in cmds.listRelatives(objects, shapes=True) or []:
+		shapes = cmds.listRelatives(objects, shapes=True, path=True) or []
+		joints = cmds.ls(objects, type="joint", long=True)
+		for shp in shapes + joints:
 			for attr in ["lodVisibility", "visibility"]:
 				if cmds.listConnections(shp+"."+attr) or cmds.getAttr(shp+"."+attr, lock=True):
 					continue
 				cmds.setAttr(shp+"."+attr, visible)
 
 	def isVisible(self, gde=True, rig=True, jnt=True, ctl=True):
+		'''Return True if the majority of objects of the specified use are visible
+
+		Args:
+			gde (bool): Returns the object of use config.USE_GDE
+			rig (bool): Returns the object of use config.USE_RIG and USE_BFR
+			jnt (bool): Returns the object of use config.USE_JNT
+			ctl (bool): Returns the object of use config.USE_CTL
+
+		Returns:
+			bool
+		'''
 		objects = self.getObjects(gde, rig, jnt, ctl)
+		shapes = cmds.listRelatives(objects, shapes=True, path=True) or []
+		joints = cmds.ls(objects, type="joint", long=True)
 		visible = []
-		for obj in objects:
-			for shp in cmds.listRelatives(objects, shapes=True) or []:
-				visible.append(cmds.getAttr(shp+".lodVisibility"))
+		for shp in shapes + joints:
+			visible.append(cmds.getAttr(shp+".lodVisibility"))
 		return visible.count(True) > visible.count(False)
 
 	def getObjects(self, gde=True, rig=True, jnt=True, ctl=True):
-		uses = {config.USE_GDE:gde, config.USE_RIG:rig,
+		'''Get the objects of the system per use
+
+		Args:
+			gde (bool): Returns the object of use config.USE_GDE
+			rig (bool): Returns the object of use config.USE_RIG and USE_BFR
+			jnt (bool): Returns the object of use config.USE_JNT
+			ctl (bool): Returns the object of use config.USE_CTL
+
+		Returns:
+			list of str
+		'''
+		uses = {config.USE_GDE:gde, config.USE_RIG:rig, config.USE_BFR:rig,
 			config.USE_JNT:jnt, config.USE_CTL:ctl }
 
 		objects = []

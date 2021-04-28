@@ -246,6 +246,32 @@ class Guide():
 		index = self._layers.index(layer)
 		return self._layers.pop(index)
 
+	def getLayersDepths(self, parent=None, depth=0):
+		'''Returns all the layers and their depth in a list
+
+		This is a recursive method
+		If a guide has 2 top level layers and 2 sub Layer in the first Layer the output would be
+		[(LayerA, 0), 
+		(LayerAChildA, 1),
+		(LayerAChildB, 1),
+		(LayerB, 0)]
+
+		Args:
+			parent (Layer||Guide): 
+			depth (int): Current depth, not meant to be used 
+
+		Returns:
+			list of tuple (int, Layer)
+		'''
+		if parent is None:
+			parent = self
+		layers = sorted(parent.layers().values(), key=lambda x:x.name())
+		found = []
+		for layer in layers:
+			found.append((depth, layer))
+			found += self.getLayersDepths(layer, depth+1)
+		return found
+
 	def findSystem(self, key):
 		'''Return a specific system anywhere in the Guide
 

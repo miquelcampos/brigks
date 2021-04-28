@@ -12,6 +12,8 @@ from Qt.QtCore import Qt
 COLOR_HIDDEN = QColor(70,70,70)
 COLOR_VISIBLE = QColor(82,133,166)
 
+# TODO this widget slows down a bit the opening of the UI. Should we put that somewhere else? 
+
 
 OPTIONS = ["gde", "rig", "jnt", "ctl"]
 
@@ -45,9 +47,10 @@ class GuideVisibilityWidget(QWidget):
 			#TODO sip delete?
 		self._visButtons = []
 
-		layers = sorted(self._guide.layers().values(), key=lambda x:x.name())
-		for i, layer in enumerate(layers, start=1):
-			btn = QPushButton(layer.name())
+		layers = self._guide.getLayersDepths()
+		for i, (depth, layer) in enumerate(layers, start=1):
+			btn = QPushButton("    "*depth+layer.name())
+			btn.setStyleSheet("Text-align:left");
 			btn.setMaximumHeight(20)
 			layout.addWidget(btn, i, 0)
 			self._visButtons.append(btn)
@@ -59,7 +62,7 @@ class GuideVisibilityWidget(QWidget):
 				visible = layer.isVisible(**kwargs)
 				self.setButtonColor(btn, visible)
 
-				btn.clicked.connect(partial(self.toggle, btn, layer, option))
+				btn.clicked.connect(partial(self.toggleVisibility, btn, layer, option))
 
 				layout.addWidget(btn, i, j)
 				self._visButtons.append(btn)
@@ -73,14 +76,13 @@ class GuideVisibilityWidget(QWidget):
 		button.setPalette(pal)
 		button.update()
 
-	def toggle(self, button, layer, option):
+	def toggleVisibility(self, button, layer, option):
 		systemGuides = layer.systems().values()
 		if not systemGuides:
 			return 
 
 		kwargs = {x:option==x for x in OPTIONS}
-		visible = not systemGuides[0].isVisible(**kwargs)
-		for systemGuide in systemGuides:
-			systemGuide.setVisible(visible, **kwargs)
+		visible = not layer.isVisible(**kwargs)
+		layer.setVisible(visible, **kwargs)
 
 		self.setButtonColor(button, layer.isVisible())

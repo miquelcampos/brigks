@@ -160,15 +160,15 @@ class GuideTreeWidget(QTreeWidget):
 		systemGuides = self.selectedSystems()
 		if not systemGuides:
 			return 
-		actions.toggleVisibility(systemGuides)
+		actions.toggleVisibility(systemGuides, gde, rig, jnt, ctl)
 
 	def build(self):
 		self._guide.build(self.selectedSystems())
 		self.setGuide(self._guide)
 
 	def duplicate(self):
-		actions.duplicate(self._guide, self.selectedSystems())
-		self.setGuide(self._guide)
+		systems = actions.duplicate(self._guide, self.selectedSystems())
+		self.setGuide(self._guide, systems)
 
 	def mirror(self):
 		actions.mirror(self._guide, self.selectedSystems())
