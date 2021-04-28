@@ -62,7 +62,8 @@ class GuideSettingsWidget(QWidget):
 		self.uiHideRig.setChecked(self.settings("hideRig"))
 		self.uiHideJoints.setChecked(self.settings("hideJoints"))
 
-		# self.uiGroupVisibilityWDG.setGuide(self._guide)
+		# TODO : This is slowing down the loading of the ui.
+		self.uiGroupVisibilityWDG.setGuide(self._guide)
 
 		self.loadGroups()
 		self.uiPreScriptWDG.setObject(self._guide)
