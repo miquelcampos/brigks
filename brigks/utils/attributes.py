@@ -157,7 +157,7 @@ def setColor(node, color):
 
 	Args:
 		node (str): Node to update
-		color(int|float triplet): color as index or rgb(0-1)
+		color (int|float triplet): color as index or rgb(0-1)
 	'''
 	if color is None:
 		cmds.setAttr(node+".overrideEnabled", False)
@@ -185,7 +185,7 @@ def setMatrix(node, matrix, worldSpace=True):
 
 	Args:
 		node (str): Node to update
-		matrix(math3d.Transformation||math3d.Matrix4||list of float): The transformation matrix
+		matrix (math3d.Transformation||math3d.Matrix4||list of float): The transformation matrix
 	'''
 	if isinstance(matrix, Transformation):
 		matrix = matrix.asMatrix().flattened()

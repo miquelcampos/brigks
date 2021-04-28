@@ -43,7 +43,7 @@ def transform(name, parent=None, matrix=None, icon=None, size=1, po=None, ro=Non
 	if matrix is not None:
 		attributes.setMatrix(node, matrix, worldSpace=True)
 
-	return cmds.ls(node, long=True)[0]
+	return node
 
 def joint(name, parent=None, matrix=None, color=None, radius=1, useJointOrient=False):
 	'''	Create a Joint node
@@ -62,7 +62,10 @@ def joint(name, parent=None, matrix=None, color=None, radius=1, useJointOrient=F
 	jnt = cmds.createNode("joint", name=name)
 	cmds.setAttr(jnt+".radius", radius)
 	if parent:
-		jnt = cmds.parent(jnt, parent)[0]
+		# Maya has a tendency to add an inbetween parent when parenting joint in absolute.
+		m = cmds.xform(jnt, q=True, matrix=True, worldSpace=True)
+		jnt = cmds.parent(jnt, parent, relative=True)[0]
+		m = cmds.xform(jnt, matrix=m, worldSpace=True)
 
 	attributes.setColor(jnt, color)
 
@@ -185,7 +188,7 @@ def icon(icon, parent=None, size=1, po=None, ro=None, so=None, showCenter=False,
 		cmds.loadPlugin("harbieLocator.mll")
 
 	shape = cmds.createNode("nurbsCurve", name=parent+"Shape", parent=parent, skipSelect=True)
-	mhc = cmds.createNode("makeHarbieCurve", skipSelect=True)
+	mhc = cmds.createNode("makeHarbieCurve", name=parent+"MHC", skipSelect=True)
 	cmds.connectAttr (mhc+".outputCurve", shape+".create")
 
 	# Icon
@@ -463,14 +466,14 @@ def cnsSurface(name="cnsSurface", parent=None, centers=[], closed=False, degree=
 	'''Creates a Transform node with a NurbsSurface Shape with each point constrained to a given center. 
 
 	Args:
-		name(str): Name of the newly created Node
-		centers(list of path): Automatically casted when possible.
-		closed(bool): Close the curve
-		degree(1 or 3): degree of the curve
-		width(float): Width of the surface
-		axis(x, y or z): axis to align the surface to
-		tangent(None or float 0-1): if not None, length of the tangents in 0-1 blend between first and next point
-		color(int|list of float): color as index or rbg
+		name (str): Name of the newly created Node
+		centers (list of path): Automatically casted when possible.
+		closed (bool): Close the curve
+		degree (1 or 3): degree of the curve
+		width (float): Width of the surface
+		axis (x, y or z): axis to align the surface to
+		tangent (None or float 0-1): if not None, length of the tangents in 0-1 blend between first and next point
+		color (int|list of float): color as index or rbg
 
 	Returns:
 		str

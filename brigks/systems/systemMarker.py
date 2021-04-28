@@ -36,14 +36,16 @@ class SystemMarker(object):
 	@classmethod
 	def create(cls, name, system, parent, matrix=None):
 		parent = parent._marker if isinstance(parent, SystemMarker) else parent
-		node = create.transform(name, parent, matrix, color=[1,1,0])
+		color = system.layer().color()
+		node = create.transform(name, parent, matrix, color=color)
 		create.icon("sphere", node, size=.5)
 		return cls(node, system)
 
 	@classmethod
 	def createCamera(cls, name, system, parent, matrix=None):
 		parent = parent._marker if isinstance(parent, SystemMarker) else parent
-		node = create.camera(name, parent, matrix, color=[1,1,0])
+		color = system.layer().color()
+		node = create.camera(name, parent, matrix, color=color)
 		return cls(node, system)
 
 	# ----------------------------------------------------------------------------------

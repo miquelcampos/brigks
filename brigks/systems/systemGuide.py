@@ -176,14 +176,14 @@ class SystemGuide(object):
 	def colorIk(self):
 		if self.settings("inheritColors"):
 			side = "M" if self.settings("location") not in "LR" else self.settings("location")
-			return self._layer.color("{}Ik".format(side))
+			return self._layer.colors("{}Ik".format(side))
 		else:
 			return self.settings("colorIk")
 
 	def colorFk(self):
 		if self.settings("inheritColors"):
 			side = "M" if self.settings("location") not in "LR" else self.settings("location")
-			return self._layer.color("{}Fk".format(side))
+			return self._layer.colors("{}Fk".format(side))
 		else:
 			return self.settings("colorFk")
 

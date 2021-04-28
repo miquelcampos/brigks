@@ -74,7 +74,7 @@ class NeckSystemBuilder(SystemBuilder):
 			self.lastIkCtl = self.ikCtl
 		
 		# Curve
-		self.crv = create.curve("Crv", crvPos, closed=False, degree=3, parent=self.rootRig)
+		self.crv = create.curve(self.getObjectName(config.USE_RIG,"Crv"), crvPos, closed=False, degree=3, parent=self.rootRig)
 
 		# References
 		self.baseBfr = self.addBfr(self.rootRig, "Base", rootTfm)

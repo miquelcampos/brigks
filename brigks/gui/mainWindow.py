@@ -50,11 +50,14 @@ class MainWindow(QDialog):
 		else:
 			item = items[0]
 			# Disconnect Signals
-			if isinstance(self._lastItem, LayerTreeWidgetItem):
-				self._layerSettingsWidget.layerRenamed.disconnect(self._lastItem.setLayerName)
-			elif isinstance(self._lastItem, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
-				self._systemSettingsWidget.systemChanged.disconnect(self._lastItem.setSystem)
-				self._systemSettingsWidget.systemRenamed.disconnect(self._lastItem.setSystemName)
+			try:
+				if isinstance(self._lastItem, LayerTreeWidgetItem):
+					self._layerSettingsWidget.layerRenamed.disconnect(self._lastItem.setLayerName)
+				elif isinstance(self._lastItem, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
+					self._systemSettingsWidget.systemChanged.disconnect(self._lastItem.setSystem)
+					self._systemSettingsWidget.systemRenamed.disconnect(self._lastItem.setSystemName)
+			except TypeError:
+				pass
 
 			# Set Item and Connect
 			if isinstance(item, LayerTreeWidgetItem):

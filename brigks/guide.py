@@ -74,7 +74,7 @@ class Guide():
 		if model:
 			self._load(model)
 		else:
-			self._model = create.transform("Guide")
+			self._model = cmds.ls(create.transform("Guide"), long=True)[0]
 			cmds.addAttr(self._model, longName="model", attributeType="bool")
 			cmds.addAttr(self._model, longName="guide", attributeType="bool")
 			cmds.addAttr(self._model, longName=DATA_ATTRIBUTE, dataType="string")
@@ -196,7 +196,7 @@ class Guide():
 		'''
 		self._settings.update(settings)
 
-	def color(self, key):
+	def colors(self, key):
 		'''Returns a specific color from the settings
 
 		Args:

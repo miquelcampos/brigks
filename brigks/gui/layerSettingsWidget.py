@@ -87,7 +87,7 @@ class LayerSettingsWidget(QWidget):
 		self.setButtonColor(self.uiColor, self.settings("color"))
 		for key in ["RFk", "RIk", "MFk", "MIk", "LFk", "LIk"]:
 			btn = self.__dict__["uiColor"+key]
-			value = self._layer.color(key)
+			value = self._layer.colors(key)
 			self.setButtonColor(btn, value)
 
 	def pickColor(self, button, setting):

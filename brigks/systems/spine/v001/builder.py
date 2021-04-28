@@ -7,6 +7,7 @@ from math3d.vectorN import Vector3, Vector3Array
 
 from brigks.systems.systemBuilder import SystemBuilder
 from brigks.utils import constants, attributes, create, umath
+from brigks import config
 
 class SpineSystemBuilder(SystemBuilder):
 	ctl_count = 5
@@ -37,10 +38,10 @@ class SpineSystemBuilder(SystemBuilder):
 
 		# Curves
 		points = [positions[i] for i in [0,2,2,4]]
-		self.crvA = create.curve("CrvA", points, closed=False, degree=3, parent=self.root)
+		self.crvA = create.curve(self.getObjectName(config.USE_RIG, "CrvA"), points, closed=False, degree=3, parent=self.root)
 
 		points = [positions[0].lerp(positions[-1], i/6.0) for i in xrange(7)]
-		self.crvB = create.bezier("CrvB", self.root, points)
+		self.crvB = create.bezier(self.getObjectName(config.USE_RIG, "CrvB"), self.root, points)
 		
 		# Controllers
 		self.fkCtl = []
@@ -97,7 +98,7 @@ class SpineSystemBuilder(SystemBuilder):
 		
 		if self.settings("breathing"):
 			breathBfr = self.addBfr(self.hookRig[4], "Breathing", transforms[-1])
-			self.breathCtl = self.addCtl(breathBfr, "Breathing", transforms[-1], "cube", size=ikSize, color=self.colorIk())
+			self.breathCtl = self.addCtl(breathBfr, "Breathing", transforms[-1], "lung", size=ikSize/2.0, po=(0,0,ikSize), color=self.colorIk())
 			# self.addToSubControllers(self.breathCtl)
 			# self.setInversedsettings(self.breathCtl, ["posx", "rotz", "roty"])
 			attributes.setRotOrder(self.breathCtl, "YZX")

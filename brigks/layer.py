@@ -249,7 +249,10 @@ class Layer():
 		self.setName(self.name())
 		self._parent._layers.append(self)
 
-	def color(self, key):
+	def color(self):
+		return self.settings("color")
+
+	def colors(self, key):
 		'''Returns a specific color from the settings
 
 		Note that if useLayerColor is True, it will return the Layer color
@@ -264,7 +267,7 @@ class Layer():
 		if self.settings("useLayerColor"):
 			return self.settings("color")
 		elif self.settings("inheritColors"):
-			return self._parent.color(key)
+			return self._parent.colors(key)
 		else:
 			return self.settings("color"+key)
 

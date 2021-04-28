@@ -8,7 +8,7 @@ from brigks.gui.pickSlotDialog import PickSlotDialog
 class FootLegAttachConnectionWidget(SystemConnectionWidget):
 
 	def __init__(self, connection, system):
-		super(UiHostConnectionWidget, self).__init__(connection, system)
+		super(FootLegAttachConnectionWidget, self).__init__(connection, system)
 		# uiPath = os.path.join(os.path.dirname(__file__), "widget.ui")
 		# QtCompat.loadUi(uiPath, self)
 

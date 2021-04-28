@@ -40,7 +40,7 @@ class Builder():
 		if not connections:
 			return 
 
-		self._model = connections[0]
+		self._model = cmds.ls(connections[0], long=True)[0]
 
 		# Loading the data from the model
 		data = cmds.getAttr(self._model+"."+config.DATA_ATTRIBUTE)
@@ -116,7 +116,7 @@ class Builder():
 		Args:
 			systemGuides (list of SystemGuide): The system to be built
 		'''
-		self._buildCore()
+		self._initCore()
 
 		start = dt.now()
 		superstart = dt.now()
@@ -148,10 +148,10 @@ class Builder():
 
 		hide = []
 		if self.guide.settings("hideRig"):
-			hide += [x for x in cmds.ls("Rig_*", type="transform", long=True) if x.startswith("|"+self._model)]
-			hide += [x for x in cmds.ls("Rig_*", type="transform", long=True) if x.startswith("|"+self._model)]
+			hide += [x for x in cmds.ls("{}_*".format(config.USE_RIG), type="transform", long=True) if x.startswith("|"+self._model)]
+			hide += [x for x in cmds.ls("{}_*".format(config.USE_BFR), type="transform", long=True) if x.startswith("|"+self._model)]
 		if self.guide.settings("hideJoints"):
-			hide += [x for x in cmds.ls("Jnt_*", type="transform", long=True) if x.startswith("|"+self._model)]
+			hide += [x for x in cmds.ls("{}_*".format(config.USE_JNT), type="transform", long=True) if x.startswith("|"+self._model)]
 		for node in hide:
 			cmds.setAttr(node+".lodVisibility", False)
 
@@ -177,6 +177,7 @@ class Builder():
 		# Filter out the systems that have not been built
 		systemGuides = [g for g in systemGuides if g.key() in self.builtSystems()]
 
+		self._initCore()
 		toDelete = self._initSystemsToBuild(systemGuides)
 		for key, system in toDelete.iteritems():
 			system.delete()	
@@ -189,7 +190,7 @@ class Builder():
 	# ----------------------------------------------------------------------------------
 	# BUILD HELPERS
 	# ----------------------------------------------------------------------------------
-	def _buildCore(self):
+	def _initCore(self):
 		'''Private Method. Create the core hierachy of the rig
 		
 		The hierarchy is defined in the hierarchy.xml file
@@ -385,7 +386,7 @@ class Builder():
 
 		# Connecting the Setup to the Guide. This is how we track which model is used to build the guide
 		cmds.connectAttr(model+".model", self.guide.model()+".model", force=True)
-		return model
+		return cmds.ls(model, long=True)[0]
 
 	def _addTransform(self, name, parent=None, icon=None, size=1, po=None, ro=None, so=None, color=None):
 		'''Private Method. Create a transform node
@@ -403,7 +404,7 @@ class Builder():
 		Returns:
 			str: The transform node
 		'''
-		existing = [x for x in cmds.ls(name, long=True) if x.startswith("|"+self._model)]
+		existing = [x for x in cmds.ls(name, long=True) if x.startswith(self._model)]
 		if existing:
 			node = existing[0]
 

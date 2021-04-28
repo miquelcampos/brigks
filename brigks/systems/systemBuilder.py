@@ -199,7 +199,7 @@ class SystemBuilder():
 				cmds.parent(children, self.nodes("local"))
 
 			# Delete objects
-			cmds.delete(toDelete)
+			cmds.delete(cmds.ls(toDelete, long=True))
 
 		# Delete Utility Nodes
 		search = self.getObjectName(config.USE_NDE, "*")
@@ -312,7 +312,6 @@ class SystemBuilder():
 		Returns:
 			str
 		'''
-		color = [0,0,1]
 		return self.addTransform(parent, part, config.USE_CTL, tfm, icon, size, po, ro, so, color)
 
 	def addBfr(self, parent, part, tfm=None):
@@ -582,7 +581,7 @@ class SystemBuilder():
 		name = self.getObjectName(use, part)
 		objects = [x for x in cmds.ls(name, type="transform", long=True) if x.startswith(self.model())]
 		if objects:
-			return objects[0]
+			return cmds.ls(objects)[0]
 
 	def getObjectFromSlot(self, slot):
 		'''Returns the system object attached to a specific slot for connection
