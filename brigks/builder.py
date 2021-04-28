@@ -3,6 +3,7 @@ import os.path
 import logging
 from datetime import datetime as dt
 import xml.etree.cElementTree as etree
+import copy
 
 from maya import cmds
 
@@ -30,7 +31,8 @@ class Builder():
 		self.guide = guide
 		self._model = None
 		self._systems = {}
-		self._settings = dict(systems={})
+		self._settings = copy.deepcopy(guide.settings())
+		self._settings["systems"] = {}
 		self._nodes = {}
 		
 		# Search if a model for the rig has already been built
@@ -93,7 +95,7 @@ class Builder():
 		'''
 		return self._nodes if key is None else self._nodes[key]
 
-	def builtSystems(self, key=None):	
+	def builtSettings(self, key=None):	
 		'''Returns the system settings for the systems already built
 
 		Args:
@@ -122,10 +124,10 @@ class Builder():
 		superstart = dt.now()
 
 		# Init all the systems that needs to be built
-		self._systems = self._initSystems()
-		toBuild = self._initSystemsToBuild(systemGuides)
+		self._systems = self._getExistingSystems()
+		toBuild = self._getSystemBuilders(systemGuides)
 		# Init the systems that needs to be connected
-		toConnect, toCreateAttr = self._initSystemsToConnect(toBuild)
+		toConnect, toCreateAttr = self._getSystemsToConnect(toBuild)
 		self._systems.update(toBuild)
 		self._systems.update(toConnect)
 		self._systems.update(toCreateAttr)
@@ -144,6 +146,9 @@ class Builder():
 			self._buildSystems(toBuild, toConnect, toCreateAttr)
 
 		# Saving the keys of the systems that have been built
+		for key, builder in toBuild.iteritems():
+			builder.setSettings(attributes=builder.attributeNames)
+			self._settings["systems"][key] = builder.settings()
 		self._commit()
 
 		hide = []
@@ -175,15 +180,15 @@ class Builder():
 			return
 
 		# Filter out the systems that have not been built
-		systemGuides = [g for g in systemGuides if g.key() in self.builtSystems()]
+		systemGuides = [g for g in systemGuides if g.key() in self.builtSettings()]
 
 		self._initCore()
-		toDelete = self._initSystemsToBuild(systemGuides)
+		toDelete = self._getSystemBuilders(systemGuides)
 		for key, system in toDelete.iteritems():
 			system.delete()	
 
 			# Removing system from meta data
-			self.builtSystems().pop(key)
+			self.builtSettings().pop(key)
 
 		self._commit()
 
@@ -236,7 +241,7 @@ class Builder():
 		self._nodes[key] = node
 		return node
 
-	def _initSystems(self):
+	def _getExistingSystems(self):
 		'''Private Method. Initialize the SystemBuilder for systems already built
 
 		We need those in case some need to be used in a connection
@@ -246,7 +251,7 @@ class Builder():
 		'''
 		builders = {}
 		# Looping over all the systems that have already been built 
-		for key, settings in self.builtSystems().iteritems():
+		for key, settings in self.builtSettings().iteritems():
 			if settings["split"]:
 				key = key[:-1] + "X"
 				systemGuide = self.guide.findSystem(key)
@@ -260,7 +265,7 @@ class Builder():
 				builders[key] = systemGuide.builder(self)
 		return builders
 
-	def _initSystemsToBuild(self, systemGuides):
+	def _getSystemBuilders(self, systemGuides):
 		'''Private Method. Initialize the SystemBuilder for systems that we need to build
 
 		Returns:
@@ -279,7 +284,7 @@ class Builder():
 				builders[systemGuide.key()] = systemGuide.builder(self)
 		return builders
 
-	def _initSystemsToConnect(self, toBuild):
+	def _getSystemsToConnect(self, toBuild):
 		'''Private Method. Initialize the SystemBuilder for systems already built that need to be reconnected
 
 		Returns:
@@ -288,7 +293,7 @@ class Builder():
 		toConnect = {}
 		toCreateAttr = {}
 		# Looping over all the systems that have already been built 
-		for key, settings in self.builtSystems().iteritems():
+		for key, settings in self.builtSettings().iteritems():
 			if key in toBuild:
 				continue
 			
@@ -359,13 +364,6 @@ class Builder():
 		This is useful when rebuilding but also when accessing the rig, when you need to know which options
 		are available for a specific system.
 		'''
-		# Update with the latest data
-		newSystemsData = {}
-		for k, v in self._systems.iteritems():
-			v.setSettings(attributes=v.attributeNames)
-			newSystemsData[k] = v.settings()
-		self.builtSystems().update(newSystemsData)
-
 		data = self._settings
 		cmds.setAttr(self._model+"."+config.DATA_ATTRIBUTE, json.dumps(data), type="string")
 

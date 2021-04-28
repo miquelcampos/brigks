@@ -128,12 +128,12 @@ class SystemConnection(object):
 		xmlRoot.set("settings", json.dumps(self._settings))
 		return xmlRoot
 
-	@classmethod
-	def fromXml(cls, xmlRoot):
-		connection = cls()
+	# @classmethod
+	# def fromXml(cls, xmlRoot):
+	# 	connection = cls()
 
-		# Load Settings
-		settings = json.loads(xmlRoot.get("settings", {}))
-		connection.setSettings(**settings)
+	# 	# Load Settings
+	# 	settings = json.loads(xmlRoot.get("settings", {}))
+	# 	connection.setSettings(**settings)
 
-		return connection
+	# 	return connection

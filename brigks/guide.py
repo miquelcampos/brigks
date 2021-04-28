@@ -316,7 +316,7 @@ class Guide():
 		Returns:
 			bool
 		'''
-		return key in self.builder().builtSystems().keys()
+		return key in self.builder().builtSettings().keys()
 
 	def _getAllSystems(self):	
 		'''Private Method. Returns all the system in the Guide
@@ -450,6 +450,8 @@ class Guide():
 
 		# Load Settings
 		settings = json.loads(xmlRoot.get("settings", "{}"))
+		# Filtering old Settings
+		settings = {k:v for k,v in settings.iteritems() if k in guide._settings}
 		guide.setSettings(**settings)
 
 		# Load Layers

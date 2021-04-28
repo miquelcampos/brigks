@@ -241,8 +241,8 @@ class SystemBuilder():
 	def deleteAttributes(self):
 		'''Delete all the attributes of that system
 		'''
-		if self.key() in self.coreBuilder.builtSystems():
-			settings = self.coreBuilder.builtSystems(self.key())
+		if self.key() in self.coreBuilder.builtSettings():
+			settings = self.coreBuilder.builtSettings(self.key())
 			for name in settings["attributes"]:
 				attr = cmds.ls("*."+name)
 				if attr:

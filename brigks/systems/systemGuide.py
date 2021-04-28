@@ -687,6 +687,7 @@ class SystemGuide(object):
 
 		# Create the system
 		system = cls.create(layer, location, name, matrices)
+		settings = {k:v for k,v in settings.iteritems() if k in system._settings}
 		system.setSettings(**settings)
 
 		# Connections
