@@ -63,6 +63,10 @@ SETTINGS_NAMES = dict(
 		paramDefOrder="order",
 		paramDefs="definitions",
 		),
+	tracker01=dict(
+		driverDefOrder="order",
+		driverDefs="definitions",
+		),
 	tentacle01=dict(
 		deformers="jointsCount",
 		segDeformers="lowJointsCount",

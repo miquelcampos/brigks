@@ -5,7 +5,9 @@ from brigks.systems.systemWidget import SystemWidget
 
 class LookatSystemWidget(SystemWidget):
 	
-	def addConnections(self):
+	def connectWidgets(self, widgets):
+		super(LookatSystemWidget, self).connectWidgets(widgets)
+		
 		self.uiAddLocalController.clicked.connect(self.refresh)
 		self.uiExtraOffsetController.clicked.connect(self.refresh)
 		

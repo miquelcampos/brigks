@@ -14,15 +14,15 @@ def exampleA(mirror=False, showWindow=False):
 		showWindow (bool): True to popup Brigks Main Window
 	'''
 	# Building Matrix for guide positions
-	basicMatrices = {}
-	chainMatrices = {}
-	for i in range(4):
-		x = 3 if i == 2 else i
-		t = Transformation.fromParts(translation=Vector3([x,i,0]))
-		basicMatrices["Part{}".format(i+1)] = t.asMatrix().flattened()
-
-		t = Transformation.fromParts(translation=Vector3([x,i,2]))
-		chainMatrices["Part{}".format(i+1)] = t.asMatrix().flattened()
+	basicMatrices = dict(
+		Part1=Transformation.fromParts(translation=Vector3([2,2,0])),
+		Part2=Transformation.fromParts(translation=Vector3([4,2,0])),
+		)
+	chainMatrices = dict(
+		Part1=Transformation.fromParts(translation=Vector3([2,3,0])),
+		Part2=Transformation.fromParts(translation=Vector3([4,4,0])),
+		Part3=Transformation.fromParts(translation=Vector3([6,3,0])),
+		)
 
 	# Create Guide, add a layer and a couple Systems
 	guide = Guide()

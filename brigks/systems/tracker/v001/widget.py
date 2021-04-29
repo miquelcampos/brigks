@@ -5,47 +5,52 @@ from brigks.systems.systemWidget import SystemWidget
 # TODO
 
 class TrackerSystemWidget(SystemWidget):
-	definitions = {}
-	ordered = []
-	interpTypes = ["None","Linear","Smooth","Spline"]
 
-	def addWidgets(self):
-		self.uiGrabMinBTN.clicked.connect(lambda:self.grabFromRig("min"))
-		self.uiGrabMaxBTN.clicked.connect(lambda:self.grabFromRig("max"))
+
+	def setSystem(self, guide):
+		self.definitions = {}
+		self.ordered = []
+		self.interpTypes = ["None","Linear","Smooth","Spline"]
+		super(TrackerSystemWidget, self).setSystem(guide)
+
+	def connectWidgets(self, widgets):
+		super(TrackerSystemWidget, self).connectWidgets(widgets)
 
 		self.uiNameLINE.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp('[A-Z][0-9a-zA-Z]+'), self.uiNameLINE))
 
-	def addConnections(self):
-		self.uiAddBTN.clicked.connect(self.addParameterDefinition)
-		self.uiRemoveBTN.clicked.connect(self.deleteParameterDefinition)
-		self.uiUpBTN.clicked.connect(lambda : self.moveParameterDefinition("up"))
-		self.uiDownBTN.clicked.connect(lambda : self.moveParameterDefinition("down"))
+		self.uiGrabMinBTN.clicked.connect(lambda:self.grabFromRig("min"))
+		self.uiGrabMaxBTN.clicked.connect(lambda:self.grabFromRig("max"))
+
+		self.uiAddBTN.clicked.connect(self.addAttrDefinition)
+		self.uiRemoveBTN.clicked.connect(self.deleteAttrDefinition)
+		self.uiUpBTN.clicked.connect(lambda : self.moveAttrDefinition("up"))
+		self.uiDownBTN.clicked.connect(lambda : self.moveAttrDefinition("down"))
 
 		self.uiDriverLIST.currentItemChanged.connect(self.loadDefinition)
 
 		self.connectDefinitionChanged()
 
 	def connectDefinitionChanged(self):
-		self.uiNameLINE.editingFinished.connect(self.parameterNameChanged)
-		self.uiInterpTypeCBOX.currentIndexChanged.connect(self.parameterDefinitionChanged)
-		self.uiAxisCBOX.currentIndexChanged.connect(self.parameterDefinitionChanged)
-		self.uiMinSPN.valueChanged.connect(self.parameterDefinitionChanged)
-		self.uiMaxSPN.valueChanged.connect(self.parameterDefinitionChanged)
+		self.uiNameLINE.editingFinished.connect(self.attrNameChanged)
+		self.uiInterpTypeCBOX.currentIndexChanged.connect(self.attrDefinitionChanged)
+		self.uiAxisCBOX.currentIndexChanged.connect(self.attrDefinitionChanged)
+		self.uiMinSPN.valueChanged.connect(self.attrDefinitionChanged)
+		self.uiMaxSPN.valueChanged.connect(self.attrDefinitionChanged)
 
 	def disconnectDefinitionChanged(self):
-		self.uiNameLINE.editingFinished.disconnect(self.parameterNameChanged)
-		self.uiInterpTypeCBOX.currentIndexChanged.disconnect(self.parameterDefinitionChanged)
-		self.uiAxisCBOX.currentIndexChanged.disconnect(self.parameterDefinitionChanged)
-		self.uiMinSPN.valueChanged.disconnect(self.parameterDefinitionChanged)
-		self.uiMaxSPN.valueChanged.disconnect(self.parameterDefinitionChanged)
+		self.uiNameLINE.editingFinished.disconnect(self.attrNameChanged)
+		self.uiInterpTypeCBOX.currentIndexChanged.disconnect(self.attrDefinitionChanged)
+		self.uiAxisCBOX.currentIndexChanged.disconnect(self.attrDefinitionChanged)
+		self.uiMinSPN.valueChanged.disconnect(self.attrDefinitionChanged)
+		self.uiMaxSPN.valueChanged.disconnect(self.attrDefinitionChanged)
 
 	# -------------------------------------------------------------
 	# LOAD / SAVE
 	# -------------------------------------------------------------
-	def loadParameters(self):
-		self._definitions = copy.deepcopy(self.parameters("driverDefs"))
+	def load(self):
+		self._definitions = copy.deepcopy(self.settings("definitions"))
 
-		self.ordered = [attrName for attrName in self.parameters("driverDefOrder") if attrName in self._definitions]
+		self.ordered = [attrName for attrName in self.settings("order") if attrName in self._definitions]
 
 		for attrName in self._definitions.keys():
 			if attrName not in self.ordered:
@@ -54,10 +59,10 @@ class TrackerSystemWidget(SystemWidget):
 		self.uiDriverLIST.clear()
 		self.uiDriverLIST.addItems(self.ordered)
 
-		self.saveParameters()
+		self.commit()
 
 	def loadDefinition(self):
-		attrName = self.getCurrentParameterName()
+		attrName = self._getCurrentAttrName()
 		if not attrName:
 			self.uiDefinitionGRP.setEnabled(False)
 			return 
@@ -81,17 +86,21 @@ class TrackerSystemWidget(SystemWidget):
 
 		self.connectDefinitionChanged()
 
-	def saveParameters(self):
-		parameters = {"driverDefOrder":self.ordered, "driverDefs":copy.deepcopy(self._definitions)}
+	def commit(self):
+		settings = dict(
+			order=self.ordered, 
+			definitions=copy.deepcopy(self._definitions)
+			)
 
-		self.guide().setParameters(parameters)
+		self.setSettings(**settings)
+		self._guide.commit()
 
 
 	# -------------------------------------------------------------
 	# BUTTONS
 	# -------------------------------------------------------------
-	def addParameterDefinition(self):
-		attrName = self.getNextAvailableName("NewDriver")
+	def addAttrDefinition(self):
+		attrName = self._getNextAvailableName("NewDriver")
 
 		self.uiDriverLIST.addItem(attrName)
 
@@ -103,20 +112,20 @@ class TrackerSystemWidget(SystemWidget):
 
 		self._definitions[attrName] = definition
 
-		self.parameterOrderChanged()
+		self.attrOrderChanged()
 
 		self.uiDriverLIST.setCurrentRow(self.ordered.index(attrName))
 
-	def deleteParameterDefinition(self):
+	def deleteAttrDefinition(self):
 		index = self.uiDriverLIST.currentRow()
 		item = self.uiDriverLIST.takeItem(index)
 		attrName = str(item.text())
 
 		self._definitions.pop(attrName)
 
-		self.parameterOrderChanged()
+		self.attrOrderChanged()
 
-	def moveParameterDefinition(self, direction="up"):
+	def moveAttrDefinition(self, direction="up"):
 		index = self.uiDriverLIST.currentRow()
 
 		newIndex = index - 1 if direction == "up" else index + 1
@@ -127,31 +136,31 @@ class TrackerSystemWidget(SystemWidget):
 		self.uiDriverLIST.insertItem(newIndex, item)
 		self.uiDriverLIST.setCurrentItem(item)
 
-		self.parameterOrderChanged()
+		self.attrOrderChanged()
 
 	def grabFromRig(self, minMax):
 		if not self.access():
 			self.warning("Tracker hasn't been built")
 			return
 
-		driverName = self.getCurrentParameterName()
+		driverName = self._getCurrentAttrName()
 		axis = "XYZ".index(self._definitions[driverName]["axis"])
-		currentValue = self.access().attributes("setup", "OutRot").value()[axis]
+		currentValue = cmds.getAttr(self.getAttribute("OutRot"))[axis]
 		self._definitions[driverName][minMax] = currentValue
 
-		self.saveParameters()
+		self.commit()
 		self.loadDefinition()
 
 		# set the value back into the rig, if created
-		attr = self.access().attributes("setup", "%s%s"%(driverName, minMax.capitalize()))
+		attr = self.getAttribute("{}{}".format(driverName, minMax.capitalize()))
 		if attr:
-			attr.setValue(currentValue)
+			cmds.setAttr(attr, currentValue)
 
 	# -------------------------------------------------------------
 	# EDIT
 	# -------------------------------------------------------------
-	def parameterNameChanged(self):
-		oldName = self.getCurrentParameterName()
+	def attrNameChanged(self):
+		oldName = self._getCurrentAttrName()
 		if not oldName:
 			return 
 
@@ -159,7 +168,7 @@ class TrackerSystemWidget(SystemWidget):
 		if newName == oldName:
 			return 
 
-		newName = self.getNextAvailableName(newName)
+		newName = self._getNextAvailableName(newName)
 
 		self.disconnectDefinitionChanged()
 		self.uiNameLINE.setText(newName)
@@ -170,53 +179,54 @@ class TrackerSystemWidget(SystemWidget):
 		self.ordered[self.ordered.index(oldName)] = newName
 		self._definitions[newName] = self._definitions.pop(oldName)
 
-		self.saveParameters()
+		self.commit()
 
-	def parameterDefinitionChanged(self):
-		attrName = self.getCurrentParameterName()
+	def attrDefinitionChanged(self):
+		attrName = self._getCurrentAttrName()
 		if not attrName:
 			return 
 
-		definition = self._definitions[attrName]
-		definition["interpolation"] = str(self.uiInterpTypeCBOX.currentText())
-		definition["axis"] = str(self.uiAxisCBOX.currentText())
-		definition["min"] = self.uiMinSPN.value()
-		definition["max"] = self.uiMaxSPN.value()
+		definition = dict(
+			interpolation=self.uiInterpTypeCBOX.currentText(),
+			axis=str(self.uiAxisCBOX.currentText()),
+			min=self.uiMinSPN.value(),
+			max=self.uiMaxSPN.value()
+			)
 
-		self._definitions[attrName] = definition
+		self._definitions[attrName].update(definition)
 
-		self.saveParameters()
+		self.commit()
 
-	def parameterOrderChanged(self):
+	def attrOrderChanged(self):
 		self.ordered = []
 		for index in xrange(self.uiDriverLIST.count()):
 			item = self.uiDriverLIST.item(index)
 			self.ordered.append(str(item.text()))
 
-		self.saveParameters()
+		self.commit()
 
 	# -------------------------------------------------------------
 	# MISC
 	# -------------------------------------------------------------
-	def getCurrentParameterName(self):
+	def _getCurrentAttrName(self):
 		if not self.uiDriverLIST.currentItem():
-			return None, None
+			return
 
 		attrName = str(self.uiDriverLIST.currentItem().text())
 		if attrName not in self._definitions:
 			logging.error("Brigks : tracker system : Can't Find Attr in the list")
-			return None, None
+			return
 
 		return attrName
 
-	def getNextAvailableName(self, name):
-		if name not in self.parameters("driverDefs"):
+	def _getNextAvailableName(self, name):
+		if name not in self.settings("definitions"):
 			return name
 
 		i = 1
 		while True:
 			newName = name + str(i)
-			if newName not in self.parameters("driverDefs"):
+			if newName not in self.settings("definitions"):
 				return newName
 
 			i += 1 

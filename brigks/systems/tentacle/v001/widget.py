@@ -5,7 +5,8 @@ from brigks.systems.systemWidget import SystemWidget
 
 class TentacleSystemWidget(SystemWidget):
 
-	def addConnections(self):
+	def connectWidgets(self, widgets):
+		super(TentacleSystemWidget, self).connectWidgets(widgets)
 		self.uiKinematic.currentIndexChanged.connect(self.refresh)
 		self.uiDynamic.clicked.connect(self.refresh)
 		

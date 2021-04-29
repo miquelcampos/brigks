@@ -10,14 +10,18 @@ ATTR_TYPES = ["bool", "float", "short"]
 
 class AttributeSystemWidget(SystemWidget):
 
-	_blocked = False
-	definitions = {}
-	ordered = []
-	
-	def addWidgets(self):
-		self.uiNameLINE.setValidator(QRegExpValidator(QRegExp('[A-Z][0-9a-zA-Z]+'), self.uiNameLINE))
+
+	def setSystem(self, guide):
+		self._blocked = False
+		self.definitions = {}
+		self.ordered = []
+		super(AttributeSystemWidget, self).setSystem(guide)
 		
-	def addConnections(self):
+	def connectWidgets(self, widgets):
+		super(AttributeSystemWidget, self).connectWidgets(widgets)
+
+		self.uiNameLINE.setValidator(QRegExpValidator(QRegExp('[A-Z][0-9a-zA-Z]+'), self.uiNameLINE))
+
 		self.uiAddBTN.clicked.connect(self.addDefinition)
 		self.uiDeleteBTN.clicked.connect(self.deleteDefinition)
 		self.uiUpBTN.clicked.connect(lambda:self.moveDefinition("up"))
@@ -37,20 +41,14 @@ class AttributeSystemWidget(SystemWidget):
 		self.uiFloatMaxSPN.valueChanged.connect(self.definitionChanged)
 		self.uiFloatHasMinCHK.clicked.connect(self.definitionChanged)
 		self.uiFloatHasMaxCHK.clicked.connect(self.definitionChanged)
-		self.uiFloatUIMinSPN.valueChanged.connect(self.definitionChanged)
-		self.uiFloatUIMaxSPN.valueChanged.connect(self.definitionChanged)
-		self.uiFloatHasUIMinCHK.clicked.connect(self.definitionChanged)
-		self.uiFloatHasUIMaxCHK.clicked.connect(self.definitionChanged)
 
 		self.uiIntegerValueSPN.valueChanged.connect(self.definitionChanged)
 		self.uiIntegerMinSPN.valueChanged.connect(self.definitionChanged)
 		self.uiIntegerMaxSPN.valueChanged.connect(self.definitionChanged)
 		self.uiIntegerHasMinCHK.clicked.connect(self.definitionChanged)
 		self.uiIntegerHasMaxCHK.clicked.connect(self.definitionChanged)
-		self.uiIntegerUIMinSPN.valueChanged.connect(self.definitionChanged)
-		self.uiIntegerUIMaxSPN.valueChanged.connect(self.definitionChanged)
-		self.uiIntegerHasUIMinCHK.clicked.connect(self.definitionChanged)
-		self.uiIntegerHasUIMaxCHK.clicked.connect(self.definitionChanged)
+
+		self.refresh()
 		
 	def refresh(self):
 		index = self.uiTypeCBOX.currentIndex()
@@ -66,7 +64,9 @@ class AttributeSystemWidget(SystemWidget):
 	# -------------------------------------------------------------
 	# LOAD / SAVE
 	# -------------------------------------------------------------
-	def loadAttrs(self):
+	def load(self):
+		super(AttributeSystemWidget, self).load()
+
 		self._definitions = copy.deepcopy(self.settings("definitions"))
 		self._order = [attrName for attrName in self.settings("order") if attrName in self._definitions]
 
@@ -77,10 +77,10 @@ class AttributeSystemWidget(SystemWidget):
 		self.uiAttributeLIST.clear()
 		self.uiAttributeLIST.addItems(self._order)
 
-		self.save()
+		self.commit()
 
 	def loadDefinition(self):
-		attrName = self.getCurrentAttrName()
+		attrName = self._getCurrentAttrName()
 		if not attrName:
 			self.uiDefinitionGRP.setEnabled(False)
 			return 
@@ -94,53 +94,44 @@ class AttributeSystemWidget(SystemWidget):
 		type_ = definition["type"]
 		self.uiTypeCBOX.setCurrentIndex(ATTR_TYPES.index(type_))
 
-		if type_ == "Boolean":
+		if type_ == "bool":
 			self.uiBooleanValueCHK.setChecked(definition["value"])
-		elif type_ == "Float":
+		elif type_ == "float":
 			self.uiFloatValueSPN.setValue(definition["value"])
 			self.uiFloatHasMinCHK.setChecked(definition["hasMin"])
 			self.uiFloatMinSPN.setValue(definition["min"])
 			self.uiFloatHasMaxCHK.setChecked(definition["hasMax"])
 			self.uiFloatMaxSPN.setValue(definition["max"])
-			self.uiFloatHasUIMinCHK.setChecked(definition["hasUIMin"])
-			self.uiFloatUIMinSPN.setValue(definition["uiMin"])
-			self.uiFloatHasUIMaxCHK.setChecked(definition["hasUIMax"])
-			self.uiFloatUIMaxSPN.setValue(definition["uiMax"])
-		elif type_ == "Integer":
+		elif type_ == "short":
 			self.uiIntegerValueSPN.setValue(definition["value"])
 			self.uiIntegerHasMinCHK.setChecked(definition["hasMin"])
 			self.uiIntegerMinSPN.setValue(definition["min"])
 			self.uiIntegerHasMaxCHK.setChecked(definition["hasMax"])
 			self.uiIntegerMaxSPN.setValue(definition["max"])
-			self.uiIntegerHasUIMinCHK.setChecked(definition["hasUIMin"])
-			self.uiIntegerUIMinSPN.setValue(definition["uiMin"])
-			self.uiIntegerHasUIMaxCHK.setChecked(definition["hasUIMax"])
-			self.uiIntegerUIMaxSPN.setValue(definition["uiMax"])
 
 		self._blocked = False
 
-	def save(self):
+	def commit(self):
 		if self._blocked:
 			return 
 
-		self.guide().setSettings(
+		self.setSettings(
 			order=self._order, 
 			definitions=copy.deepcopy(self._definitions)
 			)
 
+		self._guide.commit()
 
 	# -------------------------------------------------------------
 	# BUTTONS
 	# -------------------------------------------------------------
 	def addDefinition(self):
-		attrName = self.getNextAvailableName("NewAttr")
+		attrName = self._getNextAvailableName("NewAttr")
 		self.uiAttributeLIST.addItem(attrName)
 
 		definition = dict(type="bool", value=False,
 					hasMin=False, hasMax=False,
-					min=0, max=1,
-					hasUIMin=False, hasUIMax=False,
-					uiMin=0, uiMax=1 )
+					min=0, max=1)
 
 		self._definitions[attrName] = definition
 		self.orderChanged()
@@ -171,7 +162,7 @@ class AttributeSystemWidget(SystemWidget):
 	# EDIT
 	# -------------------------------------------------------------
 	def nameChanged(self):
-		oldName = self.getCurrentAttrName()
+		oldName = self._getCurrentAttrName()
 		if not oldName:
 			return 
 
@@ -179,7 +170,7 @@ class AttributeSystemWidget(SystemWidget):
 		if newName == oldName:
 			return 
 
-		newName = self.getNextAvailableName(newName)
+		newName = self._getNextAvailableName(newName)
  
 		self._blocked = True
 		self.uiNameLINE.setText(newName)
@@ -190,44 +181,35 @@ class AttributeSystemWidget(SystemWidget):
 		self._order[self._order.index(oldName)] = newName
 		self._definitions[newName] = self._definitions.pop(oldName)
 
-		self.save()
+		self.commit()
 
 	def definitionChanged(self):
-		attrName = self.getCurrentAttrName()
+		attrName = self._getCurrentAttrName()
 		if not attrName:
 			return 
 
-		definition = self._definitions[attrName]
+		definition = dict(
+			type=self.uiTypeCBOX.currentText()
+			)
 
-		type_ = str(self.uiTypeCBOX.currentText())
-		definition["type"] = type_
-
-		if type_ == "Boolean":
+		if definition["type"] == "bool":
 			definition["value"] = self.uiBooleanValueCHK.isChecked()
-		elif type_ == "Float":
+		elif definition["type"] == "float":
 			definition["value"] = self.uiFloatValueSPN.value()
 			definition["hasMin"] = self.uiFloatHasMinCHK.isChecked()
 			definition["min"] = self.uiFloatMinSPN.value()
 			definition["hasMax"] = self.uiFloatHasMaxCHK.isChecked()
 			definition["max"] = self.uiFloatMaxSPN.value()
-			definition["hasUIMin"] = self.uiFloatHasUIMinCHK.isChecked()
-			definition["uiMin"] = self.uiFloatUIMinSPN.value()
-			definition["hasUIMax"] = self.uiFloatHasUIMaxCHK.isChecked()
-			definition["uiMax"] = self.uiFloatUIMaxSPN.value()
-		elif type_ == "Integer":
+		elif definition["type"] == "int":
 			definition["value"] = self.uiIntegerValueSPN.value()
 			definition["hasMin"] = self.uiIntegerHasMinCHK.isChecked()
 			definition["min"] = self.uiIntegerMinSPN.value()
 			definition["hasMax"] = self.uiIntegerHasMaxCHK.isChecked()
 			definition["max"] = self.uiIntegerMaxSPN.value()
-			definition["hasUIMin"] = self.uiIntegerHasUIMinCHK.isChecked()
-			definition["uiMin"] = self.uiIntegerUIMinSPN.value()
-			definition["hasUIMax"] = self.uiIntegerHasUIMaxCHK.isChecked()
-			definition["uiMax"] = self.uiIntegerUIMaxSPN.value()
 
-		self._definitions[attrName] = definition
+		self._definitions[attrName].update(definition)
 
-		self.save()
+		self.commit()
 
 	def orderChanged(self):
 		self._order = []
@@ -235,23 +217,23 @@ class AttributeSystemWidget(SystemWidget):
 			item = self.uiAttributeLIST.item(index)
 			self._order.append(str(item.text()))
 
-		self.save()
+		self.commit()
 
 	# -------------------------------------------------------------
 	# MISC
 	# -------------------------------------------------------------
-	def getCurrentAttrName(self):
+	def _getCurrentAttrName(self):
 		if not self.uiAttributeLIST.currentItem():
-			return None, None
+			return
 
 		attrName = str(self.uiAttributeLIST.currentItem().text())
 		if attrName not in self._definitions:
 			logging.error("Brigks : attribute system : Can't Find Attr in the list")
-			return None, None
+			return
 
 		return attrName
 
-	def getNextAvailableName(self, name):
+	def _getNextAvailableName(self, name):
 		if name not in self.settings("definitions"):
 			return name
 

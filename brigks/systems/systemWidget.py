@@ -7,36 +7,60 @@ from Qt.QtWidgets import QWidget, QCheckBox, QComboBox, QSpinBox, QDoubleSpinBox
 
 class SystemWidget(QWidget):
 
-	def __init__(self, system):
+	def __init__(self, guide):
 		super(SystemWidget, self).__init__()
 
-		self._system = None
+		self._guide = None
 		self._widgets = None
+		self._builder = None
 
 		# Load UI File
 		module = __import__(self.__module__, globals(), locals(), ["*"], -1)
 		uiPath = os.path.join(os.path.dirname(module.__file__), "widget.ui")
 		QtCompat.loadUi(uiPath, self)
 
-		if system:
-			self.setSystem(system)
+		if guide:
+			self.setSystem(guide)
 
 
-	def setSystem(self, system):
-		self._system = system
+	def setSystem(self, guide):
+		self._guide = guide
+		self._builder = None
+		self.layer = self._guide.layer
+		self.settings = self._guide.settings
+		self.setSettings = self._guide.setSettings
+		self.count = self._guide.count
+		self.isBuilt = self._guide.isBuilt
+		self.markers = self._guide.markers
 
 		if not self._widgets:
 			self._widgets = self.getSettingWidgets()
 
-		self.loadSettings()
+		self.load()
 		self.connectWidgets(self._widgets)
+
+	def guide(self):
+		return self._guide
+
+	# -----------------------------------------------------
+	# GET
+	# -----------------------------------------------------
+	def getObject(self, use, part):
+		if not self._builder:
+			self._builder = self._guide.builder()
+		self._builder.getObject(use, part)
+
+	def getAttribute(self, part):
+		if not self._builder:
+			self._builder = self._guide.builder()
+		self._builder.getAttribute(part)
 
 	# -----------------------------------------------------
 	# WIDGETS
 	# -----------------------------------------------------
 	def getSettingWidgets(self):
 		widgets = {}
-		for setting in self._system.settings().keys():
+		for setting in self._guide.settings().keys():
 			widgetName = "ui" + setting[0].capitalize() + setting[1:]
 			if widgetName not in self.__dict__:
 				continue
@@ -47,23 +71,23 @@ class SystemWidget(QWidget):
 		for widget in widgets.values():
 			widget.disconnect()
 			if isinstance(widget, QCheckBox):
-				widget.stateChanged.connect(self.saveSettings)
+				widget.stateChanged.connect(self.commit)
 			elif isinstance(widget, QComboBox):
-				widget.currentIndexChanged.connect(self.saveSettings)
+				widget.currentIndexChanged.connect(self.commit)
 			elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
-				widget.valueChanged.connect(self.saveSettings)
+				widget.valueChanged.connect(self.commit)
 			elif isinstance(widget, QLineEdit):
-				widget.editingFinished.connect(self.saveSettings)
+				widget.editingFinished.connect(self.commit)
 			elif isinstance(widget, QListWidget):
-				widget.currentItemChanged.connect(self.saveSettings)
+				widget.currentItemChanged.connect(self.commit)
 			elif isinstance(widget, QPlainTextEdit):
-				widget.textChanged.connect(self.saveSettings)
+				widget.textChanged.connect(self.commit)
 	
 	# -----------------------------------------------------
 	# SETTINGS
 	# -----------------------------------------------------
-	def loadSettings(self):
-		for setting, value in self._system.settings().items():
+	def load(self):
+		for setting, value in self._guide.settings().items():
 			if setting not in self._widgets:
 				continue
 			
@@ -90,7 +114,7 @@ class SystemWidget(QWidget):
 
 			widget.blockSignals(False)
 	
-	def saveSettings(self):
+	def commit(self):
 		settings = {}
 		for setting, widget in self._widgets.iteritems():
 			if isinstance(widget, QCheckBox):
@@ -106,5 +130,5 @@ class SystemWidget(QWidget):
 			elif isinstance(widget, QPlainTextEdit):
 				settings[setting] = str(widget.toPlainText())
 
-		self._system.setSettings(**settings)
-		self._system.guide().commit()
+		self.setSettings(**settings)
+		self._guide.commit()

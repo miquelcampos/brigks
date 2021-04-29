@@ -1,16 +1,17 @@
 
+from maya import cmds
 
 from Qt.QtWidgets import QLabel, QComboBox, QPushButton, QComboBox, QDoubleSpinBox
 
 from brigks.systems.systemWidget import SystemWidget
-
+from brigks import config
 
 class DrivenSystemWidget(SystemWidget):
 
 	def addWidgets(self):
 		uiRotationLAY = self.uiTrackedRotationGRP.layout()
 		
-		for i in xrange(2, self.guide().count("Rail")+1):
+		for i in xrange(2, self.count("Rail")+1):
 			uiLabel = QLabel("Slider {}".format(i))
 			
 			uiMinRot = self._addQDoubleSpinBox(-180.0, 180.0, 15.0)
@@ -35,33 +36,34 @@ class DrivenSystemWidget(SystemWidget):
 			self.__dict__["uiSelect{}".format(i)] = uiSelect
 			self.__dict__["uiSet{}".format(i)] = uiSet
 
-	def addConnections(self):
-		for i in xrange(1, self.guide().count("Rail")+1):
+	def connectWidgets(self, widgets):
+		super(DrivenSystemWidget, self).connectWidgets(widgets)
+
+		for i in xrange(1, self.count("Rail")+1):
 			self.__dict__["uiSet{}".format(i)].clicked.connect(partial(self._setGuide,i))
 			self.__dict__["uiSelect{}".format(i)].clicked.connect(partial(self._selectGuide,i))
 			
 	def _selectGuide(self, idx):
-		if not self.access():
+		if not self.isBuilt():
 			return
 
-		ctl = self.access().controllers("Part{}".format(idx))
+		ctl = self.getObject(config.USE_CTL, "Part{}".format(idx))
 		if not ctl:
-			ctl = self.access().objects("Part{}".format(idx), usage="Rig")
-		if not ctl:
-			return
+			ctl = self.getObject(config.USE_RIG, "Part{}".format(idx))
 
-		Scene().setSelection([ctl])
+		if ctl:
+			cmds.select(ctl)
 
 	def _setGuide(self, idx):
-		if not self.access():
+		if not self.isBuilt():
 			return
 
 		# Gather relevant pieces
 		ctlMap = dict(Min="Neg",Max="Pos")
 
 		# Figure out which direction from current angle
-		slideAttr = self.access().attributes("setup","Slide{}".format(idx))()
-		rotToSliderNode = dcc.maya.cast.toPath(slideAttr.source().node())
+		slideAttr = self.getAttribute("Slide{}".format(idx))
+		rotToSliderNode = cmds.listConnections(slideAttr, target=False)[0]
 		currentAngle = cmds.getAttr(rotToSliderNode+".angle")
 		if currentAngle > 0:
 			direction = "Max"
@@ -71,14 +73,14 @@ class DrivenSystemWidget(SystemWidget):
 		key = "{}{}".format(ctlMap[direction],idx)
 		ctl = self.access().controllers("Part{}".format(idx))
 		if not ctl:
-			ctl = self.access().objects("Part{}".format(idx), usage="Rig")
+			ctl = self.getObject(config.USE_RIG, "Part{}".format(idx))
 		if not ctl:
 			return
 
-		ref = self.access().objects(key, usage="Rig")
-		rail = self.access().objects("Rail{}".format(idx), usage="Rig")
-		refGde = self.guide().markers(key)
-		railGde = self.guide().markers("Rail{}".format(idx))
+		ref = self.getObject(config.USE_RIG, key)
+		rail = self.getObject(config.USE_RIG, "Rail{}".format(idx))
+		refGde = self.markers(key)
+		railGde = self.markers("Rail{}".format(idx))
 
 		# Set transform of rig piece and guide
 		tfm = ctl.transform(world=True)

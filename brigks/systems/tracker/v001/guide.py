@@ -5,8 +5,8 @@ from brigks.systems.systemGuide import SystemGuide
 class TrackerSystemGuide(SystemGuide):
 
 	def addSettings(self):
-		self._settings["driverDefOrder"] = []
-		self._settings["driverDefs"] = {}
+		self._settings["order"] = []
+		self._settings["definitions"] = {}
 
 	def connectionPorts(self):
 		super(TrackerSystemGuide, self).connectionPorts()

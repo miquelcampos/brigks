@@ -9,8 +9,6 @@ Goals for v0.1.0
 - Can create, delete, duplicate, move systems thru UI
 
 Goals for v0.2.0
-- Guide colors per layer
-- Controllers colors
 - Controllers preserve shapes
 - TransformMulti system
 - All systems widgets working
@@ -43,6 +41,8 @@ TBD
 
 
 DONE
+- Guide colors per layer
+- Controllers colors
 - System rename
 - System Compatibility
 - Pre/Post Script

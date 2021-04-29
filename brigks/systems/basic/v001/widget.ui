@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>263</width>
+    <width>269</width>
     <height>552</height>
    </rect>
   </property>
@@ -132,14 +132,14 @@
       <item row="1" column="0">
        <widget class="QCheckBox" name="uiTx">
         <property name="text">
-         <string>Position X</string>
+         <string>Translate X</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QCheckBox" name="uiTy">
         <property name="text">
-         <string>Position Y</string>
+         <string>Translate Y</string>
         </property>
        </widget>
       </item>
@@ -181,14 +181,14 @@
       <item row="1" column="2">
        <widget class="QCheckBox" name="uiTz">
         <property name="text">
-         <string>Position Z</string>
+         <string>Translate Z</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
        <widget class="QCheckBox" name="uiRotorder">
         <property name="text">
-         <string>Rotation Order</string>
+         <string>Rot Order</string>
         </property>
        </widget>
       </item>

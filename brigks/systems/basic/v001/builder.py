@@ -15,7 +15,7 @@ class BasicSystemBuilder(SystemBuilder):
 		self.ctl = []
 		parent = None
 
-		color = self.settings("colorIk") if self.settings("useIkColor") else self.settings("colorFk")
+		color = self.colorIk() if self.settings("useIkColor") else self.colorFk()
 		axis = self.sign()+"yz"
 
 		self.jntparent = []
@@ -24,11 +24,6 @@ class BasicSystemBuilder(SystemBuilder):
 		for i, (t, dy, dz) in enumerate(izip(self.translations("Part"), 
 										self.directions("Part", "y"),self.directions("Part", "z"))
 													  , start=1):
-
-			print t
-			print dy
-			print dz
-			print axis
 
 			tfm = Transformation.lookAt(t, dy, dz, axis, negativeSide=self.negate())
 
@@ -102,7 +97,7 @@ class BasicSystemBuilder(SystemBuilder):
 		if self.settings("dynamic"):
 			for i, harmonic in enumerate(self.jntparent):
 				parent = cmds.listRelatives(harmonic, parent=True)[0]
-				cns = self.addCommpound("harmonic", "Dyn{i}".format(i), harmonic, parent, 
+				cns = self.addCompound("harmonic", "Dyn{}".format(i), harmonic, parent, 
 					amplitude=1.0, 
 					decay=self.settings("decay"), 
 					frequency=self.settings("frequency"), 
@@ -137,7 +132,6 @@ class BasicSystemBuilder(SystemBuilder):
 				cmds.connectAttr(self.frequencyAttr, cns+".frequencyMult")
 
 	def createConnections(self):
-
 		for port, cnx in self.connections(includeUIHosts=False).iteritems():
 			bfr = self.getObject(config.USE_BFR, port)
 			cnx.connect(bfr)

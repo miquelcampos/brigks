@@ -243,22 +243,17 @@
           <widget class="QComboBox" name="uiTypeCBOX">
            <item>
             <property name="text">
-             <string>Boolean</string>
+             <string>bool</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Float</string>
+             <string>float</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Integer</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Proxy</string>
+             <string>short</string>
             </property>
            </item>
           </widget>
@@ -325,33 +320,6 @@
          <property name="spacing">
           <number>3</number>
          </property>
-         <item row="0" column="2">
-          <widget class="QDoubleSpinBox" name="uiFloatValueSPN">
-           <property name="decimals">
-            <number>3</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Min</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="uiFloatHasMinCHK">
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="2">
           <widget class="QDoubleSpinBox" name="uiFloatMinSPN">
            <property name="decimals">
@@ -365,15 +333,8 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Max</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="uiFloatHasMaxCHK">
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="uiFloatHasMinCHK">
            <property name="layoutDirection">
             <enum>Qt::RightToLeft</enum>
            </property>
@@ -401,109 +362,44 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0" colspan="3">
-          <widget class="QGroupBox" name="uiFloatHasUIMinMaxGRP">
-           <property name="title">
-            <string>UI Min Max</string>
-           </property>
-           <property name="checkable">
-            <bool>false</bool>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_2">
-            <property name="leftMargin">
-             <number>3</number>
-            </property>
-            <property name="topMargin">
-             <number>3</number>
-            </property>
-            <property name="rightMargin">
-             <number>3</number>
-            </property>
-            <property name="bottomMargin">
-             <number>3</number>
-            </property>
-            <property name="spacing">
-             <number>3</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Min</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="uiFloatHasUIMinCHK">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QDoubleSpinBox" name="uiFloatUIMinSPN">
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="minimum">
-               <double>-9999.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>9999.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Max</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="uiFloatHasUIMaxCHK">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QDoubleSpinBox" name="uiFloatUIMaxSPN">
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="minimum">
-               <double>-9999.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>9999.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QLabel" name="label_4">
            <property name="text">
             <string>Value</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QDoubleSpinBox" name="uiFloatValueSPN">
+           <property name="decimals">
+            <number>3</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="uiFloatHasMaxCHK">
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Max</string>
            </property>
           </widget>
          </item>
@@ -528,13 +424,6 @@
          <property name="spacing">
           <number>3</number>
          </property>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>Min</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QCheckBox" name="uiIntegerHasMinCHK">
            <property name="layoutDirection">
@@ -545,13 +434,6 @@
            </property>
            <property name="checked">
             <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_10">
-           <property name="text">
-            <string>Max</string>
            </property>
           </widget>
          </item>
@@ -568,123 +450,17 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0" colspan="3">
-          <widget class="QGroupBox" name="uiIntegerHasUIMinMaxGRP">
-           <property name="title">
-            <string>UI Min Max</string>
-           </property>
-           <property name="checkable">
-            <bool>false</bool>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_5">
-            <property name="leftMargin">
-             <number>3</number>
-            </property>
-            <property name="topMargin">
-             <number>3</number>
-            </property>
-            <property name="rightMargin">
-             <number>3</number>
-            </property>
-            <property name="bottomMargin">
-             <number>3</number>
-            </property>
-            <property name="spacing">
-             <number>3</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>Min</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="uiIntegerHasUIMinCHK">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>Max</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="uiIntegerHasUIMaxCHK">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QSpinBox" name="uiIntegerUIMinSPN">
-              <property name="minimum">
-               <number>-9999</number>
-              </property>
-              <property name="maximum">
-               <number>9999</number>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QSpinBox" name="uiIntegerUIMaxSPN">
-              <property name="minimum">
-               <number>-9999</number>
-              </property>
-              <property name="maximum">
-               <number>9999</number>
-              </property>
-              <property name="value">
-               <number>1</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label_13">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_9">
            <property name="text">
-            <string>Value</string>
+            <string>Min</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QSpinBox" name="uiIntegerValueSPN">
-           <property name="minimum">
-            <number>-9999</number>
-           </property>
-           <property name="maximum">
-            <number>9999</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QSpinBox" name="uiIntegerMinSPN">
-           <property name="minimum">
-            <number>-9999</number>
-           </property>
-           <property name="maximum">
-            <number>9999</number>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Max</string>
            </property>
           </widget>
          </item>
@@ -698,6 +474,33 @@
            </property>
            <property name="value">
             <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Value</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QSpinBox" name="uiIntegerMinSPN">
+           <property name="minimum">
+            <number>-9999</number>
+           </property>
+           <property name="maximum">
+            <number>9999</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QSpinBox" name="uiIntegerValueSPN">
+           <property name="minimum">
+            <number>-9999</number>
+           </property>
+           <property name="maximum">
+            <number>9999</number>
            </property>
           </widget>
          </item>
@@ -778,38 +581,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>uiFloatHasUIMinCHK</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>uiFloatUIMinSPN</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>439</x>
-     <y>393</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>471</x>
-     <y>394</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>uiFloatHasUIMaxCHK</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>uiFloatUIMaxSPN</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>437</x>
-     <y>417</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>454</x>
-     <y>416</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>uiIntegerHasMinCHK</sender>
    <signal>clicked(bool)</signal>
    <receiver>uiIntegerMinSPN</receiver>
@@ -838,38 +609,6 @@
     <hint type="destinationlabel">
      <x>462</x>
      <y>491</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>uiIntegerHasUIMinCHK</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>uiIntegerUIMinSPN</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>442</x>
-     <y>528</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>499</x>
-     <y>528</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>uiIntegerHasUIMaxCHK</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>uiIntegerUIMaxSPN</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>441</x>
-     <y>556</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>465</x>
-     <y>556</y>
     </hint>
    </hints>
   </connection>

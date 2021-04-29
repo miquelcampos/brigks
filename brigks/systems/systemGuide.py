@@ -141,6 +141,9 @@ class SystemGuide(object):
 					connections={slot:cnx.dumps() for slot, cnx in self._connections.iteritems()})
 		return data
 
+	def commit(self):
+		self.guide().commit()
+
 	# ----------------------------------------------------------------------------------
 	# 
 	# ----------------------------------------------------------------------------------

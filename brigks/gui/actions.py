@@ -35,9 +35,10 @@ def addSystem(layer, parent=None):
 	matrices = {}
 	if dialog.pickPositions():
 		SystemClass = getSystemGuideClass(systemType)
-		matrices = SystemClass.pickMarkerPositions()
-		if not matrices:
-			return
+		if SystemClass.markerPicked:
+			matrices = SystemClass.pickMarkerPositions()
+			if not matrices:
+				return
 
 	system = layer.addSystem(systemType, "M", "NewSystem", matrices, version=None)
 	guide.commit()

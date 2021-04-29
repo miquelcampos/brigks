@@ -5,7 +5,9 @@ from brigks.systems.systemWidget import SystemWidget
 
 class QuadrantSystemWidget(SystemWidget):
 
-	def addConnections(self):
+	def connectWidgets(self, widgets):
+		super(QuadrantSystemWidget, self).connectWidgets(widgets)
+
 		self.uiNorth.clicked.connect(self.changeFrameDisplay)
 		self.uiSouth.clicked.connect(self.changeFrameDisplay)
 		self.uiEast.clicked.connect(self.changeFrameDisplay)
@@ -22,11 +24,11 @@ class QuadrantSystemWidget(SystemWidget):
 		offy = 1 * (north - south)
 		offx = 1 * (east - west)
 		
-		marker = self.guide().markers("Root")
+		marker = self.markers("Root")
 		marker.setDisplay( [dict(icon="sphere"),
 							dict(icon="cube", so=[sclx,scly,0], po=[offx, offy, 0])],
 							replace=True )
 
-		color = self.guide().layerColor()
+		color = self.layer().color()
 		marker.setColor(color)
 			
