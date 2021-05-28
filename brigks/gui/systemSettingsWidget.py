@@ -1,5 +1,5 @@
 import os.path
-import sip
+import shiboken2
 
 from Qt import QtCompat
 from Qt.QtCore import Signal
@@ -72,7 +72,7 @@ class SystemSettingsWidget(QWidget):
 		if self._settingsWidget:
 			self.uiSettingsTAB.layout().removeWidget(self._settingsWidget)
 			self._settingsWidget.setVisible(False)
-			#TODO sip delete?
+			#TODO shiboken2 delete?
 
 		if system.type() not in self._settingsWidgets:
 			WidgetClass = getSystemWidgetClass(system.type())
@@ -188,7 +188,7 @@ class SystemSettingsWidget(QWidget):
 		# Delete Connection Widget
 		widget = self._connectionWidgets.pop(port)
 		self.uiConnectionsLAY.removeWidget(widget)
-		sip.delete(widget)
+		shiboken2.delete(widget)
 
 		self.updateConnectionWidgets()
 

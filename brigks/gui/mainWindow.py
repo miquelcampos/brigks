@@ -1,5 +1,4 @@
 import os.path
-import sip
 from maya import cmds
 
 from Qt.QtWidgets import QDialog

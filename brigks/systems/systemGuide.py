@@ -3,8 +3,8 @@ import copy
 import xml.etree.cElementTree as etree
 import json
 
-from math3d.transformation import Transformation
-from math3d import TransformationArray, Vector3Array
+from math3d.transformation import Transformation, TransformationArray
+from math3d.vectorN import Vector3Array
 
 from brigks.connections import getSystemConnectionClass
 from brigks import naming, config

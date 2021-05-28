@@ -1,5 +1,4 @@
 import os.path
-import sip
 import logging
 
 import maya.OpenMayaUI as mui

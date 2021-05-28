@@ -7,9 +7,9 @@ import copy
 
 from maya import cmds
 
-from brigks import naming
-from brigks import config
-from brigks.utils import create, script
+import naming
+import config
+from utils import create, script
 
 HIERARCHY_XML_PATH = os.path.join(os.path.dirname(__file__),"hierarchy.xml")
 

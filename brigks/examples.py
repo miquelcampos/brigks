@@ -1,9 +1,12 @@
+import os.path
+from datetime import datetime as dt
+import logging
 
-
-from brigks import Guide
+from guide import Guide
 from brigks.gui import showWindow
 
-from math3d import Transformation, Vector3
+from math3d.transformation import Transformation
+from math3d.vectorN import Vector3
 
 
 def exampleA(mirror=False, showWindow=False):
@@ -53,5 +56,20 @@ def exampleA(mirror=False, showWindow=False):
 
 	if showWindow:
 		showWindow()
+
+	return guide
+
+
+
+def exampleB(template="harbie_biped", build=True):
+	start = dt.now()
+	path = os.path.join(os.path.dirname(__file__), "templates", template+".xml")
+	guide = Guide.fromXml(path)
+	print "Create Rig from Template", dt.now() - start
+	
+	if build:
+		start = dt.now()
+		guide.build()
+		print "Build Rig", dt.now() - start
 
 	return guide

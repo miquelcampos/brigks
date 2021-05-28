@@ -1,5 +1,5 @@
 
-from math3d import Matrix4
+from math3d.matrixN import Matrix4
 
 from maya import cmds
 

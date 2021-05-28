@@ -186,7 +186,7 @@ class TwistSystemBuilder(SystemBuilder):
 
 			# Scaling
 			if self.settings("scaleWithCurve"):
-				if self.settings("negate"):
+				if self.negate():
 					negNode = self.addNode("multiplyDivide", "Neg")
 					cmds.setAttr(negNode+".operation", 1) # Multiply
 					cmds.connectAttr(lengthRatioNode+".outputX", negNode+".input1X")

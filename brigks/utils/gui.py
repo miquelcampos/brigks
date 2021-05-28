@@ -1,8 +1,9 @@
-import sip
+
+import shiboken2
 import os.path
 import math
 
-from Qt.QtWidgets import QWidget, QFileDialog
+from Qt.QtWidgets import QWidget, QFileDialog, QMainWindow
 
 import maya.OpenMayaUI as mui
 import maya.OpenMaya as om
@@ -15,7 +16,7 @@ def getMayaWindow():
 		QWidget
 	'''
 	ptr = mui.MQtUtil.mainWindow()
-	return sip.wrapinstance(long(ptr), QWidget)
+	return shiboken2.wrapinstance(long(ptr), QMainWindow)
 
 def get3dViews():
 	views = []
@@ -32,7 +33,7 @@ def get3dViews():
 def wrapViewWidget(viewIndex):
 	view = mui.M3dView()
 	mui.M3dView.get3dView(viewIndex, view)
-	widget = sip.wrapinstance(long(view.widget()), QWidget)
+	widget = shiboken2.wrapinstance(long(view.widget()), QWidget)
 
 	return view, widget
 
@@ -98,7 +99,7 @@ def addScriptWidget(tempWindowName):
 	    cmds.formLayout("qtLayoutObjects")
 
 	ptr = mui.MQtUtil.mainWindow()
-	mayaWindow = sip.wrapinstance(long(ptr), QWidget)
+	mayaWindow = shiboken2.wrapinstance(long(ptr), QWidget)
 	for ind, el in enumerate(mayaWindow.children()):
 	    try:
 	        title = el.windowTitle()

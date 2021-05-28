@@ -2,7 +2,9 @@ from copy import copy
 
 from maya import cmds
 
-from math3d import Transformation, Matrix4, Vector3
+from math3d.transformation import Transformation
+from math3d.matrixN import Matrix4
+from math3d.vectorN import Vector3
 
 from brigks import naming
 from brigks.utils import create

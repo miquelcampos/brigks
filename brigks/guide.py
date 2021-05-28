@@ -5,12 +5,12 @@ import getpass
 import datetime
 import logging
 
-from brigks.layer import Layer
-from brigks.builder import Builder
-from brigks import naming
-from brigks.utils import create
-from brigks.config import DATA_ATTRIBUTE
-from brigks.utils.xmldom import indent
+import naming
+from layer import Layer
+from builder import Builder
+from utils import create
+from config import DATA_ATTRIBUTE
+from utils.xmldom import indent
 
 
 scriptDefaultValue = '''# cmds returns the maya.cmds module
