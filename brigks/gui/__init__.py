@@ -20,4 +20,5 @@ def showWindow():
 
 	window = MainWindow(guide, maya)
 	window.show()
+	return window
 

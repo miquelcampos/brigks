@@ -30,7 +30,7 @@ class PickSlotDialog(QDialog):
 		if not isinstance(item, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
 			return
 
-		self._system = item.system()
+		self._system = item.object()
 		self._slots = sorted(self._system.connectionSlots().keys())
 
 		self.uiSlotLIST.addItems(self._slots)

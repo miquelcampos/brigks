@@ -130,9 +130,11 @@ class SystemSettingsWidget(QWidget):
 	# CONNECTIONS
 	# ----------------------------------------------------------------------------------
 	def clearConnectionWidgets(self):
+		self.updateConnectionWidgets()
 		for widget in self._connectionWidgets.values():
 			self.uiConnectionsLAY.removeWidget(widget)
-			sip.delete(widget)
+			widget.deleteLater()
+			# sip.delete(widget)
 		self._connectionWidgets = {}
 
 	def updateConnectionWidgets(self):
@@ -164,7 +166,7 @@ class SystemSettingsWidget(QWidget):
 		port = self.uiConnectionPortCBOX.currentText()
 		connectionType = self.uiConnectionTypeCBOX.currentText()
 
-		connection = self._system.addConnection(connectionType, port)
+		connection = self._system.addConnection(port, connectionType)
 		self.addConnectionWidget(port, connection)
 
 		self.commit()

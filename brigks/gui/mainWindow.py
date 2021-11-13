@@ -55,7 +55,7 @@ class MainWindow(QDialog):
 				elif isinstance(self._lastItem, (SystemTreeWidgetItem, SubSystemTreeWidgetItem)):
 					self._systemSettingsWidget.systemChanged.disconnect(self._lastItem.setSystem)
 					self._systemSettingsWidget.systemRenamed.disconnect(self._lastItem.setSystemName)
-			except TypeError:
+			except RuntimeError:
 				pass
 
 			# Set Item and Connect

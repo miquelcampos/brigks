@@ -69,7 +69,11 @@ class SystemWidget(QWidget):
 	
 	def connectWidgets(self, widgets):
 		for widget in widgets.values():
-			widget.disconnect()
+			try:
+				widget.disconnect()
+			except TypeError:
+				pass
+
 			if isinstance(widget, QCheckBox):
 				widget.stateChanged.connect(self.commit)
 			elif isinstance(widget, QComboBox):

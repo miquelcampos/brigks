@@ -15,7 +15,7 @@ class SlotParentConnectionWidget(SystemConnectionWidget):
 		self.uiPickBTN.clicked.connect(self.pickSlot)
 
 	def pickSlot(self):
-		dialog = PickSlotDialog(self, self._system.coreGuide)
+		dialog = PickSlotDialog(self, self._system.guide())
 		if not dialog.exec_():
 			return
 
