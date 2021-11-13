@@ -53,10 +53,13 @@ https://github.com/blurstudio/TwistSpline
 
 # Get Started
 **Load Brigks UI**
+```sh
 from brigks.gui import showWindow
 showWindow()
+```
 
 **Load Template**
+```sh
 import os.path
 import brigks
 from brigks import Guide
@@ -68,3 +71,4 @@ path = os.path.join([root, "templates", "harbie_biped.xml"])
 Guide.fromXml(path)
 
 showWindow()
+```
