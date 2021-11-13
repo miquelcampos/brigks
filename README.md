@@ -41,6 +41,7 @@ Brigks currently relies on a few external modules and plugins
 
 **Python modules**
 - math3d: Python Math module developed by Tyler Fox at Blur Studio.
+https://github.com/tbttfox/math3d
 
 **Maya Cpp Plugins**
 - harbieSolver: A set of custom solvers developed by Jeremie Passerin at Blur Studio
@@ -48,3 +49,22 @@ Brigks currently relies on a few external modules and plugins
 - harmonics: An Harmonic solver plugin developed by Tyler Fox at Blur Studio
 - twistspline: A spline interpolation plugin developed by Tyler Fox at Blur Studio
 https://github.com/blurstudio/TwistSpline
+
+
+# Get Started
+**Load Brigks UI**
+from brigks.gui import showWindow
+showWindow()
+
+**Load Template**
+import os.path
+import brigks
+from brigks import Guide
+from brigks.gui import showWindow
+
+root = brigks.__path__[0]
+path = os.path.join([root, "templates", "harbie_biped.xml"])
+
+Guide.fromXml(path)
+
+showWindow()

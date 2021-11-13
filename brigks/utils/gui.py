@@ -16,7 +16,7 @@ def getMayaWindow():
 		QWidget
 	'''
 	ptr = mui.MQtUtil.mainWindow()
-	return shiboken2.wrapinstance(long(ptr), QMainWindow)
+	return shiboken2.wrapInstance(long(ptr), QMainWindow)
 
 def get3dViews():
 	views = []
@@ -33,7 +33,7 @@ def get3dViews():
 def wrapViewWidget(viewIndex):
 	view = mui.M3dView()
 	mui.M3dView.get3dView(viewIndex, view)
-	widget = shiboken2.wrapinstance(long(view.widget()), QWidget)
+	widget = shiboken2.wrapInstance(long(view.widget()), QWidget)
 
 	return view, widget
 
@@ -99,7 +99,7 @@ def addScriptWidget(tempWindowName):
 	    cmds.formLayout("qtLayoutObjects")
 
 	ptr = mui.MQtUtil.mainWindow()
-	mayaWindow = shiboken2.wrapinstance(long(ptr), QWidget)
+	mayaWindow = shiboken2.wrapInstance(long(ptr), QWidget)
 	for ind, el in enumerate(mayaWindow.children()):
 	    try:
 	        title = el.windowTitle()
